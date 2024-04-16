@@ -21,7 +21,8 @@ class AuthController extends BaseController
         $this->middleware('api', ['except' => ['login', 'signup', 'refresh', 'resetPassword', 'call_log', 'loginByToken', 'timezones']]);
     }
 
-    public function login(Request $request){
-        dd($request);
+    public function login(Request $request)
+    {
+        $this->validate($request, ['username' => 'required', "password" => "required"]);
     }
 }
