@@ -165,6 +165,6 @@ class BaseController extends Controller
             'iat' => time(), // Time when JWT was issued.
             'exp' => time() + 60 * 60 * 1440, // 1209600 //60*60 // Expiration time
         ];
-        return JWT::encode($payload, env('JWT_SECRET'), 'HS256');
+        return JWT::encode($payload, env('JWT_TOKEN'), env('JWT_ALGORITHM'));
     }
 }
