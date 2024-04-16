@@ -29,9 +29,23 @@ class AuthController extends BaseController
         $password = $request->password;
 
         $user  =  User::where('mobilenumber', $username)->orWhere('username', $username)->first();
-        if($user){
-            $verified = parent::verify_password($user->password, $password);
-            dd($verified);
+        if ($user) {
+            if ($user->is_activated === 1) {
+                $verified = parent::verify_password($user->password, $password);
+                if ($verified) {
+                    $response = [
+                        'success' => true,
+                        'token' => parent::jwt($user),
+                        'menus' => $user->menus,
+                        'reports' => $user->reports,
+                        'role' => $user->role,
+                    ];
+                    return response()->json($response, 200);
+                    return parent::sendSuccess("Password entered is incorrect");
+                }
+                return parent::sendError("Password entered is incorrect");
+            }
+            return parent::sendError("Oops! Your account is Inactive. Please contact admin.");
         }
         return parent::sendError("Username entered is incorrect");
     }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller as Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Firebase\JWT\JWT;
 
 class BaseController extends Controller
 {
@@ -147,7 +148,23 @@ class BaseController extends Controller
         return json_last_error() === JSON_ERROR_NONE;
     }
 
-    public function verify_password($hashed_password,$password){
+    public function verify_password($hashed_password, $password)
+    {
         return hash_equals($hashed_password, crypt($password, $hashed_password));
+    }
+
+    public function jwt($user)
+    {
+        $json = [
+            'client_id'     =>    $user->client_id,
+            'admin_id'      =>    $user->id
+        ];
+        $payload = [
+            'iss' => "visualvend-jwt", // Issuer of the token
+            'sub' => $json, //$user->customerID, // Subject of the token
+            'iat' => time(), // Time when JWT was issued.
+            'exp' => time() + 60 * 60 * 1440, // 1209600 //60*60 // Expiration time
+        ];
+        return JWT::encode($payload, env('JWT_SECRET'), 'HS256');
     }
 }
