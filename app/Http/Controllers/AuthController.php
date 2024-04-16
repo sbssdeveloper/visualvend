@@ -28,9 +28,9 @@ class AuthController extends BaseController
         $password = $request->password;
 
         $user  =  User::where('mobilenumber', $username)->orWhere('username', $username)->first();
-        dd($user);
         if($user){
             $verified = Hash::check($user->password, $password);
+            dd($verified);
         }
         return parent::sendError("Username entered is incorrect");
     }
