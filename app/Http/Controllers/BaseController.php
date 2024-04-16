@@ -148,6 +148,6 @@ class BaseController extends Controller
     }
 
     public function verify_password($hashed_password,$password){
-        return hash_equals($hashed_password, crypt($user_input, $hashed_password))
+        return hash_equals($hashed_password, crypt($user_input, $hashed_password));
     }
 }
