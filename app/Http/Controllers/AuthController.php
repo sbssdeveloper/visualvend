@@ -13,7 +13,7 @@ use App\Repositories\BaseRepository;
 use Validator;
 use App\Models\User;
 use DB;
-use Hash;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends BaseController
 {
