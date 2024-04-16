@@ -146,4 +146,8 @@ class BaseController extends Controller
         json_decode($string);
         return json_last_error() === JSON_ERROR_NONE;
     }
+
+    public function verify_password($hashed_password,$password){
+        return hash_equals($hashed_password, crypt($user_input, $hashed_password))
+    }
 }
