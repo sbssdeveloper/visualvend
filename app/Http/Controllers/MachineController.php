@@ -37,7 +37,7 @@ class MachineController extends BaseController
             $model = $model->select(["id", "machine_name as name"])->get();
             return parent::sendResponse($model, "Success");
         } else {
-            $model = $model->select(["id", "machine_name"])->paginate($request->length);
+            $model = $model->paginate($request->length);
             return parent::sendResponseWithPagination($model, "Success");
         }
     }
