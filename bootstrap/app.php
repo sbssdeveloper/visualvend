@@ -78,8 +78,8 @@ $app->configure('swagger-lume');
 // ]);
 
 $app->routeMiddleware([
-    'auth' => App\Http\Middleware\Authenticate::class,
-    'api' => App\Http\Middleware\JWTAuthenticate::class
+    'pub' => App\Http\Middleware\Authenticate::class,
+    'jwt' => App\Http\Middleware\JWTAuthenticate::class
 ]);
 
 /*

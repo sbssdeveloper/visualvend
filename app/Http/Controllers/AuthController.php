@@ -19,7 +19,7 @@ class AuthController extends BaseController
 {
     public function __construct()
     {
-        $this->middleware('api', ['except' => ['login', 'signup', 'refresh', 'resetPassword', 'call_log', 'loginByToken', 'timezones']]);
+        $this->middleware('pub', ['except' => ['login', 'signup', 'refresh', 'resetPassword', 'call_log', 'loginByToken', 'timezones']]);
     }
 
     public function login(Request $request)
