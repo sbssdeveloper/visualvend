@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Exception;
 use App\Models\User;
+use App\Models\Machine;
 use DB;
 use Firebase\JWT\Key;
 use Firebase\JWT\JWT;
