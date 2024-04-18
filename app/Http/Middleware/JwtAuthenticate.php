@@ -47,9 +47,9 @@ class JWTAuthenticate
         if ($user->client_id > 0) {
             $list   = explode(",", $user->machines);
             $select = [];
-            $machines = Machine::whereIn("id", $list)->orderBy('machine_name', "ASC")->get();
+            $machines = Machine::select(["id", "machine_name"])->whereIn("id", $list)->orderBy('machine_name', "ASC")->get();
         } else {
-            $machines = Machine::orderBy('machine_name', "ASC")->get();
+            $machines = Machine::select(["id", "machine_name"])->orderBy('machine_name', "ASC")->get();
         }
         $request->auth->machines = $machines;
         return $next($request);
