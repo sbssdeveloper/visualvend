@@ -26,7 +26,7 @@ class MachineController extends BaseController
     public function list(Request $request)
     {
         $client_id = $request->auth->client_id;
-        $model = Machine::select(["id", "machine_name"]);
+        $model = Machine::select(["id", "machine_name"])->where('is_deleted', 0);
         if ($client_id > 0) {
             $list   = explode(",", $request->auth->machines);
             $model = $model->whereIn("id", $list);
