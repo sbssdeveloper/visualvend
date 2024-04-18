@@ -21,11 +21,9 @@ class JWTAuthenticate
                 'error' => 'Token not provided.'
             ], 400);
         }
-        echo env('JWT_SECRET');
-        die;
         try {
 
-            $credentials =  JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
+            $credentials =  JWT::decode($token, new Key(env('JWT_TOKEN'), env('JWT_ALGORITHM')));
         } catch (ExpiredException $e) {
             return response()->json([
                 'error' => 'Provided token is expired.'
