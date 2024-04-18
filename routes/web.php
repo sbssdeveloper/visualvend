@@ -12,7 +12,14 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api'], function () use ($router) {
     $router->group(['prefix' => 'auth'], function () use ($router) {
-        //login,logout
         $router->post('login', 'AuthController@login');
+    });
+
+    $router->group(['prefix' => 'dashboard'], function () use ($router) {
+        $router->post('info', 'AuthController@login');
+    });
+
+    $router->group(['prefix' => 'machine'], function () use ($router) {
+        $router->post('list', 'MachineController@list');
     });
 });

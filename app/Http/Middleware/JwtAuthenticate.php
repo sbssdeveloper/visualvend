@@ -35,15 +35,23 @@ class JWTAuthenticate
         }
 
         $user = User::where('id', $credentials->id)->first();
-        
+
         if (!$user) {
             return response()->json([
                 'ResponseCode' => '0',
                 'ResponseText' => 'Unauthorized request,Invalid token'
             ], 401);
         }
-
         $request->auth = $user;
+
+        if ($user->client_id > 0) {
+            $list   = explode(",", $user->machines);
+            $select = [];
+            $machines = Machine::whereIn("id", $list)->orderBy('machine_name', "ASC")->get();
+        } else {
+            $machines = Machine::orderBy('machine_name', "ASC")->get();
+        }
+        $request->auth->machines = $machines;
         return $next($request);
     }
 }
