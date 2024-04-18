@@ -28,9 +28,9 @@ class AuthController extends BaseController
         $username = $request->username;
         $password = $request->password;
 
-        $user  =  User::select(["password", 'menus', 'reports', 'role', 'id', 'client_id'])->where('mobilenumber', $username)->orWhere('username', $username)->first();
+        $user  =  User::select(["password", 'menus', 'reports', 'role', 'id', 'client_id','is_activated'])->where('mobilenumber', $username)->orWhere('username', $username)->first();
         if ($user) {
-            if ($user->is_activated == 1) {
+            if ($user->is_activated === 1) {
                 $verified = parent::verify_password($user->password, $password);
                 if ($verified) {
                     $response = [
