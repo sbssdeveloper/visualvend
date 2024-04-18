@@ -33,6 +33,7 @@ class AuthController extends BaseController
             if ($user->is_activated === 1) {
                 $verified = parent::verify_password($user->password, $password);
                 if ($verified) {
+                    dd($user);
                     $response = [
                         'success' => true,
                         'token' => parent::jwt($user),
