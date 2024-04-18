@@ -34,10 +34,10 @@ class MachineController extends BaseController
         }
         $model = $model->orderBy('machine_name', "ASC");
         if ($request->type === "list") {
-            $model = $model->get()->select(["id", "machine_name as name"]);
+            $model = $model->select(["id", "machine_name as name"])->get();
             return parent::sendResponse($model, "Success");
         } else {
-            $model = $model->paginate($request->length)->select(["id", "machine_name"]);
+            $model = $model->select(["id", "machine_name"])->paginate($request->length);
             return parent::sendResponseWithPagination($model, "Success");
         }
     }
