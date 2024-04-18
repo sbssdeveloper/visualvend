@@ -2,6 +2,10 @@
 
 /** @var \Laravel\Lumen\Routing\Router $router */
 
+$router->options('{all:.*}', function () {
+    return response()->json(array(''), 200);
+});
+
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
