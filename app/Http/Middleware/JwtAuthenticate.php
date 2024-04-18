@@ -34,22 +34,14 @@ class JWTAuthenticate
             ], 401);
         }
 
-        $user = User::where('id', $credentials->sub->id)->first();
-
+        $user = User::where('id', $credentials->id)->first();
+        
         if (!$user) {
             return response()->json([
                 'ResponseCode' => '0',
                 'ResponseText' => 'Unauthorized request,Invalid token'
             ], 401);
         }
-
-        config()->set('database.connections.new', [
-            'driver'    => 'mysql',
-            'host'      => env('DB_HOST'),
-            'database'  => $user->db_name,
-            'username'  => env('DB_USERNAME'),
-            'password'  => env('DB_PASSWORD'),
-        ]);
 
         $request->auth = $user;
         return $next($request);

@@ -15,18 +15,16 @@ use App\Models\User;
 use DB;
 use Illuminate\Support\Facades\Hash;
 
-class AuthController extends BaseController
+class DashboardController extends BaseController
 {
     public function __construct()
     {
-        $this->middleware('api', ['except' => ['login', 'signup', 'refresh', 'resetPassword', 'call_log', 'loginByToken', 'timezones']]);
+        $this->middleware('jwt'); //['except' => ['login']]
     }
 
-    public function login(Request $request)
+    public function info(Request $request)
     {
-        $this->validate($request, ['username' => 'required', "password" => "required"]);
-        $username = $request->username;
-        $password = $request->password;
+        $this->validate($request, ['start_date' => 'required|date', "end_date" => "required|date"]);
 
         $user  =  User::where('mobilenumber', $username)->orWhere('username', $username)->first();
         if ($user) {
@@ -41,6 +39,7 @@ class AuthController extends BaseController
                         'role' => $user->role,
                     ];
                     return response()->json($response, 200);
+                    return parent::sendSuccess("Password entered is incorrect");
                 }
                 return parent::sendError("Password entered is incorrect");
             }
