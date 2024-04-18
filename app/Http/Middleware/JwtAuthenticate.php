@@ -33,7 +33,7 @@ class JWTAuthenticate
                 'error' => 'An error while decoding token.'
             ], 401);
         }
-
+        dd($credentials);
         $user = User::where('id', $credentials->id)->first();
 
         if (!$user) {
