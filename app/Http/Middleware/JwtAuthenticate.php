@@ -21,6 +21,8 @@ class JWTAuthenticate
                 'error' => 'Token not provided.'
             ], 400);
         }
+        echo env('JWT_SECRET');
+        die;
         try {
 
             $credentials =  JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
