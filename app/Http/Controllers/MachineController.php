@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\AuthRequest;
 use App\Http\Requests\AuthSignupRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Models\Machine;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use App\Repositories\BaseRepository;
@@ -24,6 +25,13 @@ class MachineController extends BaseController
 
     public function list(Request $request)
     {
-        return parent::sendResponse($request->auth->machines, "Success");
+        $client_id = $request->auth->client_id;
+        $model = Machine::select(["id", "machine_name"]);
+        if ($client_id > 0) {
+            $list   = explode(",", $request->auth->machines);
+            $model = $model->whereIn("id", $list);
+        }
+        $model = $model->orderBy('machine_name', "ASC")->get();
+        return parent::sendResponse($model, "Success");
     }
 }
