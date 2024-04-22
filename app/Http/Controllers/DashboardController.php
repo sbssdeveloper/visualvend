@@ -313,7 +313,7 @@ class DashboardController extends BaseController
     public function sales15days($params)
     {
         extract($params);
-        $model = Sale::selectRaw("DATE(`timestamp`) as date, FORMAT(SUM(`product_price`),2) as total_sale")->where('is_deleted', '0')->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 15 DAY) AND NOW()');
+        $model = Sale::selectRaw("DATE(`timestamp`) as date, FORMAT(SUM(`product_price`),2) as total_sale")->where('is_deleted', '0')->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 60 DAY) AND NOW()');
         if ($auth->client_id > 0) {
             if (count($machine_ids) > 0) {
                 $model =  $model->whereIn("machine_id", $machine_ids);
