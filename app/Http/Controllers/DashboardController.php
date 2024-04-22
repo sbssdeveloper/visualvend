@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\AuthRequest;
 use App\Http\Requests\AuthSignupRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Models\Employee;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use App\Repositories\BaseRepository;
@@ -14,6 +15,7 @@ use Validator;
 use App\Models\User;
 use App\Models\Machine;
 use App\Models\MachineHeartBeat;
+use App\Models\MachineUser;
 use App\Models\Product;
 use DB;
 use Illuminate\Support\Facades\Hash;
@@ -30,15 +32,15 @@ class DashboardController extends BaseController
         $auth       = $request->auth;
         $machines   = Machine::personal($auth, 'columns', ['id', 'machine_name', 'machine_client_id']);
         $params     = compact("auth", "machines");
-        $response = array_merge(self::machine_info($params), self::products_info($params));
-        // , self::products_info(), self::staff_info(), self::customers_info(), self::machine_users_info($params), self::recentVend($params), self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
+        $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params));
+        //self::customers_info(), self::machine_users_info($params), self::recentVend($params), self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
         return parent::sendResponse($response, "Success");
     }
 
     function machine_info($params)
     {
         extract($params);
-        $response   = $machine_ids = $status_map = [];
+        $response   = [];
         if ($auth->client_id > 0) {
         }
 
@@ -66,24 +68,22 @@ class DashboardController extends BaseController
         return ['products' => $response];
     }
 
-    function staff_info()
+    function staff_info($auth)
     {
-        $where      = ['is_deleted' => '0'];
-        if ($this->client_id > 0) {
-            $where = array_merge($where, ["client_id" => $this->client_id]);
+        $employee = Employee::select(['id'])->where("is_deleted", 0);
+        if ($auth->client_id > 0) {
+            $employee = $employee->where('client_id', $auth->client_id);
         }
-        $response = $employee_ids = $status_map = [];
-        $employee = $this->db->select(['id'])->where($where)->get('employee')->result_array();
-        $response["total"]      = count($employee);
+        $employee   = $employee->count();
+        $response["total"]      = $employee;
         $response["active"]     = 0;
         $response["inactive"]   = 0;
-        $response["offline"]    = count($employee);
+        $response["offline"]    = $employee;
         return ['staff' => $response];
     }
 
     function customers_info()
     {
-        $response = $customer_ids = $status_map = [];
         $response["total"]      = 0;
         $response["active"]     = 0;
         $response["inactive"]   = 0;
@@ -91,24 +91,22 @@ class DashboardController extends BaseController
         return ['customer' => $response];
     }
 
-    function machine_users_info($admin_machines)
+    function machine_users_info($params)
     {
-        $where      = ['is_deactivated' => '0'];
-        if ($this->client_id > 0) {
-            $where = array_merge($where, ["client_id" => $this->client_id]);
-        }
+        extract($params);
         $response               = [];
-        $model                  = $this->db->select(['user.status', 'user.activated_on'])->where($where);
-        if ($this->client_id > 0) {
-            $model          = $model->join("machine", "machine.machine_username=user.username", "left");
-            if (count($admin_machines)) {
-                $model          = $model->where_in("machine.id", $admin_machines);
+        $model                  = MachineUser::select(['user.status', 'user.activated_on']);
+        if ($auth->client_id > 0) {
+            $model          = $model->leftJoin("machine", "machine.machine_username", "=", "user.username");
+            if (count($machines)) {
+                $model          = $model->where_in("machine.id", $machines);
             } else {
                 $model          = $model->where_in("machine.id", ["no_machine"]);
             }
+            $model                  = $model->where("client_id", $auth->client_id);
         }
-        $model                  = $model->group_by("user.id")->get('user')->result_array();
-        $curr_time              = $this->db->select('now() as time')->get()->row();
+        $model                  = $model->where('is_deactivated', '0')->group_by("user.id")->get()->toArray();
+        $curr_time              = $this->db->select('now() as time')->get()->first();
         $response["total"]      = count($model);
         $response["active"]     = 0;
         $response["inactive"]   = 0;
