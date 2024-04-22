@@ -45,7 +45,7 @@ class DashboardController extends BaseController
         $response   = [];
         $response["vend_machines"]  = count($machine_ids);
         $response["items_vended"]   = Sale::recentVend($params);
-        $response["vend_beat"]      = self::machine_info($params)?.['machines'];
+        $response["vend_beat"]      = self::machine_info($params, true);
         return parent::sendResponse($response, "Success");
     }
 
@@ -63,7 +63,7 @@ class DashboardController extends BaseController
         return parent::sendResponse($response, "Success");
     }
 
-    function machine_info($params)
+    function machine_info($params, $type = false)
     {
         extract($params);
         $response   = [];
@@ -76,10 +76,13 @@ class DashboardController extends BaseController
         $response['fluctuating']    = 0;
 
         $machine_status = MachineHeartBeat::selectRaw('SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline');
-        if($auth->client_id>0){
+        if ($auth->client_id > 0) {
             $machine_status = $machine_status->whereIn('machine_id', $machine_ids);
         }
         $machine_status = $machine_status->get()->first();
+        if ($type) {
+            return $response;
+        }
         return ['machines' => $response];
     }
 
