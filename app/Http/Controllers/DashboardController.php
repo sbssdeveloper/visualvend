@@ -94,6 +94,7 @@ class DashboardController extends BaseController
     function machine_users_info($params)
     {
         extract($params);
+        dd($machines);
         $response               = [];
         $model                  = MachineUser::selectRaw('COUNT(*) as total,SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),users.last_updated))<=1800,1,0)) as active, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),user.last_updated))>1800,1,0)) as inactive');
         if ($auth->client_id > 0) {
