@@ -33,7 +33,7 @@ class Sale extends Model
 
 
         if (!empty($search)) {
-            $model =  $model->where("machine_name", 'like', '%' . $request->search . '%');
+            $model =  $model->where("machine_namee", 'like', '%' . $request->search . '%');
         }
 
         if (!empty($start_date) && !empty($end_date)) {
