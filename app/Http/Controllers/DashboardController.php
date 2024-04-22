@@ -74,13 +74,15 @@ class DashboardController extends BaseController
         $response['connected']      = 0;
         $response['offline']        = 0;
         $response['fluctuating']    = 0;
-        $machine_imp                = implode(",", $machine_ids);
-        $machine_status = 'select SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline from `machine_heart_beat`';
 
+        $machine_status = MachineHeartBeat::selectRaw('SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline');
         if ($auth->client_id > 0) {
-            $machine_status .= " WHERE machine_id IN ('$machine_imp')";
+            $machine_status = $machine_status->whereIn('machine_id', $machine_ids);
         }
-        $machine_status = DB::select($machine_status);
+        $machine_status = $machine_status->get()->first();
+        $response['connected']      = $response->connected;
+        $response['offline']        = $response->offline;
+        $response['fluctuating']    = $response->fluctuating;
         if ($type) {
             return $response;
         }
