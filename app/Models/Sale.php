@@ -15,13 +15,17 @@ class Sale extends Model
         $start_date = $request->start_date;
         $end_date   = $request->end_date;
         $machine_id = $request->machine_id;
+        $product_id = $request->product_id;
         $search     = $request->search;
 
         $model =  self::where('is_deleted', '0');
 
         if ($machine_id) {
             $model =  $model->where('machine_id', $machine_id);
-        } else if ($auth->client_id > 0) {
+        } else if ($product_id) {
+            $model =  $model->where('product_id', $product_id);
+        }
+        if ($auth->client_id > 0) {
             $model =  $model->where('client_id', $auth->client_id);
             if (count($machine_ids) > 0) {
                 $model =  $model->whereIn("machine_id", $machine_ids);
@@ -29,6 +33,8 @@ class Sale extends Model
                 $model =  $model->whereIn("machine_id", ["no_machine"]);
             }
         }
+
+
 
 
 
