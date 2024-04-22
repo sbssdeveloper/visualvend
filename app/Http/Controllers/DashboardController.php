@@ -45,7 +45,7 @@ class DashboardController extends BaseController
         $response   = [];
         $response["vend_machines"]  = count($machine_ids);
         $response["items_vended"]   = Sale::recentVend($params);
-        $response["vend_beat"]      = self::machine_info($params);
+        $response["vend_beat"]      = self::machine_info($params)?.['machines'];
         return parent::sendResponse($response, "Success");
     }
 
