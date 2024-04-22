@@ -54,21 +54,7 @@ class DashboardController extends BaseController
             return $item->id;
         })->all();
         
-        $machine_status = MachineHeartBeat::selectRaw('SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline')->whereIn('machine_id', $machine_ids)->get()->toArray();
-        dd($machine_status);
-        // $curr_time   = $this->db->select('now() as time')->get()->row();
-
-        // foreach ($machine_status as $value) {
-        //     $diff_time = strtotime($curr_time->time) - strtotime($value['last_sync_time']);
-        //     if ($diff_time <= 1800) {
-        //         $response['connected'] += 1;
-        //     } else if ($diff_time <= 4800) {
-        //         $response['fluctuating'] += 1;
-        //     } else {
-        //         $response['offline'] += 1;
-        //     }
-        // }
-        $response['not_connected']  = $response["total"] - ($response['offline'] + $response['connected'] + $response['fluctuating']);
+        $machine_status = MachineHeartBeat::selectRaw('SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline')->whereIn('machine_id', $machine_ids)->get()->first();
         return ['machines' => $response];
     }
 
