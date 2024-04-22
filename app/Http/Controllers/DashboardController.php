@@ -291,9 +291,9 @@ class DashboardController extends BaseController
         if ($auth->client_id > 0) {
             $model =  $model->where('feed.client_id', $auth->client_id);
             if (count($machine_ids) > 0) {
-                $model =  $model->where_in("feed.machine_id", $machine_ids);
+                $model =  $model->whereIn("feed.machine_id", $machine_ids);
             } else {
-                $model =  $model->where_in("feed.machine_id", ["no_machine"]);
+                $model =  $model->whereIn("feed.machine_id", ["no_machine"]);
             }
         }
 
