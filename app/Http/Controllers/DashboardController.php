@@ -322,7 +322,7 @@ class DashboardController extends BaseController
             }
             $model = $model->where("client_id", $auth->client_id);
         }
-        $model = $model->groupByRaw("DATE(timestamp)")->get();
+        $model = $model->groupBy("date")->get();
         $array = [];
         foreach ($model as $value) {
             $array[$value["date"]] = $value["total_sale"];
