@@ -17,6 +17,7 @@ use Validator;
 use App\Models\User;
 use App\Models\Machine;
 use App\Models\MachineHeartBeat;
+use App\Models\MachineProductMap;
 use App\Models\MachineUser;
 use App\Models\Product;
 use App\Models\Sale;
@@ -46,6 +47,9 @@ class DashboardController extends BaseController
         $response["vend_machines"]  = count($machine_ids);
         $response["items_vended"]   = Sale::recentVend($params);
         $response["vend_beat"]      = self::machine_info($params, true);
+
+        $response["stock_level"]    = MachineProductMap::stocks($params);
+        $stocks = ""
         return parent::sendResponse($response, "Success");
     }
 
