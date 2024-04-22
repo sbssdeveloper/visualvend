@@ -17,6 +17,7 @@ use App\Models\Machine;
 use App\Models\MachineHeartBeat;
 use App\Models\MachineUser;
 use App\Models\Product;
+use App\Models\Sale;
 use DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -32,8 +33,8 @@ class DashboardController extends BaseController
         $auth       = $request->auth;
         $machines   = Machine::personal($auth, 'columns', ['id', 'machine_name', 'machine_client_id']);
         $params     = compact("auth", "machines");
-        $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params));
-        //self::customers_info(), self::machine_users_info($params), self::recentVend($params), self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
+        $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params), self::recentVend($params,$request));
+        //self::recentVend($params), self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
         return parent::sendResponse($response, "Success");
     }
 
@@ -116,20 +117,21 @@ class DashboardController extends BaseController
         return ['machine_users' => $model];
     }
 
-    function recentVend($admin_machines)
+    function recentVend($params, $request)
     {
-        $start_date = $this->input->post("start_date");
-        $end_date   = $this->input->post("end_date");
-        $machine_id = $this->input->post("machine_id");
-        $product_id = $this->input->post("product_id");
-        $search     = $this->input->post("search");
+        extract($params);
+        $start_date = $request->post("start_date");
+        $end_date   = $request->post("end_date");
+        $machine_id = $request->post("machine_id");
+        $product_id = $request->post("product_id");
+        $search     = $request->post("search");
 
-        $model =  $this->db->select(["sale_report.*", "client.client_name"])->join("client", "client.id=sale_report.client_id", "left")->where('sale_report.is_deleted', '0');
+        $model =  Sale::select(["sale_report.*", "client.client_name"])->leftJoin("client", "client.id", "=", "sale_report.client_id")->where('sale_report.is_deleted', '0');
 
-        if ($this->client_id > 0) {
-            $model =  $model->where('sale_report.client_id', $this->client_id);
-            if (count($admin_machines) > 0) {
-                $model =  $model->where_in("sale_report.machine_id", $admin_machines);
+        if ($auth->client_id > 0) {
+            $model =  $model->where('sale_report.client_id', $auth->client_id);
+            if (count($machines) > 0) {
+                $model =  $model->where_in("sale_report.machine_id", $machines);
             } else {
                 $model =  $model->where_in("sale_report.machine_id", ["no_machine"]);
             }
@@ -153,7 +155,7 @@ class DashboardController extends BaseController
             $model  = $model->where('sale_report.timestamp<=', $end_date);
         }
 
-        $model =  $model->order_by('sale_report.id', 'DESC')->limit(5)->get("sale_report")->result_array();
+        $model =  $model->orderBy('sale_report.id', 'DESC')->limit(5)->get("sale_report")->result_array();
         return ['recent_vend' => $model];
     }
 
