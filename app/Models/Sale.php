@@ -18,7 +18,7 @@ class Sale extends Model
         $product_id = $request->product_id;
         $search     = $request->search;
 
-        $model =  self::selectRaw("COUNT(*) as vended_items, SUM(CAST(product_price AS DECIMAL(10,6))) as total_sales")->where('is_deleted', '0');
+        $model =  self::selectRaw("COUNT(*) as vended_items, SUM(CAST(product_price AS DECIMAL(10,2))) as total_sales")->where('is_deleted', '0');
 
         if ($machine_id) {
             $model =  $model->where('machine_id', $machine_id);
