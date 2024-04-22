@@ -12,7 +12,7 @@ class MachineProductMap extends Model
     public static function stocks($params)
     {
         extract($params);
-        $model = self::selectRaw("SUM(product_max_quantity) as total_quantity,SUM(product_quantitys) as remaining_quantity");
+        $model = self::selectRaw("SUM(product_max_quantity) as total_quantity,SUM(product_quantity) as remaining_quantity");
         if ($auth->client_id > 0) {
             $model = $model->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
         }
