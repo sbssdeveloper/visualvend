@@ -49,6 +49,7 @@ class DashboardController extends BaseController
         $response["vend_beat"]      = self::machine_info($params, true);
 
         $response["stock_level"]    = MachineProductMap::stocks($params);
+        $response["refill"]         = MachineProductMap::refillRequire($params);
         return parent::sendResponse($response, "Success");
     }
 
