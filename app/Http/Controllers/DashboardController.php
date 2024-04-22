@@ -8,6 +8,7 @@ use App\Http\Requests\AuthRequest;
 use App\Http\Requests\AuthSignupRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Models\Employee;
+use App\Models\Feed;
 use App\Models\Feedback;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -40,8 +41,7 @@ class DashboardController extends BaseController
             return $item->id;
         })->all();
         $params     = compact("auth", "machines", 'machine_ids');
-        $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params), self::recentVend($params, $request), self::recentRefill($params, $request), self::recentFeedback($params, $request), self::recentVendError($params, $request));
-        //self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
+        $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params), self::recentVend($params, $request), self::recentRefill($params, $request), self::recentFeedback($params, $request), self::recentVendError($params, $request), self::getFeed($params, $request), self::sales15days($params, $request));
         return parent::sendResponse($response, "Success");
     }
 
@@ -58,11 +58,6 @@ class DashboardController extends BaseController
         $response['fluctuating']    = 0;
 
         $collection = collect($machines);
-
-        $machine_ids = $collection->map(function ($item, $key) {
-            return $item->id;
-        })->all();
-
         $machine_status = MachineHeartBeat::selectRaw('SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline')->whereIn('machine_id', $machine_ids)->get()->first();
         return ['machines' => $response];
     }
@@ -105,15 +100,10 @@ class DashboardController extends BaseController
         $response               = [];
         $model                  = MachineUser::selectRaw('COUNT(*) as total,SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),user.last_updated))<=1800,1,0)) as active, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),user.last_updated))>1800,1,0)) as inactive');
         if ($auth->client_id > 0) {
-            $collection = collect($machines);
-
-            $machines = $collection->map(function ($item, $key) {
-                return $item->id;
-            })->all();
 
             $model          = $model->leftJoin("machine", "machine.machine_username", "=", "user.username");
-            if (count($machines)) {
-                $model          = $model->whereIn("machine.id", $machines);
+            if (count($machine_ids)) {
+                $model          = $model->whereIn("machine.id", $machine_ids);
             } else {
                 $model          = $model->whereIn("machine.id", ["no_machine"]);
             }
@@ -289,25 +279,26 @@ class DashboardController extends BaseController
         return ['recent_vend_error' => $model];
     }
 
-    public function getFeed($admin_machines)
+    public function getFeed($params, $request)
     {
-        $start_date = $this->input->post("start_date");
-        $end_date   = $this->input->post("end_date");
-        $machine_id = $this->input->post("machine_id");
+        extract($params);
+        $start_date = $request->start_date;
+        $end_date   = $request->end_date;
+        $machine_id = $request->machine_id;
 
-        $model =  $this->db->select(["feed.*", "machine.machine_name"])->join("machine", "machine.id=feed.machine_id", "left");
+        $model =  Feed::select(["feed.*", "machine.machine_name"])->leftJoin("machine", "machine.id", "=", "feed.machine_id");
 
-        if ($this->client_id > 0) {
-            $model =  $model->where('feed.client_id', $this->client_id);
+        if ($auth->client_id > 0) {
+            $model =  $model->where('feed.client_id', $auth->client_id);
+            if (count($machine_ids) > 0) {
+                $model =  $model->where_in("feed.machine_id", $machine_ids);
+            } else {
+                $model =  $model->where_in("feed.machine_id", ["no_machine"]);
+            }
         }
 
         if ($machine_id) {
             $model =  $model->where('feed.machine_id', $machine_id);
-            if (count($admin_machines) > 0) {
-                $model =  $model->where_in("feed.machine_id", $admin_machines);
-            } else {
-                $model =  $model->where_in("feed.machine_id", ["no_machine"]);
-            }
         }
 
         if (!empty($start_date) && !empty($end_date)) {
@@ -315,22 +306,23 @@ class DashboardController extends BaseController
             $model  = $model->where('feed.created_on<=', $end_date);
         }
 
-        $model =  $model->order_by('feed.id', 'DESC')->limit(20)->get("feed")->result_array();
+        $model =  $model->orderBy('feed.id', 'DESC')->limit(20)->get();
         return ['recent_feed' => $model];
     }
 
-    public function sales15days($admin_machines)
+    public function sales15days($params)
     {
-        $model = $this->db->select(["DATE(timestamp) as date", "FORMAT(SUM(product_price),2) as total_sale"])->where('is_deleted', '0')->where('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 60 DAY) AND NOW()');
-        if ($this->client_id > 0) {
-            if (count($admin_machines) > 0) {
-                $model =  $model->where_in("machine_id", $admin_machines);
+        extract($params);
+        $model = Sale::select(["DATE(timestamp) as date", "FORMAT(SUM(product_price),2) as total_sale"])->where('is_deleted', '0')->where('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 60 DAY) AND NOW()');
+        if ($auth->client_id > 0) {
+            if (count($machine_ids) > 0) {
+                $model =  $model->whereIn("machine_id", $machine_ids);
             } else {
-                $model =  $model->where_in("machine_id", ["no_machine"]);
+                $model =  $model->whereIn("machine_id", ["no_machine"]);
             }
-            $model = $model->where("client_id", $this->client_id);
+            $model = $model->where("client_id", $auth->client_id);
         }
-        $model = $model->group_by("DATE(timestamp)")->get('sale_report')->result_array();
+        $model = $model->groupBy("DATE(timestamp)")->get();
         $array = [];
         foreach ($model as $value) {
             $array[$value["date"]] = $value["total_sale"];
