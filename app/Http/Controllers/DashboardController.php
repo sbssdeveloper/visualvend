@@ -75,14 +75,14 @@ class DashboardController extends BaseController
         $response['offline']        = 0;
         $response['fluctuating']    = 0;
 
-        $machine_status = MachineHeartBeat::selectRaw('SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline');
+        $model = MachineHeartBeat::selectRaw('SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline');
         if ($auth->client_id > 0) {
-            $machine_status = $machine_status->whereIn('machine_id', $machine_ids);
+            $model = $model->whereIn('machine_id', $machine_ids);
         }
-        $machine_status = $machine_status->get()->first();
-        $response['connected']      = $response->connected;
-        $response['offline']        = $response->offline;
-        $response['fluctuating']    = $response->fluctuating;
+        $model = $model->get()->first();
+        $response['connected']      = $model->connected;
+        $response['offline']        = $model->offline;
+        $response['fluctuating']    = $model->fluctuating;
         if ($type) {
             return $response;
         }
