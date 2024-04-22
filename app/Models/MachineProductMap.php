@@ -23,11 +23,11 @@ class MachineProductMap extends Model
     public static function refillRequire($params)
     {
         extract($params);
-        $model = self::selectRaw("machine_id, SUM(product_max_quantity) as total,SUM(product_quantity) as remaining, (SUM(product_max_quantity)-SUM(product_quantity)) as refill, product_name");
+        $model = self::selectRaw("machine_id, product_max_quantity as total, product_quantity as remaining, (product_max_quantity)-SUM(product_quantity) as refill, product_name");
         if ($auth->client_id > 0) {
             $model = $model->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
         }
-        $model = $model->groupBy("machine_id")->orderBy("refill", "DESC")->havingRaw("refill>0")->limit(20)->get();
+        $model = $model->havingRaw("refill>0")->limit(20)->get();
         return $model;
     }
 }
