@@ -37,8 +37,8 @@ class Sale extends Model
         }
 
         if (!empty($start_date) && !empty($end_date)) {
-            $model  = $model->where('sale_report.timestamp>=', $start_date);
-            $model  = $model->where('sale_report.timestamp<=', $end_date);
+            $model  = $model->whereRaw("sale_report.timestamp>='$start_date'");
+            $model  = $model->whereRaw("sale_report.timestamp<='$end_date'");
         }
         $model =  $model->count();
         return $model;
