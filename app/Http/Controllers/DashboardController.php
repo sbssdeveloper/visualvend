@@ -8,6 +8,7 @@ use App\Http\Requests\AuthRequest;
 use App\Http\Requests\AuthSignupRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Models\Employee;
+use App\Models\Feedback;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use App\Repositories\BaseRepository;
@@ -18,6 +19,7 @@ use App\Models\MachineHeartBeat;
 use App\Models\MachineUser;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\VendError;
 use DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -38,7 +40,7 @@ class DashboardController extends BaseController
             return $item->id;
         })->all();
         $params     = compact("auth", "machines", 'machine_ids');
-        $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params), self::recentVend($params, $request), self::recentRefill($params, $request));
+        $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params), self::recentVend($params, $request), self::recentRefill($params, $request), self::recentFeedback($params, $request), self::recentVendError($params, $request));
         //self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
         return parent::sendResponse($response, "Success");
     }
@@ -125,11 +127,11 @@ class DashboardController extends BaseController
     function recentVend($params, $request)
     {
         extract($params);
-        $start_date = $request->post("start_date");
-        $end_date   = $request->post("end_date");
-        $machine_id = $request->post("machine_id");
-        $product_id = $request->post("product_id");
-        $search     = $request->post("search");
+        $start_date = $request->start_date;
+        $end_date   = $request->end_date;
+        $machine_id = $request->machine_id;
+        $product_id = $request->product_id;
+        $search     = $request->search;
 
         $model =  Sale::select(["sale_report.*", "client.client_name"])->leftJoin("client", "client.id", "=", "sale_report.client_id")->where('sale_report.is_deleted', '0');
 
@@ -202,63 +204,23 @@ class DashboardController extends BaseController
         return ['recent_refill' => $model];
     }
 
-    function recentAudit($admin_machines)
+    function recentFeedback($params, $request)
     {
-        $start_date = $this->input->post("start_date");
-        $end_date   = $this->input->post("end_date");
-        $machine_id = $this->input->post("machine_id");
-        $product_id = $this->input->post("product_id");
-        $search     = $this->input->post("search");
+        extract($params);
+        $start_date = $request->start_date;
+        $end_date   = $request->end_date;
+        $machine_id = $request->machine_id;
+        $product_id = $request->product_id;
+        $search     = $request->search;
 
-        $model =  $this->db->select(["refill_history.*", "client.client_name"])->join("client", "client.id=refill_history.client_id", "left")->where('refill_history.is_deleted', '0');
+        $model =  Feedback::select(["feedback.*", "client.client_name", "machine.machine_name"])->leftJoin("client", "client.id", "=", "feedback.client_id")->leftJoin("machine", "feedback.machine_id", "=", "machine.id")->where('feedback.is_deleted', '0')->where('feedback.product_id <>', '');
 
-        if ($this->client_id > 0) {
-            $model =  $model->where('refill_history.client_id', $this->client_id);
-            if (count($admin_machines) > 0) {
-                $model =  $model->where_in("refill_history.machine_id", $admin_machines);
+        if ($auth->client_id > 0) {
+            $model =  $model->where('feedback.client_id', $auth->client_id);
+            if (count($machine_ids) > 0) {
+                $model =  $model->whereIn("feedback.machine_id", $machine_ids);
             } else {
-                $model =  $model->where_in("refill_history.machine_id", ["no_machine"]);
-            }
-        }
-
-        if ($machine_id) {
-            $model =  $model->where('refill_history.machine_id', $machine_id);
-        } else if ($product_id) {
-            $model =  $model->where('refill_history.product_id', $product_id);
-        }
-
-        if (!empty($search)) {
-            $model =  $model->group_start()
-                ->like("refill_history.machine_name", $search, "after")
-                ->or_like('refill_history.product_name', $search, "after")
-                ->group_end();
-        }
-
-        if (!empty($start_date) && !empty($end_date)) {
-            $model  = $model->where('refill_history.created_at>=', $start_date);
-            $model  = $model->where('refill_history.created_at<=', $end_date);
-        }
-
-        $model =  $model->order_by('refill_history.id', 'DESC')->limit(5)->get("refill_history")->result_array();
-        return ['recent_refill' => $model];
-    }
-
-    function recentFeedback($admin_machines)
-    {
-        $start_date = $this->input->post("start_date");
-        $end_date   = $this->input->post("end_date");
-        $machine_id = $this->input->post("machine_id");
-        $product_id = $this->input->post("product_id");
-        $search     = $this->input->post("search");
-
-        $model =  $this->db->select(["feedback.*", "client.client_name", "machine.machine_name"])->join("client", "client.id=feedback.client_id", "left")->join("machine", "feedback.machine_id=machine.id", "left")->where('feedback.is_deleted', '0')->where('feedback.product_id <>', '');
-
-        if ($this->client_id > 0) {
-            $model =  $model->where('feedback.client_id', $this->client_id);
-            if (count($admin_machines) > 0) {
-                $model =  $model->where_in("feedback.machine_id", $admin_machines);
-            } else {
-                $model =  $model->where_in("feedback.machine_id", ["no_machine"]);
+                $model =  $model->whereIn("feedback.machine_id", ["no_machine"]);
             }
         }
 
@@ -269,10 +231,10 @@ class DashboardController extends BaseController
         }
 
         if (!empty($search)) {
-            $model =  $model->group_start()
-                ->like("machine.machine_name", $search, "after")
-                ->or_like('feedback.product_name', $search, "after")
-                ->group_end();
+            // $model =  $model->group_start()
+            //     ->like("machine.machine_name", $search, "after")
+            //     ->or_like('feedback.product_name', $search, "after")
+            //     ->group_end();
         }
 
         if (!empty($start_date) && !empty($end_date)) {
@@ -280,26 +242,27 @@ class DashboardController extends BaseController
             $model  = $model->where('feedback.timestamp<=', $end_date);
         }
 
-        $model =  $model->order_by('feedback.feedback_id', 'DESC')->limit(5)->get("feedback")->result_array();
+        $model =  $model->orderBy('feedback.feedback_id', 'DESC')->limit(5)->get();
         return ['recent_feedback' => $model];
     }
 
-    function recentVendError($admin_machines)
+    function recentVendError($params, $request)
     {
-        $start_date = $this->input->post("start_date");
-        $end_date   = $this->input->post("end_date");
-        $machine_id = $this->input->post("machine_id");
-        $product_id = $this->input->post("product_id");
-        $search     = $this->input->post("search");
+        extract($params);
+        $start_date = $request->start_date;
+        $end_date   = $request->end_date;
+        $machine_id = $request->machine_id;
+        $product_id = $request->product_id;
+        $search     = $request->search;
 
-        $model =  $this->db->select(["location_non_functional.*", "client.client_name"])->join("machine", "machine.id=location_non_functional.machine_id")->join("client", "client.id=machine.machine_client_id", "left")->where('location_non_functional.is_deleted', '0');
+        $model =  VendError::select(["location_non_functional.*", "client.client_name"])->leftJoin("machine", "machine.id", "=", "location_non_functional.machine_id")->leftJoin("client", "client.id", "=", "machine.machine_client_id")->where('location_non_functional.is_deleted', '0');
 
-        if ($this->client_id > 0) {
-            $model =  $model->where('machine.machine_client_id', $this->client_id);
-            if (count($admin_machines) > 0) {
-                $model =  $model->where_in("location_non_functional.machine_id", $admin_machines);
+        if ($auth->client_id > 0) {
+            $model =  $model->where('machine.machine_client_id', $auth->client_id);
+            if (count($machine_ids) > 0) {
+                $model =  $model->whereIn("location_non_functional.machine_id", $machine_ids);
             } else {
-                $model =  $model->where_in("location_non_functional.machine_id", ["no_machine"]);
+                $model =  $model->whereIn("location_non_functional.machine_id", ["no_machine"]);
             }
         }
 
@@ -311,10 +274,10 @@ class DashboardController extends BaseController
         // }
 
         if (!empty($search)) {
-            $model =  $model->group_start()
-                ->like("location_non_functional.machine_name", $search, "after")
-                ->or_like('location_non_functional.product_name', $search, "after")
-                ->group_end();
+            // $model =  $model->group_start()
+            //     ->like("location_non_functional.machine_name", $search, "after")
+            //     ->or_like('location_non_functional.product_name', $search, "after")
+            //     ->group_end();
         }
 
         if (!empty($start_date) && !empty($end_date)) {
@@ -322,7 +285,7 @@ class DashboardController extends BaseController
             $model  = $model->where('location_non_functional.timestamp<=', $end_date);
         }
 
-        $model =  $model->order_by('location_non_functional.id', 'DESC')->limit(5)->get("location_non_functional")->result_array();
+        $model =  $model->orderBy('location_non_functional.id', 'DESC')->limit(5)->get();
         return ['recent_vend_error' => $model];
     }
 
