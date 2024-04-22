@@ -131,9 +131,9 @@ class DashboardController extends BaseController
         if ($auth->client_id > 0) {
             $model =  $model->where('sale_report.client_id', $auth->client_id);
             if (count($machines) > 0) {
-                $model =  $model->where_in("sale_report.machine_id", $machines);
+                $model =  $model->whereIn("sale_report.machine_id", $machines);
             } else {
-                $model =  $model->where_in("sale_report.machine_id", ["no_machine"]);
+                $model =  $model->whereIn("sale_report.machine_id", ["no_machine"]);
             }
         }
 
@@ -144,10 +144,10 @@ class DashboardController extends BaseController
         }
 
         if (!empty($search)) {
-            $model =  $model->group_start()
-                ->like("sale_report.machine_name", $search, "after")
-                ->or_like('sale_report.product_name', $search, "after")
-                ->group_end();
+            // $model =  $model->group_start()
+            //     ->like("sale_report.machine_name", $search, "after")
+            //     ->or_like('sale_report.product_name', $search, "after")
+            //     ->group_end();
         }
 
         if (!empty($start_date) && !empty($end_date)) {
