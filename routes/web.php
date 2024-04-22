@@ -17,6 +17,7 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 
     $router->group(['prefix' => 'dashboard'], function () use ($router) {
         $router->post('info', 'DashboardController@info');
+        $router->post('list', 'DashboardController@dashboard');
     });
 
     $router->group(['prefix' => 'machine'], function () use ($router) {

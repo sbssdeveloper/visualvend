@@ -31,6 +31,23 @@ class DashboardController extends BaseController
         $this->middleware('jwt'); //['except' => ['login']]
     }
 
+    public function dashboard(Request $request)
+    {
+        $auth       = $request->auth;
+        $machines   = Machine::personal($auth, 'columns', ['id', 'machine_name', 'machine_client_id']);
+        $collection = collect($machines);
+
+        $machine_ids = $collection->map(function ($item, $key) {
+            return $item->id;
+        })->all();
+
+        $params     = compact("auth",'machine_ids');
+        $response   = [];
+        $response["vend_machines"] = count($response);
+        $response["items_vended"] = Sale::recentVendCount();
+        return parent::sendResponse($response, "Success");
+    }
+
     public function info(Request $request)
     {
         $auth       = $request->auth;
