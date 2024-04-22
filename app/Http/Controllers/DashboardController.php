@@ -49,7 +49,6 @@ class DashboardController extends BaseController
         $response["vend_beat"]      = self::machine_info($params, true);
 
         $response["stock_level"]    = MachineProductMap::stocks($params);
-        $stocks = ""
         return parent::sendResponse($response, "Success");
     }
 
