@@ -161,12 +161,12 @@ class DashboardController extends BaseController
         extract($params);
         $refills =  $highest = 0;
         $product_loc_map = $refilling = $machine_product_map = $machines = $sell_quantity =  [];
-        $machine_id         = $request->machine_idF;
-        $timestamp          = $request->timestampF;
-        $start_date         = $request->start_dateF;
-        $end_date           = $request->end_dateF;
-        $type               = $request->typeF;
-        $search             = $request->searchF;
+        $machine_id         = $request->machine_id;
+        $timestamp          = $request->timestamp;
+        $start_date         = $request->start_date;
+        $end_date           = $request->end_date;
+        $type               = $request->type;
+        $search             = $request->search;
         $start_date         = date("Y-m-d H:i:s", strtotime($start_date));
         $end_date           = date("Y-m-d H:i:s", strtotime($end_date));
 
