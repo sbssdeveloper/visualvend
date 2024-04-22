@@ -8,11 +8,11 @@ class RemoteVend extends Model
 {
     protected $table = 'remote_vend_log';
     protected $fillable = ['*'];
-    
+
     public static function vendRun($params)
     {
         extract($params);
-        $model =  self::select(["vend_id","product_name","machine_id","product_id"]->whereIn("status",["0","1","11"]))->where('is_deleted', '0');
+        $model =  self::select(["vend_id","product_name","machine_id","product_id"])->whereIn("status",["0","1","11"])->where('is_deleted', '0');
 
         if ($machine_id) {
             $model =  $model->where('machine_id', $machine_id);
