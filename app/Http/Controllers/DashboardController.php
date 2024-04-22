@@ -43,7 +43,7 @@ class DashboardController extends BaseController
         $response   = $machine_ids = $status_map = [];
         $machines = Machine::select('id, machine_name, machine_client_id')->where('is_deleted', 0);
         if ($auth->client_id > 0) {
-            if (count($admin_machines) > 0) {
+            if (count($machines) > 0) {
                 $machines = $machines->whereIn("id", $machines);
             } else { // codeigniter gives error in case of empty array, that's why no machine array is given
                 $machines = $machines->whereIn("id", ["no_machine"]);
