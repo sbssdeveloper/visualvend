@@ -26,12 +26,9 @@ class DashboardController extends BaseController
 
     public function info(Request $request)
     {
-        $auth = $request->auth;
-        $adminMachines = [];
-        if ($auth->client_id > 0) {
-            $adminMachines = Machine::personal($auth->machines);
-        }
-        $params = compact("auth", "machines");
+        $auth       = $request->auth;
+        $machines   = Machine::personal($auth);
+        $params     = compact("auth", "machines");
         $response = array_merge(self::machine_info($params));
         // , self::products_info(), self::staff_info(), self::customers_info(), self::machine_users_info($params), self::recentVend($params), self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
         return parent::sendResponse($response, "Success");
@@ -41,6 +38,9 @@ class DashboardController extends BaseController
     {
         extract($params);
         $response   = $machine_ids = $status_map = [];
+        if($auth->client_id>0){
+
+        }
         $machines = Machine::select('id, machine_name, machine_client_id')->where('is_deleted', 0);
         if ($auth->client_id > 0) {
             if (count($adminMachines) > 0) {
