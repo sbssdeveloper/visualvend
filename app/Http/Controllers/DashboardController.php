@@ -20,6 +20,7 @@ use App\Models\MachineHeartBeat;
 use App\Models\MachineProductMap;
 use App\Models\MachineUser;
 use App\Models\Product;
+use App\Models\RemoteVend;
 use App\Models\Sale;
 use App\Models\VendError;
 use DB;
@@ -50,6 +51,7 @@ class DashboardController extends BaseController
 
         $response["stock_level"]    = MachineProductMap::stocks($params);
         $response["refill"]         = MachineProductMap::refillRequire($params);
+        $response["vend_run"]       = RemoteVend::vendRun($params);
         return parent::sendResponse($response, "Success");
     }
 
