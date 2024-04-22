@@ -33,8 +33,8 @@ class DashboardController extends BaseController
         $auth       = $request->auth;
         $machines   = Machine::personal($auth, 'columns', ['id', 'machine_name', 'machine_client_id']);
         $params     = compact("auth", "machines");
-        $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params), self::recentVend($params,$request));
-        //self::recentVend($params), self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
+        $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params), self::recentVend($params, $request), self::recentRefill($params, $request));
+        //self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
         return parent::sendResponse($response, "Success");
     }
 
@@ -159,25 +159,25 @@ class DashboardController extends BaseController
         return ['recent_vend' => $model];
     }
 
-    public function recentRefill($admin_machines)
+    public function recentRefill($params, $request)
     {
+        extract($params);
         $refills =  $highest = 0;
         $product_loc_map = $refilling = $machine_product_map = $machines = $sell_quantity =  [];
-        $client_id          = $this->input->request_headers()['ClientId'];
-        $machine_id         = $this->input->post("machine_id");
-        $timestamp          = $this->input->post("timestamp");
-        $start_date         = $this->input->post("start_date");
-        $end_date           = $this->input->post("end_date");
-        $type               = $this->input->post("type");
-        $search             = $this->input->post("search");
+        $machine_id         = $request->machine_idF;
+        $timestamp          = $request->timestampF;
+        $start_date         = $request->start_dateF;
+        $end_date           = $request->end_dateF;
+        $type               = $request->typeF;
+        $search             = $request->searchF;
         $start_date         = date("Y-m-d H:i:s", strtotime($start_date));
         $end_date           = date("Y-m-d H:i:s", strtotime($end_date));
 
-        $model              = "SELECT `sale_report`.*, (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`) as refill_qty FROM `sale_report` LEFT JOIN  `machine_product_map` ON `machine_product_map`.`machine_id`=`sale_report`.`machine_id` AND `machine_product_map`.`product_location`=`sale_report`.`aisle_no` AND `machine_product_map`.`product_id`=`sale_report`.`product_id` WHERE `sale_report`.`product_id`<>''";
+        $model              = "SELECT `sale_report`.*, `client`.`name` as client_name, (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`) as refill_qty FROM `sale_report` LEFT JOIN  `machine_product_map` ON `machine_product_map`.`machine_id`=`sale_report`.`machine_id` AND `machine_product_map`.`product_location`=`sale_report`.`aisle_no` AND `machine_product_map`.`product_id`=`sale_report`.`product_id` LEFT JOIN  `client` ON `sale_report`.`client_id`=`client`.`client_id` WHERE `sale_report`.`product_id`<>''";
 
-        if ($client_id > 0) {
-            $my_machines    = implode(",", $admin_machines);
-            $model         .= " AND `sale_report`.`client_id`=$client_id";
+        if ($auth->client_id > 0) {
+            $my_machines    = implode(",", $machines);
+            $model         .= " AND `sale_report`.`client_id`=$auth->client_id";
             $model         .= " AND `sale_report`.`machine_id` IN ($my_machines)";
         }
 
@@ -192,25 +192,8 @@ class DashboardController extends BaseController
         $refills           .= " GROUP BY `sale_report`.`product_id`, `sale_report`.`machine_id`, `sale_report`.`aisle_no` ORDER BY `sale_report`.`id` DESC";
         $model             .= " ORDER BY `sale_report`.`id` DESC";
         $model             .= " LIMIT 5";
-        $model              = $this->db->query($model)->result_array();
+        $model              = DB::select($model);
 
-        $clients            = $mapped = [];
-        foreach ($model as $value) {
-            $clients = [...$clients, $value["client_id"]];
-        }
-        if (count($clients) > 0) {
-            $clientMap          = $this->db->select(["id", "client_name"])->where_in('id', array_unique($clients))->get("client")->result_array();
-            foreach ($clientMap as $value) {
-                $mapped[$value["id"]] = $value["client_name"];
-            }
-        }
-        foreach ($model as $key => $value) {
-            if (isset($mapped[$value["client_id"]])) {
-                $model[$key]["client_name"] = $mapped[$value["client_id"]];
-            } else {
-                $model[$key]["client_name"] = "";
-            }
-        }
         return ['recent_refill' => $model];
     }
 
