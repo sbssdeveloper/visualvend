@@ -41,20 +41,18 @@ class DashboardController extends BaseController
         if($auth->client_id>0){
 
         }
-        
+
         $response["total"]          = count($machines);
         $response['connected']      = 0;
         $response['offline']        = 0;
         $response['not_connected']  = 0;
         $response['fluctuating']    = 0;
 
-        if (count($machines)) {
-            foreach ($machines as $value) {
-                $machine_ids[]  = $value['id'];
-            }
-        } else {
-            $machine_ids[] = "no_machine";
-        }
+        $collection = collect($machines);
+
+        $machine_ids = $collection->map(function ($item, $key) {
+            return $item->id;
+        })->all();
         
         $machine_status = MachineHeartBeat::selectRaw('machine_id, last_action, last_sync_time , SUM(IF(TIME_TO_SEC(TIMEDIFF(now(), curr_time))<=1800),1,0) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(), curr_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(), curr_time))<=4800)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(), curr_time))>4800)) as offline')->whereIn('machine_id', $machine_ids)->get()->toArray();
         dd($machine_status);
