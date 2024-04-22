@@ -27,7 +27,7 @@ class DashboardController extends BaseController
     public function info(Request $request)
     {
         $auth       = $request->auth;
-        $machines   = Machine::personal($auth);
+        $machines   = Machine::personal($auth,'columns',['id', 'machine_name', 'machine_client_id']);
         $params     = compact("auth", "machines");
         $response = array_merge(self::machine_info($params));
         // , self::products_info(), self::staff_info(), self::customers_info(), self::machine_users_info($params), self::recentVend($params), self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
@@ -41,15 +41,7 @@ class DashboardController extends BaseController
         if($auth->client_id>0){
 
         }
-        $machines = Machine::select('id, machine_name, machine_client_id')->where('is_deleted', 0);
-        if ($auth->client_id > 0) {
-            if (count($adminMachines) > 0) {
-                $machines = $machines->whereIn("id", $adminMachines);
-            } else { // codeigniter gives error in case of empty array, that's why no machine array is given
-                $machines = $machines->whereIn("id", ["no_machine"]);
-            }
-        }
-        $machines = $machines->get()->toArray();
+        
         $response["total"]          = count($machines);
         $response['connected']      = 0;
         $response['offline']        = 0;
