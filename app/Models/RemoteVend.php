@@ -14,10 +14,10 @@ class RemoteVend extends Model
         extract($params);
         $model =  self::select(["vend_id","product_name","machine_id","product_id"])->whereIn("status",["0","1","11"])->where('is_deleted', '0');
 
-        if ($machine_id) {
-            $model =  $model->where('machine_id', $machine_id);
-        } else if ($product_id) {
-            $model =  $model->where('product_id', $product_id);
+        if ($request->machine_id) {
+            $model =  $model->where('machine_id', $request->machine_id);
+        } else if ($request->product_id) {
+            $model =  $model->where('product_id', $request->product_id);
         }
         if ($auth->client_id > 0) {
             $model =  $model->where('client_id', $auth->client_id);
