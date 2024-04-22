@@ -54,7 +54,7 @@ class DashboardController extends BaseController
             return $item->id;
         })->all();
         
-        $machine_status = MachineHeartBeat::selectRaw('machine_id, last_action, last_sync_time , SUM(IF(TIME_TO_SEC(TIMEDIFF(now(), curr_time))<=1800),1,0) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(), curr_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(), curr_time))<=4800)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(), curr_time))>4800)) as offline')->whereIn('machine_id', $machine_ids)->get()->toArray();
+        $machine_status = MachineHeartBeat::selectRaw('machine_id, last_action, last_sync_time , SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline')->whereIn('machine_id', $machine_ids)->get()->toArray();
         dd($machine_status);
         // $curr_time   = $this->db->select('now() as time')->get()->row();
 
