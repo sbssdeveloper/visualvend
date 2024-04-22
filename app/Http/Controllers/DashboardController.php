@@ -213,7 +213,7 @@ class DashboardController extends BaseController
         $product_id = $request->product_id;
         $search     = $request->search;
 
-        $model =  Feedback::select(["feedback.*", "client.client_name", "machine.machine_name"])->leftJoin("client", "client.id", "=", "feedback.client_id")->leftJoin("machine", "feedback.machine_id", "=", "machine.id")->where('feedback.is_deleted', '0')->where('feedback.product_id <>', '');
+        $model =  Feedback::select(["feedback.*", "client.client_name", "machine.machine_name"])->leftJoin("client", "client.id", "=", "feedback.client_id")->leftJoin("machine", "feedback.machine_id", "=", "machine.id")->where('feedback.is_deleted', '0')->whereNotNull('feedback.product_id');
 
         if ($auth->client_id > 0) {
             $model =  $model->where('feedback.client_id', $auth->client_id);
