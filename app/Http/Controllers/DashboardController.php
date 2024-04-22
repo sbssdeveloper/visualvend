@@ -14,6 +14,7 @@ use Validator;
 use App\Models\User;
 use App\Models\Machine;
 use App\Models\MachineHeartBeat;
+use App\Models\Product;
 use DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -27,9 +28,9 @@ class DashboardController extends BaseController
     public function info(Request $request)
     {
         $auth       = $request->auth;
-        $machines   = Machine::personal($auth,'columns',['id', 'machine_name', 'machine_client_id']);
+        $machines   = Machine::personal($auth, 'columns', ['id', 'machine_name', 'machine_client_id']);
         $params     = compact("auth", "machines");
-        $response = array_merge(self::machine_info($params));
+        $response = array_merge(self::machine_info($params), self::products_info($params));
         // , self::products_info(), self::staff_info(), self::customers_info(), self::machine_users_info($params), self::recentVend($params), self::recentRefill($params), self::recentFeedback($params), self::recentVendError($params), self::getFeed($params), self::sales15days($params)
         return parent::sendResponse($response, "Success");
     }
@@ -38,14 +39,12 @@ class DashboardController extends BaseController
     {
         extract($params);
         $response   = $machine_ids = $status_map = [];
-        if($auth->client_id>0){
-
+        if ($auth->client_id > 0) {
         }
 
         $response["total"]          = count($machines);
         $response['connected']      = 0;
         $response['offline']        = 0;
-        $response['not_connected']  = 0;
         $response['fluctuating']    = 0;
 
         $collection = collect($machines);
@@ -53,25 +52,16 @@ class DashboardController extends BaseController
         $machine_ids = $collection->map(function ($item, $key) {
             return $item->id;
         })->all();
-        
+
         $machine_status = MachineHeartBeat::selectRaw('SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=1800,1,0)) as connected, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>1800 && TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))<=4800,1,0)) as fluctuating, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),last_sync_time))>4800,1,0)) as offline')->whereIn('machine_id', $machine_ids)->get()->first();
         return ['machines' => $response];
     }
 
-    function products_info()
+    function products_info($params)
     {
-        $response   = $product_ids = $status_map = [];
-        $query      = "SELECT COUNT(*) as assigned FROM product WHERE product_id IN (SELECT DISTINCT(product_id) FROM machine_product_map) AND is_deleted='0'";
-        if ($this->client_id > 0) {
-            $query  = $query . " AND client_id=$this->client_id";
-        }
-        $where      = ['is_deleted' => '0'];
-        if ($this->client_id > 0) {
-            $where = array_merge($where, ["client_id" => $this->client_id]);
-        }
-        $response   = $this->db->query($query)->row_array();
-        $response["total"] = count($this->db->select(['product_id'])->where($where)->get('product')->result_array());
-
+        extract($params);
+        $response["assigned"]   = Product::assigned($auth, ["product.id"], "count") ?? 0;
+        $response["total"]      = Product::total($auth, ["product.id"], "count") ?? 0;
         $response["unassigned"] = $response["total"] - $response["assigned"];
         return ['products' => $response];
     }
