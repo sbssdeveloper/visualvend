@@ -14,7 +14,7 @@ class Machine extends Model
         $array =  self::select($select);
 
         if ($auth->client_id > 0) {
-            $array = $array->whereRaw(\DB::raw("FIND_IN_SET(id,\"$machines\")", '!=', null));
+            $array = $array->whereRaw(\DB::raw("FIND_IN_SET(id,\"$auth->machines\")", '!=', null));
         }
 
         $array = $array->where("is_deleted", 0);
@@ -26,7 +26,7 @@ class Machine extends Model
             $count = $array->count();
             return $count;
         }
-        
+
         $collection = collect($array);
 
         $parse = $collection->map(function ($item, $key) {
