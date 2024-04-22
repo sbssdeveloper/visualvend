@@ -41,10 +41,10 @@ class DashboardController extends BaseController
             return $item->id;
         })->all();
 
-        $params     = compact("auth",'machine_ids','request');
+        $params     = compact("auth", 'machine_ids', 'request');
         $response   = [];
         $response["vend_machines"] = count($response);
-        $response["items_vended"] = Sale::recentVendCount();
+        $response["items_vended"] = Sale::recentVendCount($params);
         return parent::sendResponse($response, "Success");
     }
 
