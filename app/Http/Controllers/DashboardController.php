@@ -26,7 +26,9 @@ class DashboardController extends BaseController
     public function info(Request $request)
     {
         $auth = $request->auth;
-        $list = Machine::personal($auth->machines);
+        if ($auth->client_id > 0) {
+            $list = Machine::personal($auth->machines);
+        }
         print_r($list);
     }
 }

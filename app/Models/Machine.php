@@ -10,6 +10,7 @@ class Machine extends Model
     protected $fillable = ['*'];
 
     public static function personal($machines){
-        return self::select("id")->whereRaw(\DB::raw("FIND_IN_SET(machine_id,$machines)", '!=', null))->get();
+        $array =  self::select("id")->whereRaw(\DB::raw("FIND_IN_SET(machine_id,"$machines")", '!=', null))->where("is_deleted",0)->get();
+        return collect($array);
     }
 }
