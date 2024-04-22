@@ -27,9 +27,9 @@ class DashboardController extends BaseController
     public function info(Request $request)
     {
         $auth = $request->auth;
-        $machines = [];
+        $adminMachines = [];
         if ($auth->client_id > 0) {
-            $machines = Machine::personal($auth->machines);
+            $adminMachines = Machine::personal($auth->machines);
         }
         $params = compact("auth", "machines");
         $response = array_merge(self::machine_info($params));
@@ -43,8 +43,8 @@ class DashboardController extends BaseController
         $response   = $machine_ids = $status_map = [];
         $machines = Machine::select('id, machine_name, machine_client_id')->where('is_deleted', 0);
         if ($auth->client_id > 0) {
-            if (count($machines) > 0) {
-                $machines = $machines->whereIn("id", $machines);
+            if (count($adminMachines) > 0) {
+                $machines = $machines->whereIn("id", $adminMachines);
             } else { // codeigniter gives error in case of empty array, that's why no machine array is given
                 $machines = $machines->whereIn("id", ["no_machine"]);
             }
