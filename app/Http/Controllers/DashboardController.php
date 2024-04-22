@@ -12,6 +12,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use App\Repositories\BaseRepository;
 use Validator;
 use App\Models\User;
+use App\Models\Machine;
 use DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -24,27 +25,8 @@ class DashboardController extends BaseController
 
     public function info(Request $request)
     {
-        $this->validate($request, ['start_date' => 'required|date', "end_date" => "required|date"]);
-
-        $user  =  User::where('mobilenumber', $username)->orWhere('username', $username)->first();
-        if ($user) {
-            if ($user->is_activated === 1) {
-                $verified = parent::verify_password($user->password, $password);
-                if ($verified) {
-                    $response = [
-                        'success' => true,
-                        'token' => parent::jwt($user),
-                        'menus' => $user->menus,
-                        'reports' => $user->reports,
-                        'role' => $user->role,
-                    ];
-                    return response()->json($response, 200);
-                    return parent::sendSuccess("Password entered is incorrect");
-                }
-                return parent::sendError("Password entered is incorrect");
-            }
-            return parent::sendError("Oops! Your account is Inactive. Please contact admin.");
-        }
-        return parent::sendError("Username entered is incorrect");
+        $auth = $request->auth;
+        $list = Machine::personal($auth->machines);
+        print_r($list);
     }
 }
