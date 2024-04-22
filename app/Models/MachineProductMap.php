@@ -27,7 +27,7 @@ class MachineProductMap extends Model
         if ($auth->client_id > 0) {
             $model = $model->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
         }
-        $model = $model->groupBy("machine_id")->orderBy("refill","DESC")->havingRaw("product_max_quantity-product_quantity>0")->get();
+        $model = $model->groupBy("machine_id")->orderBy("refill","DESC")->havingRaw("refill>0")->limit(20)->get();
         return $model;
     }
 }
