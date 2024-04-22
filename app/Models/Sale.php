@@ -9,7 +9,7 @@ class Sale extends Model
     protected $table = 'sale_report';
     protected $fillable = ['*'];
 
-    public static function recentVendCount($params, $request)
+    public static function recentVendCount($params)
     {
         extract($params);
         $start_date = $request->start_date;
