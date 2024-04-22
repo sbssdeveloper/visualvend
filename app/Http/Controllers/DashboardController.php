@@ -155,7 +155,7 @@ class DashboardController extends BaseController
             $model  = $model->where('sale_report.timestamp<=', $end_date);
         }
 
-        $model =  $model->orderBy('sale_report.id', 'DESC')->limit(5)->get("sale_report")->result_array();
+        $model =  $model->orderBy('sale_report.id', 'DESC')->limit(5)->get();
         return ['recent_vend' => $model];
     }
 
