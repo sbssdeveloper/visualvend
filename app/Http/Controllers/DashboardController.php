@@ -99,9 +99,9 @@ class DashboardController extends BaseController
         if ($auth->client_id > 0) {
             $model          = $model->leftJoin("machine", "machine.machine_username", "=", "user.username");
             if (count($machines)) {
-                $model          = $model->where_in("machine.id", $machines);
+                $model          = $model->whereIn("machine.id", $machines);
             } else {
-                $model          = $model->where_in("machine.id", ["no_machine"]);
+                $model          = $model->whereIn("machine.id", ["no_machine"]);
             }
             $model                  = $model->where("client_id", $auth->client_id);
         }
