@@ -16,7 +16,7 @@ class Product extends Model
                 ->on("machine_product_map.product_id", "=", "product.product_id");
         })->where("is_deleted", 0);
         if ($auth->client_id > 0) {
-            $model = $model->where("product.client_id", $auth->client_id)->whereRaw(\DB::raw("FIND_IN_SET(id,\"$auth->machines\")", '!=', null));
+            $model = $model->where("product.client_id", $auth->client_id)->whereRaw(\DB::raw("FIND_IN_SET(machine_id,\"$auth->machines\")", '!=', null));
         }
         $model = $model->groupby('product.id');
         if ($type === "count") {
