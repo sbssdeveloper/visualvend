@@ -105,7 +105,7 @@ class DashboardController extends BaseController
             }
             $model                  = $model->where("client_id", $auth->client_id);
         }
-        $model                  = $model->where('is_deactivated', '0')->group_by("user.id")->get()->toArray();
+        $model                  = $model->where('is_deactivated', '0')->groupBy("user.id")->get()->toArray();
         $curr_time              = $this->db->select('now() as time')->get()->first();
         $response["total"]      = count($model);
         $response["active"]     = 0;
