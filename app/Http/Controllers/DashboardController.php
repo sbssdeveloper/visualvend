@@ -95,7 +95,7 @@ class DashboardController extends BaseController
     {
         extract($params);
         $response               = [];
-        $model                  = MachineUser::selectRaw('COUNT(*) as total,SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),user.last_updated))<=1800,1,0)) as active, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),user.last_updated))>1800,1,0)) as inactive');
+        $model                  = MachineUser::selectRaw('COUNT(*) as total,SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),users.last_updated))<=1800,1,0)) as active, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),user.last_updated))>1800,1,0)) as inactive');
         if ($auth->client_id > 0) {
             $model          = $model->leftJoin("machine", "machine.machine_username", "=", "user.username");
             if (count($machines)) {
@@ -105,7 +105,8 @@ class DashboardController extends BaseController
             }
             $model                  = $model->where("client_id", $auth->client_id);
         }
-        $model                  = $model->where('is_deactivated', '0')->groupBy("user.id")->get()->toArray();
+        $model                  = $model->where('is_deactivated', '0')->groupBy("user.id")->get()->first();
+
         return ['machine_users' => $model];
     }
 
