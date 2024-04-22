@@ -94,14 +94,15 @@ class DashboardController extends BaseController
     function machine_users_info($params)
     {
         extract($params);
-        $collection = collect($machines);
-
-        $machines = $collection->map(function ($item, $key) {
-            return $item->id;
-        })->all();
         $response               = [];
         $model                  = MachineUser::selectRaw('COUNT(*) as total,SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),users.last_updated))<=1800,1,0)) as active, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),user.last_updated))>1800,1,0)) as inactive');
         if ($auth->client_id > 0) {
+            $collection = collect($machines);
+
+            $machines = $collection->map(function ($item, $key) {
+                return $item->id;
+            })->all();
+
             $model          = $model->leftJoin("machine", "machine.machine_username", "=", "user.username");
             if (count($machines)) {
                 $model          = $model->whereIn("machine.id", $machines);
