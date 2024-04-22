@@ -27,7 +27,7 @@ class MachineProductMap extends Model
         if ($auth->client_id > 0) {
             $model = $model->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
         }
-        $model = $model->orderBy("refill","DESC")->get()->first();
+        $model = $model->get()->first();
         return $model;
     }
 }
