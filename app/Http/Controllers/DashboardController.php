@@ -70,7 +70,7 @@ class DashboardController extends BaseController
         if ($auth->client_id > 0) {
         }
 
-        $response["total"]          = count($machines);
+        $response["total"]          = count($machine_ids);
         $response['connected']      = 0;
         $response['offline']        = 0;
         $response['fluctuating']    = 0;
