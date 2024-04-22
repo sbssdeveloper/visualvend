@@ -11,7 +11,13 @@ class Machine extends Model
 
     public static function personal($machines)
     {
-        $array =  self::select("id")->whereRaw(\DB::raw("FIND_IN_SET(id,\"$machines\")", '!=', null))->where("is_deleted", 0)->get()->toArray();
-        return collect($array);
+        $array =  self::select("id")->whereRaw(\DB::raw("FIND_IN_SET(id,\"$machines\")", '!=', null))->where("is_deleted", 0)->get();
+        $collection = collect($array);
+
+        $parse = $collection->map(function ($item, $key) {
+            return $item->id;
+        });
+
+        return $parse->all();
     }
 }
