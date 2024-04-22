@@ -95,7 +95,7 @@ class DashboardController extends BaseController
     {
         extract($params);
         $response               = [];
-        $model                  = MachineUser::select(['user.status', 'user.activated_on']);
+        $model                  = MachineUser::selectRaw('COUNT(*) as total,SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),user.last_updated))<=1800,1,0)) as active, SUM(IF(TIME_TO_SEC(TIMEDIFF(now(),user.last_updated))>1800,1,0)) as inactive');
         if ($auth->client_id > 0) {
             $model          = $model->leftJoin("machine", "machine.machine_username", "=", "user.username");
             if (count($machines)) {
@@ -106,19 +106,7 @@ class DashboardController extends BaseController
             $model                  = $model->where("client_id", $auth->client_id);
         }
         $model                  = $model->where('is_deactivated', '0')->groupBy("user.id")->get()->toArray();
-        $curr_time              = $this->db->select('now() as time')->get()->first();
-        $response["total"]      = count($model);
-        $response["active"]     = 0;
-        $response["inactive"]   = 0;
-        foreach ($model as $value) {
-            $diff_time = strtotime($curr_time->time) - strtotime($value['activated_on']);
-            if ($diff_time > 1800) {
-                $response['active'] += 1;
-            } else {
-                $response['inactive'] += 1;
-            }
-        }
-        return ['machine_users' => $response];
+        return ['machine_users' => $model];
     }
 
     function recentVend($admin_machines)
