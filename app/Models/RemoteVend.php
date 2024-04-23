@@ -32,7 +32,7 @@ class RemoteVend extends Model
             $model =  $model->whereRaw("machine_name like '%$request->search%'");
         }
 
-        $model =  $model->get()->first();
+        $model =  $model->get();
         return $model;
     }
 }
