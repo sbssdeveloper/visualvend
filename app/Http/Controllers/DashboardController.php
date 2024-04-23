@@ -43,15 +43,16 @@ class DashboardController extends BaseController
             return $item->id;
         })->all();
 
-        $params     = compact("auth", 'machine_ids', 'request');
-        $response   = [];
-        $response["vend_machines"]  = count($machine_ids);
-        $response["items_vended"]   = Sale::recentVend($params);
-        $response["vend_beat"]      = self::machine_info($params, true);
+        $params                                 = compact("auth", 'machine_ids', 'request');
+        $response                               = [];
+        $response["vend_machines"]              = count($machine_ids);
+        $response["items_vended"]               = Sale::recentVend($params);
+        $response["vend_beat"]                  = self::machine_info($params, true);
 
-        $response["stock_level"]    = MachineProductMap::stocks($params);
-        $response["refill"]         = MachineProductMap::refillRequire($params);
-        $response["vend_run"]       = RemoteVend::vendRun($params);
+        $response["stock_level"]                = MachineProductMap::stocks($params);
+        $response["feedback"]["refill"]         = MachineProductMap::refillRequire($params);
+        $response["feedback"]["vend_run"]       = RemoteVend::vendRun($params);
+        $response["feedback"]["tasks"]          = [["refill" => "no-data"]];
         return parent::sendResponse($response, "Success");
     }
 
