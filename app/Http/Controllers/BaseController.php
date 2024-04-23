@@ -64,9 +64,9 @@ class BaseController extends Controller
                 'perPage' => $result->perPage(),
                 'prevPage' => $result->currentPage() > 1 ? ($result->currentPage() - 1) : 1,
                 'nextPage' => $result->hasMorePages() ? ($result->currentPage() + 1) : $result->currentPage(),
-                'from'=> $paginator->firstItem(),
-                'to'=> $paginator->lastItem(),
-                'records'=>$paginator->count()
+                'from'=> $result->firstItem(),
+                'to'=> $result->lastItem(),
+                'records'=>$result->count()
             ]
         ];
 
