@@ -19,7 +19,7 @@ class MachineProductMap extends Model
         $model = $model->get()->first();
         if ($model) {
             $required_quantity = (($model->total_quantity - $model->remaining_quantity) * 100) / $model->total_quantity;
-            $model->required_quantity = number_format((float)$required_quantity, 1, '.', '');
+            $model->required_quantity = "-".number_format((float)$required_quantity, 1, '.', '')."%";
         }
         return $model;
     }
