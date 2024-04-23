@@ -17,6 +17,10 @@ class MachineProductMap extends Model
             $model = $model->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
         }
         $model = $model->get()->first();
+        if ($model) {
+            $required_quantity = (($model->total_quantity - $model->remaining_quantity) * 100) / $model->total_quantity;
+            $model->required_quantity = number_format((float)$required_quantity, 1, '.', '');
+        }
         return $model;
     }
 
