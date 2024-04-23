@@ -55,12 +55,14 @@ class BaseController extends Controller
     {
         $response = [
             'success' => true,
-            'message' => $message,
-            'totalRecords' => $result->total(),
-            'currentPage' => $result->currentPage(),
-            'lastPage' => $result->lastPage(),
-            'perPage' => $result->perPage(),
-            'data' => $result->items()
+            'data' => $result->items(),
+            'pagination' => [
+                'total' => $result->total(),
+                'lastPage' => $result->lastPage(),
+                'currentPage' => $result->currentPage(),
+                'message' => $message,
+                'perPage' => $result->perPage(),
+            ]
         ];
 
         return response()->json($response, 200);
