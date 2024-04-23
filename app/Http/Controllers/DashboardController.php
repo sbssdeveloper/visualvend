@@ -65,6 +65,7 @@ class DashboardController extends BaseController
         $machine_ids = $collection->map(function ($item, $key) {
             return $item->id;
         })->all();
+
         $params     = compact("auth", "machines", 'machine_ids');
         $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params), self::recentVend($params, $request), self::recentRefill($params, $request), self::recentFeedback($params, $request), self::recentVendError($params, $request), self::getFeed($params, $request), self::sales15days($params, $request));
         return parent::sendResponse($response, "Success");
@@ -207,6 +208,9 @@ class DashboardController extends BaseController
         $model              = "SELECT `sale_report`.*, `client`.`client_name`, (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`) as refill_qty FROM `sale_report` LEFT JOIN  `machine_product_map` ON `machine_product_map`.`machine_id`=`sale_report`.`machine_id` AND `machine_product_map`.`product_location`=`sale_report`.`aisle_no` AND `machine_product_map`.`product_id`=`sale_report`.`product_id` LEFT JOIN  `client` ON `sale_report`.`client_id`=`client`.`id` WHERE `sale_report`.`product_id`<>''";
 
         if ($auth->client_id > 0) {
+            if (count($machine_ids) == 0) {
+                $machine_ids = ["no-machine"];
+            }
             $my_machines    = implode(",", $machine_ids);
             $model         .= " AND `sale_report`.`client_id`=$auth->client_id";
             $model         .= " AND `sale_report`.`machine_id` IN ($my_machines)";
