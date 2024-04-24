@@ -18,7 +18,7 @@ class MachineProductMap extends Model
         }
         $model = $model->get()->first();
         if ($model) {
-            if ($model->total_quantity === 0) {
+            if ($model->total_quantity == 0) {
                 return $model->required_quantity = "0%";
             }
             $required_quantity = (($model->total_quantity - $model->remaining_quantity) * 100) / $model->total_quantity;
