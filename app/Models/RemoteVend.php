@@ -23,11 +23,11 @@ class RemoteVend extends Model
     public static function vendRun($params)
     {
         extract($params);
-        $model =  self::select(["vend_id", "product_name", "machine_id", "product_id"])->whereIn("status", ["0", "1", "11"])->where('is_deleted', '0')->where('product_id !=', '0');
+        $model =  self::select(["vend_id", "product_name", "machine_id", "product_id"])->whereIn("status", ["0", "1", "11"])->where('is_deleted', '0')->whereRaw("product_id != '0'");
 
-        if ($request->machine_id) {
+        if ($request->machine_id>0) {
             $model =  $model->where('machine_id', $request->machine_id);
-        } else if ($request->product_id) {
+        } else if (!empty($request->product_id)) {
             $model =  $model->where('product_id', $request->product_id);
         }
         if ($auth->client_id > 0) {
