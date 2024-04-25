@@ -38,7 +38,7 @@ class PaymentsController extends BaseController
 
         // From Remote vend log
         $machinePay =
-            $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status='1', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed")->leftJoin('transactions','transactions.transaction_id=remote_vend_log.transaction_id')->whereRaw("remote_vend_log.updated_at >= '$start_date'")->whereRaw("remote_vend_log.updated_at <= '$end_date'");
+            $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status='1', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed")->leftJoin('transactions', 'transactions.transaction_id=remote_vend_log.transaction_id')->whereRaw("remote_vend_log.updated_at >= '$start_date'")->whereRaw("remote_vend_log.updated_at <= '$end_date'");
 
         if ($machine_id > 0) {
             $model  = $model->where("remote_vend_log.machine_id", $machine_id);
@@ -59,6 +59,11 @@ class PaymentsController extends BaseController
             $model->failed_vends        = 0;
             $model->successfull_vends   = 0;
             $model->pay_failed          = 0;
+        }
+
+        $mobile_payments = Transaction::selectRaw("SUM(transactions.amount) as total_amount,SUM(response->payment->card_details->card='VISA'?transactions.amount?0) as visa_amount")->leftJoin("remote_vend_log", "transactions.transaction_id=remote_vend_log.transaction_id")->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("created_at <= '$end_date'")->whereRaw("remote_vend_log.id > 0")->where("transactions.status", "SUCCESS")->first();
+        if ($mobile_payments) {
+            $model->visa_amount = $mobile_payments->visa_amount;
         }
         return parent::sendResponse($model, "Success");
     }
