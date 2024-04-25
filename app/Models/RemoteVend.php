@@ -12,7 +12,7 @@ class RemoteVend extends Model
     public static function vendRun($params)
     {
         extract($params);
-        $model =  self::select(["vend_id","product_name","machine_id","product_id"])->whereIn("status",["0","1","11"])->where('is_deleted', '0')->where('product_id !=', '0');
+        $model =  self::select(["vend_id", "product_name", "machine_id", "product_id"])->whereIn("status", ["0", "1", "11"])->where('is_deleted', '0')->where('product_id !=', '0');
 
         if ($request->machine_id) {
             $model =  $model->where('machine_id', $request->machine_id);
@@ -30,6 +30,11 @@ class RemoteVend extends Model
 
         if (!empty($search)) {
             $model =  $model->whereRaw("machine_name like '%$request->search%'");
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model  = $model->whereRaw("updated_at>='$start_date'");
+            $model  = $model->whereRaw("updated_at<='$end_date'");
         }
 
         $model =  $model->get();

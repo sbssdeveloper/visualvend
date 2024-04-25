@@ -34,10 +34,6 @@ class Sale extends Model
             }
         }
 
-
-
-
-
         if (!empty($search)) {
             $model =  $model->whereRaw("machine_name like '%$request->search%'");
         }
