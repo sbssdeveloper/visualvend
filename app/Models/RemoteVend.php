@@ -10,10 +10,16 @@ class RemoteVend extends Model
     protected $table = 'remote_vend_log';
     protected $fillable = ['*'];
 
+    public function vendTransaction()
+    {
+        return $this->hasOne(Transaction::class, 'vend_uuid', 'vend_id');
+    }
+
     public function transaction()
     {
         return $this->hasOne(Transaction::class, 'vend_uuid', 'vend_id');
     }
+
     public static function vendRun($params)
     {
         extract($params);
