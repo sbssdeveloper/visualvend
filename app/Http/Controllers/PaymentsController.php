@@ -61,10 +61,15 @@ class PaymentsController extends BaseController
             $model->pay_failed          = 0;
         }
 
-        $mobile_payments = Transaction::selectRaw("SUM(transactions.amount) as total_amount,SUM(response->payment->card_details->card='VISA'?transactions.amount?0) as visa_amount")->leftJoin("remote_vend_log", "transactions.transaction_id=remote_vend_log.transaction_id")->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("created_at <= '$end_date'")->whereRaw("remote_vend_log.id > 0")->where("transactions.status", "SUCCESS")->first();
-        if ($mobile_payments) {
-            $model->visa_amount = $mobile_payments->visa_amount;
-        }
+        $mobile_payments = Transaction::selectRaw("SUM(transactions.amount) as total_amount, SUM(IF(response LIKE '%VISA%',amount,0)) as visa_amount, SUM(IF(response LIKE '%MASTERCARD%',amount,0)) as mastercard_amount, SUM(IF(response LIKE '%AMEX%',amount,0)) as amex_amount, SUM(IF(pay_method='apple_pay',amount,0)) as apple_amount,  SUM(IF(pay_method='google_pay',amount,0)) as google_amount,  SUM(IF(pay_method='paypal',amount,0)) as paypal_amount,  SUM(IF(pay_method='after_pay',amount,0)) as after_pay_amount")->leftJoin("remote_vend_log", "transactions.transaction_id=remote_vend_log.transaction_id")->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("created_at <= '$end_date'")->whereRaw("remote_vend_log.id > 0")->where("transactions.status", "SUCCESS")->first();
+
+        $model->visa_amount         = $mobile_payments ? $mobile_payments->visa_amount : 0;
+        $model->mastercard_amount   = $mobile_payments ? $mobile_payments->mastercard_amount : 0;
+        $model->amex_amount         = $mobile_payments ? $mobile_payments->amex_amount : 0;
+        $model->apple_amount        = $mobile_payments ? $mobile_payments->apple_amount : 0;
+        $model->google_amount       = $mobile_payments ? $mobile_payments->google_amount : 0;
+        $model->paypal_amount       = $mobile_payments ? $mobile_payments->paypal_amount : 0;
+        $model->after_pay_amount    = $mobile_payments ? $mobile_payments->after_pay_amount : 0;
         return parent::sendResponse($model, "Success");
     }
 
