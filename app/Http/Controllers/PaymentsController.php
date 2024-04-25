@@ -9,6 +9,7 @@ use App\Http\Requests\AuthSignupRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Models\Machine;
 use App\Models\RemoteVend;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use App\Repositories\BaseRepository;
@@ -35,18 +36,20 @@ class PaymentsController extends BaseController
         $machine_id = $request->machine_id;
         $type       = $request->type;
 
+        // From Remote vend log
         $machinePay =
-            $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(status='1', 1, 0)) as successfull_vends")->whereRaw("updated_at >= '$start_date'")->whereRaw("updated_at <= '$end_date'");
+            $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status='1', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed")->leftJoin('transactions','transactions.transaction_id=remote_vend_log.transaction_id')->whereRaw("remote_vend_log.updated_at >= '$start_date'")->whereRaw("remote_vend_log.updated_at <= '$end_date'");
+
         if ($machine_id > 0) {
-            $model  = $model->where("machine_id", $machine_id);
+            $model  = $model->where("remote_vend_log.machine_id", $machine_id);
         }
         if (in_array($type, ["approved", "declined", "timeout"])) {
             if ($type === "approved") {
-                $model  = $model->where("status", "0");
+                $model  = $model->where("remote_vend_log.status", "0");
             } else if ($type === "declined") {
-                $model  = $model->whereNotIn("status", ['0', '1', '2', '11']);
+                $model  = $model->whereNotIn("remote_vend_log.status", ['0', '1', '2', '11']);
             } else if ($type === "timeout") {
-                $model  = $model->where("status", '7');
+                $model  = $model->where("remote_vend_log.status", '7');
             }
         }
         $model = $model->first();
@@ -55,8 +58,8 @@ class PaymentsController extends BaseController
             $model->total_vends         = 0;
             $model->failed_vends        = 0;
             $model->successfull_vends   = 0;
+            $model->pay_failed          = 0;
         }
-        $model->pay_failed = 0;
         return parent::sendResponse($model, "Success");
     }
 
