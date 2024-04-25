@@ -48,7 +48,7 @@ class PaymentsController extends BaseController
                 $model  = $model->where("status", '7');
             }
         }
-        $model = $model->first();
+        $model = $model->get();
         return parent::sendResponse($model, "Success");
     }
 
