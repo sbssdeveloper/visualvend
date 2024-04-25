@@ -66,22 +66,22 @@ class PaymentsController extends BaseController
         $model->all_mobile_payments = $model->apple_amount + $model->google_amount + $model->paypal_amount + $model->after_pay_amount;
 
         // percentage code
-        $model->vend_success_rate   = $model->total_vends > 0 ? ($model->successfull_vends / $model->total_vends) * 100 : 0;
+        $model->vend_success_rate   = $model->total_vends > 0 ? number_format(($model->successfull_vends / $model->total_vends) * 100, 2) : 0;
         $model->vend_success_rate   .= "%";
 
-        $model->vend_failed_rate    = $model->total_vends > 0 ? ($model->failed_vends / $model->total_vends) * 100 : 0;
+        $model->vend_failed_rate    = $model->total_vends > 0 ? number_format(($model->failed_vends / $model->total_vends) * 100, 2) : 0;
         $model->vend_failed_rate   .= "%";
 
-        $model->pay_failed_rate     = $model->total_vends > 0 ? ($model->pay_failed / $model->total_vends) * 100 : 0;
+        $model->pay_failed_rate     = $model->total_vends > 0 ? number_format(($model->pay_failed / $model->total_vends) * 100, 2) : 0;
         $model->pay_failed_rate    .= "%";
 
-        $model->mbl_success_rate    = $model->total_mobile_vends > 0 ? ($model->successfull_mobile_vends / $model->total_mobile_vends) * 100 : 0;
+        $model->mbl_success_rate    = $model->total_mobile_vends > 0 ? number_format(($model->successfull_mobile_vends / $model->total_mobile_vends) * 100, 2) : 0;
         $model->mbl_success_rate   .= "%";
 
-        $model->mbl_failed_rate     = $model->total_mobile_vends > 0 ? ($model->failed_mobile_vends / $model->total_mobile_vends) * 100 : 0;
+        $model->mbl_failed_rate     = $model->total_mobile_vends > 0 ? number_format(($model->failed_mobile_vends / $model->total_mobile_vends) * 100, 2) : 0;
         $model->mbl_failed_rate    .= "%";
 
-        $model->mbl_failed_pay_rate  = $model->total_mobile_vends > 0 ? ($model->failed_mobile_payments / $model->total_mobile_vends) * 100 : 0;
+        $model->mbl_failed_pay_rate  = $model->total_mobile_vends > 0 ? number_format(($model->failed_mobile_payments / $model->total_mobile_vends) * 100, 2) : 0;
         $model->mbl_failed_pay_rate .= "%";
 
         return parent::sendResponse($model, "Success");
