@@ -62,6 +62,10 @@ class PaymentsController extends BaseController
         $model->google_amount       = $mobile_payments ? ($mobile_payments->google_amount ?? 0) : 0;
         $model->paypal_amount       = $mobile_payments ? ($mobile_payments->paypal_amount ?? 0) : 0;
         $model->after_pay_amount    = $mobile_payments ? ($mobile_payments->after_pay_amount ?? 0) : 0;
+
+        $model->successfull_mobile_vends    = $mobile_payments ? ($mobile_payments->successfull_mobile_vends ?? 0) : 0;
+
+
         $model->all_card_payments   = $model->visa_amount + $model->mastercard_amount + $model->amex_amount;
         $model->all_mobile_payments = $model->apple_amount + $model->google_amount + $model->paypal_amount + $model->after_pay_amount;
 
