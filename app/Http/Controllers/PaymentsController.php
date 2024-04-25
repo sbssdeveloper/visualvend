@@ -35,7 +35,7 @@ class PaymentsController extends BaseController
         $type       = $request->type;
 
         $machinePay =
-            $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(status IN('3','4,'5','6','7','8','00'), 1, 0)) as declined, SUM(IF(status='1', 1, 0)) as successfull_vends")->whereRaw("updated_at >= '$start_date'")->whereRaw("updated_at <= '$end_date'");
+            $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(status IN('3','4','5','6','7','8','00'), 1, 0)) as declined, SUM(IF(status='1', 1, 0)) as successfull_vends")->whereRaw("updated_at >= '$start_date'")->whereRaw("updated_at <= '$end_date'");
         if ($machine_id > 0) {
             $model  = $model->where("machine_id", $machine_id);
         }
