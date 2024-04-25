@@ -33,14 +33,22 @@ class PaymentsController extends BaseController
         $end_date   = $request->end_date;
         $machine_id = $request->machine_id;
         $type       = $request->type;
-        $model      = RemoteVend::whereRaw("updated_at >= '$start_date'")->whereRaw("updated_at <= '$end_date'");
+
+        $machinePay =
+            $model      = RemoteVend::selectRaw(["COUNT(*) as total_vends", "SUM(IF(status IN('3','4,'5','6','7','8','00'), 1, 0)) as declined", "SUM(IF(status='1', 1, 0)) as successfull_vends"])->whereRaw("updated_at >= '$start_date'")->whereRaw("updated_at <= '$end_date'");
         if ($machine_id > 0) {
             $model  = $model->where("machine_id", $machine_id);
         }
-        if (in_array($type, ["all", "approved", "declined", "timeout"])) {
-            // $model  = $model->where("machine_id", $type);
+        if (in_array($type, ["approved", "declined", "timeout"])) {
+            if ($type === "approved") {
+                $model  = $model->where("status", "0");
+            } else if ($type === "declined") {
+                $model  = $model->whereNotIn("status", ['0', '1', '2', '11']);
+            } else if ($type === "timeout") {
+                $model  = $model->where("status", '7');
+            }
         }
-        $model = $model->get();
+        $model = $model->first();
         return parent::sendResponse($model, "Success");
     }
 
