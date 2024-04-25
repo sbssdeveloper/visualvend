@@ -61,8 +61,10 @@ class PaymentsController extends BaseController
             $model->pay_failed          = 0;
         }
 
-        $mobile_payments = Transaction::selectRaw("SUM(transactions.amount) as total_amount, SUM(IF(response LIKE '%VISA%',amount,0)) as visa_amount, SUM(IF(response LIKE '%MASTERCARD%',amount,0)) as mastercard_amount, SUM(IF(response LIKE '%AMEX%',amount,0)) as amex_amount, SUM(IF(pay_method='apple_pay',amount,0)) as apple_amount,  SUM(IF(pay_method='google_pay',amount,0)) as google_amount,  SUM(IF(pay_method='paypal',amount,0)) as paypal_amount,  SUM(IF(pay_method='after_pay',amount,0)) as after_pay_amount")->leftJoin('transactions', '`transactions`.`transaction_id`=`remote_vend_log`.`transaction_id`')->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("created_at <= '$end_date'")->whereRaw("remote_vend_log.id > 0")->where("transactions.status", "SUCCESS")->first();
+        $select = "select COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status='1', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed from `remote_vend_log` left join `transactions` on `transactions`.`transaction_id`=`remote_vend_log`.`transaction_id` where remote_vend_log.updated_at >= '$start_date' and remote_vend_log.updated_at <= '$end_date' ";
 
+        $mobile_payments = DB::select($select);
+        dd($mobile_payments);
         $model->visa_amount         = $mobile_payments ? $mobile_payments->visa_amount : 0;
         $model->mastercard_amount   = $mobile_payments ? $mobile_payments->mastercard_amount : 0;
         $model->amex_amount         = $mobile_payments ? $mobile_payments->amex_amount : 0;
