@@ -53,14 +53,6 @@ class PaymentsController extends BaseController
         }
         $model = $model->first();
 
-        if (!$model) {
-            $model = new stdClass();
-            $model->total_vends         = 0;
-            $model->failed_vends        = 0;
-            $model->successfull_vends   = 0;
-            $model->pay_failed          = 0;
-        }
-
         $mobile_payments = Transaction::selectRaw("COUNT(transactions.id) as successfull_mobile_vends,SUM(transactions.amount) as total_amount, SUM(IF(response LIKE '%VISA%',amount,0)) as visa_amount, SUM(IF(response LIKE '%MASTERCARD%',amount,0)) as mastercard_amount, SUM(IF(response LIKE '%AMEX%',amount,0)) as amex_amount, SUM(IF(pay_method='apple_pay',amount,0)) as apple_amount,  SUM(IF(pay_method='google_pay',amount,0)) as google_amount,  SUM(IF(pay_method='paypal',amount,0)) as paypal_amount,  SUM(IF(pay_method='after_pay',amount,0)) as after_pay_amount")->leftJoin('remote_vend_log', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id')->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("transactions.created_at <= '$end_date'")->whereRaw("remote_vend_log.id > 0")->where("transactions.payment_status", "SUCCESS")->first();
 
         $model->visa_amount         = $mobile_payments ? ($mobile_payments->visa_amount ?? 0) : 0;
@@ -72,6 +64,26 @@ class PaymentsController extends BaseController
         $model->after_pay_amount    = $mobile_payments ? ($mobile_payments->after_pay_amount ?? 0) : 0;
         $model->all_card_payments   = $model->visa_amount + $model->mastercard_amount + $model->amex_amount;
         $model->all_mobile_payments = $model->apple_amount + $model->google_amount + $model->paypal_amount + $model->after_pay_amount;
+
+        // percentage code
+        $model->vend_success_rate   = $model->total_vends > 0 ? ($model->successfull_vends / $model->total_vends) * 100 : 0;
+        $model->vend_success_rate   .= "%";
+
+        $model->vend_failed_rate    = $model->total_vends > 0 ? ($model->failed_vends / $model->total_vends) * 100 : 0;
+        $model->vend_failed_rate   .= "%";
+
+        $model->pay_failed_rate     = $model->total_vends > 0 ? ($model->pay_failed / $model->total_vends) * 100 : 0;
+        $model->pay_failed_rate    .= "%";
+
+        $model->mbl_success_rate    = $model->total_mobile_vends > 0 ? ($model->successfull_mobile_vends / $model->total_mobile_vends) * 100 : 0;
+        $model->mbl_success_rate   .= "%";
+
+        $model->mbl_failed_rate     = $model->total_mobile_vends > 0 ? ($model->failed_mobile_vends / $model->total_mobile_vends) * 100 : 0;
+        $model->mbl_failed_rate    .= "%";
+
+        $model->mbl_failed_pay_rate  = $model->total_mobile_vends > 0 ? ($model->failed_mobile_payments / $model->total_mobile_vends) * 100 : 0;
+        $model->mbl_failed_pay_rate .= "%";
+
         return parent::sendResponse($model, "Success");
     }
 
