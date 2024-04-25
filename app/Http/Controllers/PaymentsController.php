@@ -33,7 +33,7 @@ class PaymentsController extends BaseController
         $end_date   = $request->end_date;
         $machine_id = $request->machine_id;
         $type       = $request->type;
-        $model      = RemoteVend::whereRaw('updated_at >=', $start_date)->whereRaw('updated_at <=', $end_date);
+        $model      = RemoteVend::whereRaw("updated_at >= '$start_date'")->whereRaw("updated_at <= '$end_date'");
         if ($machine_id > 0) {
             $model  = $model->where("machine_id", $machine_id);
         }
