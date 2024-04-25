@@ -38,7 +38,7 @@ class PaymentsController extends BaseController
             $model  = $model->where("machine_id", $machine_id);
         }
         if (in_array($type, ["all", "approved", "declined", "timeout"])) {
-            $model  = $model->where("machine_id", $type);
+            // $model  = $model->where("machine_id", $type);
         }
         $model = $model->get();
         return parent::sendResponse($model, "Success");
