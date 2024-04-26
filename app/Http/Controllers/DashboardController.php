@@ -50,8 +50,8 @@ class DashboardController extends BaseController
         $response["vend_beat"]                  = self::machine_info($params, true);
 
         $response["stock_level"]                = MachineProductMap::stocks($params);
-        dd(self::recentRefill($params. $request));
-        $response["feedback"]["refill"]         = self::recentRefill($params. $request);
+        dd(self::recentRefill($params . $request));
+        $response["feedback"]["refill"]         = self::recentRefill($params . $request);
         $response["feedback"]["vend_run"]       = RemoteVend::vendRun($params);
         $response["feedback"]["tasks"]          = [["refill" => "no-data"]];
         return parent::sendResponse($response, "Success");
@@ -267,8 +267,8 @@ class DashboardController extends BaseController
         }
 
         if (!empty($start_date) && !empty($end_date)) {
-            $model  = $model->where('feedback.timestamp>=', $start_date);
-            $model  = $model->where('feedback.timestamp<=', $end_date);
+            $model  = $model->whereRaw("feedback.timestamp>= '$start_date'");
+            $model  = $model->whereRaw("feedback.timestamp<= '$end_date'");
         }
 
         $model =  $model->orderBy('feedback.feedback_id', 'DESC')->limit(5)->get();
