@@ -109,6 +109,7 @@ class PaymentsController extends BaseController
                 $model  = $model->where("remote_vend_log.status", '7');
             }
         }
-        $model = $model->get();
+        $model = $model->paginate($request->length ?? 10);
+        return parent::sendResponseWithPagination($model, "Success");
     }
 }
