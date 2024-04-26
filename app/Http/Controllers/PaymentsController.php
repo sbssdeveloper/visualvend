@@ -115,7 +115,7 @@ class PaymentsController extends BaseController
         }
         $model = $model->paginate($request->length ?? 10);
         foreach ($model->items() as $key => $value) {
-            if($value->payment_status!=="SUCCESS" && $valueparent::isJson($value->response)){
+            if($value->payment_status!=="SUCCESS" && parent::isJson($value->response)){
                 $json = json_decode($value->response,true);
                 print_r($json);
             }
