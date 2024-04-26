@@ -183,8 +183,8 @@ class DashboardController extends BaseController
         }
 
         if (!empty($start_date) && !empty($end_date)) {
-            $model  = $model->where('sale_report.timestamp>=', $start_date);
-            $model  = $model->where('sale_report.timestamp<=', $end_date);
+            $model  = $model->whereRaw("sale_report.timestamp >= '$start_date'");
+            $model  = $model->whereRaw("sale_report.timestamp <= '$end_date'");
         }
 
         $model =  $model->orderBy('sale_report.id', 'DESC')->limit(5)->get();
@@ -309,8 +309,8 @@ class DashboardController extends BaseController
         }
 
         if (!empty($start_date) && !empty($end_date)) {
-            $model  = $model->where('location_non_functional.timestamp>=', $start_date);
-            $model  = $model->where('location_non_functional.timestamp<=', $end_date);
+            $model  = $model->whereRaw("location_non_functional.timestamp >= '$start_date'");
+            $model  = $model->whereRaw("location_non_functional.timestamp <= '$end_date'");
         }
 
         $model =  $model->orderBy('location_non_functional.id', 'DESC')->limit(5)->get();
