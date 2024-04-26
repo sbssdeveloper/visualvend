@@ -115,10 +115,11 @@ class PaymentsController extends BaseController
         }
         $model = $model->paginate($request->length ?? 10);
         foreach ($model->items() as $key => $value) {
-           print_r($value->response);
+            if($value->payment_status!=="SUCCESS" && $valueparent::isJson($value->response)){
+                $json = json_decode($value->response,true);
+                print_r($json);
+            }
         }
-        die;
-        // dd($model->items());
         return parent::sendResponseWithPagination($model, "Success");
     }
 }
