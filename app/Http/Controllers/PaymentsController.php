@@ -98,7 +98,7 @@ class PaymentsController extends BaseController
         $machine_id = $request->machine_id;
         $type       = $request->type;
 
-        $model      = RemoteVend::selectRaw("IF(pay_status='pay at machine','pay_at_machine',pay_status) as pay_status,remote_vend_log.aisle_number, transactions.amount, transactions.payment_status, transactions.response")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id')->whereIn("pay_status", ["pay_to_card", "google_pay", "pay_at_machine", "paypal", "after_pay", "apple_pay", "pay at machine"])->whereNotNull("transactions.ids");
+        $model      = RemoteVend::selectRaw("IF(pay_status='pay at machine','pay_at_machine',pay_status) as pay_status,remote_vend_log.aisle_number, transactions.amount, transactions.payment_status, transactions.response")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id')->whereIn("pay_status", ["pay_to_card", "google_pay", "pay_at_machine", "paypal", "after_pay", "apple_pay", "pay at machine"])->whereNotNull("transactions.id");
 
         if ($machine_id > 0) {
             $model  = $model->where("remote_vend_log.machine_id", $machine_id);
