@@ -51,8 +51,9 @@ class DashboardController extends BaseController
 
         $response["stock_level"]                = MachineProductMap::stocks($params);
         $response["feedback"]["refill"]         = self::recentRefill($params,$request)["recent_refill"];
-        $response["feedback"]["vend_run"]       = self::recentVend($params, $request)["recent_vend"];;
+        $response["feedback"]["vend_run"]       = self::recentVend($params, $request)["recent_vend"];
         $response["feedback"]["tasks"]          = [["refill" => "no-data"]];
+        $response["feedback"]["feed"]           = self::getFeed($params, $request)["recent_feed"];
         return parent::sendResponse($response, "Success");
     }
 
