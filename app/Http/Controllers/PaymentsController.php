@@ -114,7 +114,7 @@ class PaymentsController extends BaseController
             }
         }
         $model = $model->paginate($request->length ?? 10);
-        dd($model->items());
+        // dd($model->items());
         return parent::sendResponseWithPagination($model, "Success");
     }
 }
