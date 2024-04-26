@@ -341,8 +341,8 @@ class DashboardController extends BaseController
         }
 
         if (!empty($start_date) && !empty($end_date)) {
-            $model  = $model->where('feed.created_on>=', $start_date);
-            $model  = $model->where('feed.created_on<=', $end_date);
+            $model  = $model->whereRaw("feed.created_on >='$start_date'");
+            $model  = $model->whereRaw("feed.created_on <='$end_date'");
         }
 
         $model =  $model->orderBy('feed.id', 'DESC')->limit(20)->get();
