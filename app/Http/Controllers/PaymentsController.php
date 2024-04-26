@@ -104,24 +104,22 @@ class PaymentsController extends BaseController
         if ($machine_id > 0) {
             $model  = $model->where("remote_vend_log.machine_id", $machine_id);
         }
-        if (in_array($type, ["approved", "declined", "timeout"])) {
-            if ($type === "approved") {
-                $model  = $model->where("remote_vend_log.status", "0");
-            } else if ($type === "declined") {
-                $model  = $model->whereNotIn("remote_vend_log.status", ['0', '1', '2', '11']);
-            } else if ($type === "timeout") {
-                $model  = $model->where("remote_vend_log.status", '7');
+        if (in_array($type, ["success", "error"])) {
+            if ($type === "success") {
+                $model  = $model->where("transactions.payment_status", "SUCCESS");
+            } else if ($type === "error") {
+                $model  = $model->where("transactions.payment_status", "FAILED");
             }
         }
         $model = $model->paginate($request->length ?? 10);
         foreach ($model->items() as $key => $value) {
-            if($value->payment_status!=="SUCCESS" && parent::isJson($value->response)){
-                $json = json_decode($value->response,true);
-                if(isset($json[0]["category"])){
+            if ($value->payment_status !== "SUCCESS" && parent::isJson($value->response)) {
+                $json = json_decode($value->response, true);
+                if (isset($json[0]["category"])) {
                     $model->items()[$key]->error = str_replace('_', ' ', $json[0]["category"]);
-                }else if(isset($json[0]["code"])){
-                    $model->items()[$key]->error = str_replace('_', ' ', $json[0]["code"]);                    
-                }else{
+                } else if (isset($json[0]["code"])) {
+                    $model->items()[$key]->error = str_replace('_', ' ', $json[0]["code"]);
+                } else {
                     $model->items()[$key]->error = "Unknown";
                 }
             }
