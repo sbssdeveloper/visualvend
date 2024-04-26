@@ -46,7 +46,7 @@ class DashboardController extends BaseController
         $params                                 = compact("auth", 'machine_ids', 'request');
         $response                               = [];
         $response["vend_machines"]              = count($machine_ids);
-        $response["items_vended"]               = Sale::recentVend($params);
+        $response["items_vended"]               = self::recentVend($params, $request);
         $response["vend_beat"]                  = self::machine_info($params, true);
 
         $response["stock_level"]                = MachineProductMap::stocks($params);
