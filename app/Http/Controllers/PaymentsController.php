@@ -125,6 +125,7 @@ class PaymentsController extends BaseController
                     $model->items()[$key]->error = "Unknown";
                 }
             }
+            unset($model->items()[$key]->response);
         }
         return parent::sendResponseWithPagination($model, "Success");
     }
