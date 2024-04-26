@@ -117,7 +117,13 @@ class PaymentsController extends BaseController
         foreach ($model->items() as $key => $value) {
             if($value->payment_status!=="SUCCESS" && parent::isJson($value->response)){
                 $json = json_decode($value->response,true);
-                print_r($json);
+                if(isset($json[0]["category"])){
+                    $model->items()[$key]->error = str_replace('_', ' ', $json[0]["category"]);
+                }else if(isset($json[0]["code"])){
+                    $model->items()[$key]->error = str_replace('_', ' ', $json[0]["code"]);                    
+                }else{
+                    $model->items()[$key]->error = "Unknown";
+                }
             }
         }
         return parent::sendResponseWithPagination($model, "Success");
