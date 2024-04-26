@@ -95,6 +95,9 @@ class PaymentsController extends BaseController
 
     public function activities(Request $request)
     {
+        $machine_id = $request->machine_id;
+        $type       = $request->type;
+        
         $model      = RemoteVend::select('*')->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
 
         if ($machine_id > 0) {
