@@ -205,7 +205,7 @@ class DashboardController extends BaseController
         $start_date         = date("Y-m-d H:i:s", strtotime($start_date));
         $end_date           = date("Y-m-d H:i:s", strtotime($end_date));
 
-        $model              = "SELECT `sale_report`.*, `client`.`client_name`, (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`) as refill_qty FROM `sale_report` LEFT JOIN  `machine_product_map` ON `machine_product_map`.`machine_id`=`sale_report`.`machine_id` AND `machine_product_map`.`product_location`=`sale_report`.`aisle_no` AND `machine_product_map`.`product_id`=`sale_report`.`product_id` LEFT JOIN  `client` ON `sale_report`.`client_id`=`client`.`id` WHERE `sale_report`.`product_id`<>''";
+        $model              = "SELECT `sale_report`.*, `client`.`client_name`, (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`) as refill FROM `sale_report` LEFT JOIN  `machine_product_map` ON `machine_product_map`.`machine_id`=`sale_report`.`machine_id` AND `machine_product_map`.`product_location`=`sale_report`.`aisle_no` AND `machine_product_map`.`product_id`=`sale_report`.`product_id` LEFT JOIN  `client` ON `sale_report`.`client_id`=`client`.`id` WHERE `sale_report`.`product_id`<>''";
 
         if ($auth->client_id > 0) {
             if (count($machine_ids) == 0) {
