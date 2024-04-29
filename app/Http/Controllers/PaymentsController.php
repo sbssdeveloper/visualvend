@@ -61,24 +61,24 @@ class PaymentsController extends BaseController
         if (!empty($start_date) && !empty($end_date)) {
             $mobile_payments  = $mobile_payments->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("transactions.created_at <= '$end_date'")->whereRaw("remote_vend_log.id > 0");
         }
-        
+
         $mobile_payments  = $mobile_payments->where("transactions.payment_status", "SUCCESS")->first();
 
-        $model->visa_amount         = $mobile_payments ? ($mobile_payments->visa_amount ?? 0) : 0;
-        $model->mastercard_amount   = $mobile_payments ? ($mobile_payments->mastercard_amount ?? 0) : 0;
-        $model->amex_amount         = $mobile_payments ? ($mobile_payments->amex_amount ?? 0) : 0;
-        $model->apple_amount        = $mobile_payments ? ($mobile_payments->apple_amount ?? 0) : 0;
-        $model->google_amount       = $mobile_payments ? ($mobile_payments->google_amount ?? 0) : 0;
-        $model->paypal_amount       = $mobile_payments ? ($mobile_payments->paypal_amount ?? 0) : 0;
-        $model->after_pay_amount    = $mobile_payments ? ($mobile_payments->after_pay_amount ?? 0) : 0;
-        $model->debit_card_amount   = $mobile_payments ? ($mobile_payments->debit_card_amount ?? 0) : 0;
-        $model->credit_card_amount  = $mobile_payments ? ($mobile_payments->credit_card_amount ?? 0) : 0;
+        $model->visa_amount         = number_format(($mobile_payments ? ($mobile_payments->visa_amount ?? 0) : 0), 2);
+        $model->mastercard_amount   = number_format(($mobile_payments ? ($mobile_payments->mastercard_amount ?? 0) : 0), 2);
+        $model->amex_amount         = number_format(($mobile_payments ? ($mobile_payments->amex_amount ?? 0) : 0), 2);
+        $model->apple_amount        = number_format(($mobile_payments ? ($mobile_payments->apple_amount ?? 0) : 0), 2);
+        $model->google_amount       = number_format(($mobile_payments ? ($mobile_payments->google_amount ?? 0) : 0), 2);
+        $model->paypal_amount       = number_format(($mobile_payments ? ($mobile_payments->paypal_amount ?? 0) : 0), 2);
+        $model->after_pay_amount    = number_format(($mobile_payments ? ($mobile_payments->after_pay_amount ?? 0) : 0), 2);
+        $model->debit_card_amount   = number_format(($mobile_payments ? ($mobile_payments->debit_card_amount ?? 0) : 0), 2);
+        $model->credit_card_amount  = number_format(($mobile_payments ? ($mobile_payments->credit_card_amount ?? 0) : 0), 2);
 
         $model->successfull_mobile_vends    = $mobile_payments ? ($mobile_payments->successfull_mobile_vends ?? 0) : 0;
 
 
-        $model->all_card_payments   = $model->visa_amount + $model->mastercard_amount + $model->amex_amount;
-        $model->all_mobile_payments = $model->apple_amount + $model->google_amount + $model->paypal_amount + $model->after_pay_amount;
+        $model->all_card_payments   = number_format($model->visa_amount + $model->mastercard_amount + $model->amex_amount, 2);
+        $model->all_mobile_payments = number_format($model->apple_amount + $model->google_amount + $model->paypal_amount + $model->after_pay_amount, 2);
 
         // percentage code
         $model->vend_success_rate   = $model->total_vends > 0 ? number_format(($model->successfull_vends / $model->total_vends) * 100, 2) : 0;
