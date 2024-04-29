@@ -106,6 +106,7 @@ class PaymentsController extends BaseController
     {
         $machine_id = $request->machine_id;
         $type       = $request->type;
+        $pay_type   = $request->pay_type;
 
         $model      = Transaction::selectRaw("IF(pay_method='pay at machine','pay_at_machine',pay_method) as pay_method,remote_vend_log.aisle_number, transactions.amount, transactions.payment_status, machine_id,machine_name,product_id,product_name,transactions.created_at, transactions.response")->leftJoin('remote_vend_log', 'remote_vend_log.vend_id', '=', 'transactions.vend_uuid');
         // ->whereIn("pay_status", ["pay_to_card", "google_pay", "pay_at_machine", "paypal", "after_pay", "apple_pay", "pay at machine"])
@@ -118,6 +119,13 @@ class PaymentsController extends BaseController
                 $model  = $model->where("transactions.payment_status", "SUCCESS");
             } else if ($type === "error") {
                 $model  = $model->where("transactions.payment_status", "FAILED");
+            }
+        }
+        if (in_array($pay_type, ["card", "mobile"])) {
+            if ($pay_type === "card") {
+                $model  = $model->where("pay_method", "pay_to_card");
+            } else if ($pay_type === "mobile") {
+                $model  = $model->whereIn("pay_method", ['google_pay', 'after_pay', 'apple_pay', 'paypal']);
             }
         }
         $model = $model->paginate($request->length ?? 10);
