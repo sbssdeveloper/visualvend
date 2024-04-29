@@ -35,6 +35,7 @@ class PaymentsController extends BaseController
         $end_date   = $request->end_date;
         $machine_id = $request->machine_id;
         $type       = $request->type;
+        $device     = $request->device;
 
         // From Remote vend log
         $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status='2', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed, SUM(IF(transactions.id>0,1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00'),1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED',1,0)) as failed_mobile_payments")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
@@ -98,6 +99,61 @@ class PaymentsController extends BaseController
 
         $model->mbl_failed_pay_rate  = $model->total_mobile_vends > 0 ? number_format(($model->failed_mobile_payments / $model->total_mobile_vends) * 100, 2) : 0;
         $model->mbl_failed_pay_rate .= "%";
+
+        if ($device) {
+            $cardPayments  =   [
+                [
+                    "name" => "Visa",
+                    "color" => "rgba(131, 167, 234, 1)",
+                    "population" => $model->visa_amount,
+                ],
+                [
+                    "name" => "Mastercard",
+                    "color" => "red",
+                    "population" => $model->mastercard_amount,
+                ],
+                [
+                    "name" => "Amex",
+                    "color" => "#7F7F7F",
+                    "population" => $model->amex_amount,
+                ],
+                [
+                    "name" => "Debit Card",
+                    "color" => "#149CBE",
+                    "population" => $model->debit_card_amount,
+                ],
+                [
+                    "name" => "Credit Card",
+                    "color" => "blue",
+                    "population" => $model->credit_card_amount,
+                ],
+            ];
+            $model->card_payments = $cardPayments;
+
+            $mobPayments  =   [
+                [
+                    "name" => "Apple Pay",
+                    "color" => "rgba(131, 167, 234, 1)",
+                    "population" => $model->apple_amount,
+                ],
+                [
+                    "name" => "Gpay",
+                    "color" => "red",
+                    "population" => $model->google_amount,
+                ],
+                [
+                    "name" => "Paypal",
+                    "color" => "#7F7F7F",
+                    "population" => $model->paypal_amount,
+                ],
+                [
+                    "name" => "After Pay",
+                    "color" => "#149CBE",
+                    "population" => $model->after_pay_amount,
+                ]
+            ];
+            $model->mobile_payments = $mobPayments;
+        }
 
         return parent::sendResponse($model, "Success");
     }
