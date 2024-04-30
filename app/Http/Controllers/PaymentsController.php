@@ -38,7 +38,7 @@ class PaymentsController extends BaseController
         $device     = $request->device;
 
         // From Remote vend log
-        $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status='2', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed, SUM(IF(transactions.id>0,1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00'),1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED',1,0)) as failed_mobile_payments")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
+        $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends,SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0)) as in_progress, SUM(IF(remote_vend_log.status='2', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed, SUM(IF(transactions.id>0,1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00'),1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED',1,0)) as failed_mobile_payments")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
         if (!empty($start_date) && !empty($end_date)) {
             $model  = $model->whereRaw("remote_vend_log.updated_at >= '$start_date'")->whereRaw("remote_vend_log.updated_at <= '$end_date'");
         }
@@ -87,6 +87,9 @@ class PaymentsController extends BaseController
 
         $model->vend_failed_rate    = $model->total_vends > 0 ? number_format(($model->failed_vends / $model->total_vends) * 100, 2) : 0;
         $model->vend_failed_rate   .= "%";
+
+        $model->vend_progress_rate  = $model->total_vends > 0 ? number_format(($model->in_progress / $model->total_vends) * 100, 2) : 0;
+        $model->vend_progress_rate .= "%";
 
         $model->pay_failed_rate     = $model->total_vends > 0 ? number_format(($model->pay_failed / $model->total_vends) * 100, 2) : 0;
         $model->pay_failed_rate    .= "%";
