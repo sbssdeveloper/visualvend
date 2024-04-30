@@ -100,60 +100,60 @@ class PaymentsController extends BaseController
         $model->mbl_failed_pay_rate  = $model->total_mobile_vends > 0 ? number_format(($model->failed_mobile_payments / $model->total_mobile_vends) * 100, 2) : 0;
         $model->mbl_failed_pay_rate .= "%";
 
-        // if ($device) {
-        //     $cardPayments  =   [
-        //         [
-        //             "name" => "Visa",
-        //             "color" => "rgba(131, 167, 234, 1)",
-        //             "population" => $model->visa_amount,
-        //         ],
-        //         [
-        //             "name" => "Mastercard",
-        //             "color" => "red",
-        //             "population" => $model->mastercard_amount,
-        //         ],
-        //         [
-        //             "name" => "Amex",
-        //             "color" => "#7F7F7F",
-        //             "population" => $model->amex_amount,
-        //         ],
-        //         [
-        //             "name" => "Debit Card",
-        //             "color" => "#149CBE",
-        //             "population" => $model->debit_card_amount,
-        //         ],
-        //         [
-        //             "name" => "Credit Card",
-        //             "color" => "blue",
-        //             "population" => $model->credit_card_amount,
-        //         ],
-        //     ];
-        //     $model->card_payments = $cardPayments;
+        if ($device) {
+            $cardPayments  =   [
+                [
+                    "name" => "Visa",
+                    "color" => "rgba(131, 167, 234, 1)",
+                    "population" => $model->visa_amount,
+                ],
+                [
+                    "name" => "Mastercard",
+                    "color" => "red",
+                    "population" => $model->mastercard_amount,
+                ],
+                [
+                    "name" => "Amex",
+                    "color" => "#7F7F7F",
+                    "population" => $model->amex_amount,
+                ],
+                [
+                    "name" => "Debit Card",
+                    "color" => "#149CBE",
+                    "population" => $model->debit_card_amount,
+                ],
+                [
+                    "name" => "Credit Card",
+                    "color" => "blue",
+                    "population" => $model->credit_card_amount,
+                ],
+            ];
+            $model->card_payments = $cardPayments;
 
-        //     $mobPayments  =   [
-        //         [
-        //             "name" => "Apple Pay",
-        //             "color" => "rgba(131, 167, 234, 1)",
-        //             "population" => $model->apple_amount,
-        //         ],
-        //         [
-        //             "name" => "Gpay",
-        //             "color" => "red",
-        //             "population" => $model->google_amount,
-        //         ],
-        //         [
-        //             "name" => "Paypal",
-        //             "color" => "#7F7F7F",
-        //             "population" => $model->paypal_amount,
-        //         ],
-        //         [
-        //             "name" => "After Pay",
-        //             "color" => "#149CBE",
-        //             "population" => $model->after_pay_amount,
-        //         ]
-        //     ];
-        //     $model->mobile_payments = $mobPayments;
-        // }
+            $mobPayments  =   [
+                [
+                    "name" => "Apple Pay",
+                    "color" => "rgba(131, 167, 234, 1)",
+                    "population" => $model->apple_amount,
+                ],
+                [
+                    "name" => "Gpay",
+                    "color" => "red",
+                    "population" => $model->google_amount,
+                ],
+                [
+                    "name" => "Paypal",
+                    "color" => "#7F7F7F",
+                    "population" => $model->paypal_amount,
+                ],
+                [
+                    "name" => "After Pay",
+                    "color" => "#149CBE",
+                    "population" => $model->after_pay_amount,
+                ]
+            ];
+            $model->mobile_payments = $mobPayments;
+        }
 
         return parent::sendResponse($model, "Success");
     }
