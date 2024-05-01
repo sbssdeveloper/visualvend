@@ -23,7 +23,7 @@ class RemoteVend extends Model
         $machine_id = $request->machine_id;
         $product_id = $request->product_id;
         $search     = $request->search;
-        $model      =  self::selectRaw("COUNT(*) as vended_items, SUM(transaction.amount) as total_sales")->innerJoin("transaction", "transaction.vend_uuid", '=', "remote_vend_log.vend_id")->where('is_deleted', '0');
+        $model      =  self::selectRaw("COUNT(*) as vended_items, SUM(transaction.amount) as total_sales")->join("transaction", "transaction.vend_uuid", '=', "remote_vend_log.vend_id")->where('is_deleted', '0');
 
         if ($machine_id) {
             $model =  $model->where('machine_id', $machine_id);
