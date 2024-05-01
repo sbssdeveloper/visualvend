@@ -57,11 +57,7 @@ class DashboardController extends BaseController
         $today_sales                            = 
         $response["other"]                      = [
             'bump_in'   => "00",
-            'bump_out'  => "00",
-            "today_sales" => null,
-            "card_amount" => null,
-            "machine_amount" => null,
-            "mobile_pay_amount" => null,
+            'bump_out'  => "00"
         ];
         return parent::sendResponse($response, "Success");
     }
