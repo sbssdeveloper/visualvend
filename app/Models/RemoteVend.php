@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Transaction;
+use stdClass;
 
 class RemoteVend extends Model
 {
@@ -24,7 +25,6 @@ class RemoteVend extends Model
         $product_id = $request->product_id;
         $search     = $request->search;
         $model      =  self::selectRaw("COUNT(*) as vended_items, SUM(IF(remote_vend_log.pay_method='	
-        pay_to_card',transactions.amount,0)) as card_sales, SUM(IF(remote_vend_log.pay_method='	
         pay_to_card',transactions.amount,0)) as card_sales, SUM(IF(remote_vend_log.pay_method IN('apple_pay','pay_to_card','google_pay','paypal'), transactions.amount, 0)) as mobile_payments, SUM(transactions.amount) as total_sales")->leftJoin("transactions", "transactions.transaction_id", '=', "remote_vend_log.transaction_id")->where("remote_vend_log.status", "2")->where('is_deleted', '0');
 
         if ($machine_id) {
@@ -50,6 +50,13 @@ class RemoteVend extends Model
             $model  = $model->whereRaw("updated_at<='$end_date'");
         }
         $model =  $model->get()->first();
+        if (!$model) {
+            $model                  = new stdClass();
+            $model->vended_items    = 0;
+        }
+        $model->card_sales = number_format($model->card_sales, 2);
+        $model->mobile_payments = number_format($model->mobile_payments, 2);
+        $model->total_sales = number_format($model->total_sales, 2);
         // 
         return $model;
     }
