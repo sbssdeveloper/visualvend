@@ -10,14 +10,47 @@ class RemoteVend extends Model
     protected $table = 'remote_vend_log';
     protected $fillable = ['*'];
 
-    public function vendTransaction()
+    public function transaction()
     {
         return $this->hasOne(Transaction::class, 'vend_uuid', 'vend_id');
     }
 
-    public function transaction()
+    public static function recentVend($params)
     {
-        return $this->hasOne(Transaction::class, 'vend_uuid', 'vend_id');
+        extract($params);
+        $start_date = $request->start_date;
+        $end_date   = $request->end_date;
+        $machine_id = $request->machine_id;
+        $product_id = $request->product_id;
+        $search     = $request->search;
+        $model =  self::transaction()->where('is_deleted', '0');
+
+        if ($machine_id) {
+            $model =  $model->where('machine_id', $machine_id);
+        } else if ($product_id) {
+            $model =  $model->where('product_id', $product_id);
+        }
+        if ($auth->client_id > 0) {
+            $model =  $model->where('client_id', $auth->client_id);
+            if (count($machine_ids) > 0) {
+                $model =  $model->whereIn("machine_id", $machine_ids);
+            } else {
+                $model =  $model->whereIn("machine_id", ["no_machine"]);
+            }
+        }
+
+        if (!empty($search)) {
+            $model =  $model->whereRaw("machine_name like '%$request->search%'");
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model  = $model->whereRaw("updated_at>='$start_date'");
+            $model  = $model->whereRaw("updated_at<='$end_date'");
+        }
+        $model =  $model->get()->first();
+        dd($model);
+        // selectRaw("COUNT(*) as vended_items")->
+        return $model;
     }
 
     public static function vendRun($params)
@@ -25,7 +58,7 @@ class RemoteVend extends Model
         extract($params);
         $model =  self::select(["vend_id", "product_name", "machine_id", "product_id"])->whereIn("status", ["0", "1", "11"])->where('is_deleted', '0')->whereRaw("product_id != '0'");
 
-        if ($request->machine_id>0) {
+        if ($request->machine_id > 0) {
             $model =  $model->where('machine_id', $request->machine_id);
         } else if (!empty($request->product_id)) {
             $model =  $model->where('product_id', $request->product_id);

@@ -46,14 +46,23 @@ class DashboardController extends BaseController
         $params                                 = compact("auth", 'machine_ids', 'request');
         $response                               = [];
         $response["vend_machines"]              = count($machine_ids);
-        $response["items_vended"]               = Sale::recentVend($params);
+        $response["items_vended"]               = RemoteVend::recentVend($params)//Sale::recentVend($params);
         $response["vend_beat"]                  = self::machine_info($params, true);
 
         $response["stock_level"]                = MachineProductMap::stocks($params);
-        $response["feedback"]["refill"]         = self::recentRefill($params,$request)["recent_refill"];
-        $response["feedback"]["vend_run"]       = self::recentVend($params, $request)["recent_vend"];
+        $response["feedback"]["refill"]         = self::recentRefill($params)["recent_refill"];
+        $response["feedback"]["vend_run"]       = self::recentVend($params)["recent_vend"];
         $response["feedback"]["tasks"]          = [["refill" => "no-data"]];
-        $response["feedback"]["feed"]           = self::getFeed($params, $request)["recent_feed"];
+        $response["feedback"]["feed"]           = self::getFeed($params)["recent_feed"];
+        $today_sales                            = 
+        $response["other"]                      = [
+            'bump_in'   => "00",
+            'bump_out'  => "00",
+            "today_sales" => null,
+            "card_amount" => null,
+            "machine_amount" => null,
+            "mobile_pay_amount" => null,
+        ];
         return parent::sendResponse($response, "Success");
     }
 
@@ -150,7 +159,7 @@ class DashboardController extends BaseController
         return ['machine_users' => $model];
     }
 
-    function recentVend($params, $request)
+    function recentVend($params)
     {
         extract($params);
         $start_date = $request->start_date;
@@ -192,7 +201,7 @@ class DashboardController extends BaseController
         return ['recent_vend' => $model];
     }
 
-    public function recentRefill($params, $request)
+    public function recentRefill($params)
     {
         extract($params);
         $refills =  $highest = 0;
@@ -318,7 +327,7 @@ class DashboardController extends BaseController
         return ['recent_vend_error' => $model];
     }
 
-    public function getFeed($params, $request)
+    public function getFeed($params)
     {
         extract($params);
         $start_date = $request->start_date;
