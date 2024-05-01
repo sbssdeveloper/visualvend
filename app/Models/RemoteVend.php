@@ -12,7 +12,7 @@ class RemoteVend extends Model
 
     public function transaction()
     {
-        return $this->hasOne(Transaction::class, 'vend_uuid','vend_id');
+        return $this->hasOne(Transaction::class, 'vend_uuid', 'vend_id');
     }
 
     public static function recentVend($params)
@@ -23,7 +23,7 @@ class RemoteVend extends Model
         $machine_id = $request->machine_id;
         $product_id = $request->product_id;
         $search     = $request->search;
-        $model      =  self::with("transaction")->where('is_deleted', '0');
+        $model      =  self::selectRaw("COUNT(*) as vended_items, SUM(amount) as total_sales")->with("transaction")->where('is_deleted', '0');
 
         if ($machine_id) {
             $model =  $model->where('machine_id', $machine_id);
@@ -48,7 +48,7 @@ class RemoteVend extends Model
             $model  = $model->whereRaw("updated_at<='$end_date'");
         }
         $model =  $model->get()->first();
-        // selectRaw("COUNT(*) as vended_items")->
+        // 
         return $model;
     }
 
