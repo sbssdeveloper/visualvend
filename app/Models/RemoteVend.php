@@ -12,7 +12,7 @@ class RemoteVend extends Model
 
     public function transaction()
     {
-        return $this->hasOne(Transaction::class, 'vend_uuid', 'vend_id');
+        return $this->hasOne(Transaction::class, 'vend_id','vend_uuid');
     }
 
     public static function recentVend($params)
