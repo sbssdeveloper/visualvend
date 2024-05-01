@@ -21,8 +21,8 @@ class MachineProductMap extends Model
             if ($model->total_quantity == 0) {
                 $model->required_quantity = "0%";
             } else {
-                $required_quantity = (($model->total_quantity - $model->remaining_quantity) * 100) / $model->total_quantity;
-                $model->required_quantity = "-" . number_format((float)$required_quantity, 1, '.', '') . "%";
+                $required_quantity = ($model->remaining_quantity * 100) / $model->total_quantity;
+                $model->required_quantity = number_format((float)$required_quantity, 1, '.', '') . "%";
             }
         }
         return $model;
