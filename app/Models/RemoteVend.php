@@ -50,16 +50,10 @@ class RemoteVend extends Model
             $model  = $model->whereRaw("updated_at<='$end_date'");
         }
         $model =  $model->get()->first();
-        if (!$model) {
-            $model                  = new stdClass();
-            $model->vended_items    = 0;
-            $model->card_sales      = 0;
-            $model->mobile_payments = 0;
-            $model->total_sales     = 0;
-        }
-        $model->card_sales = number_format($model->card_sales, 2);
-        $model->mobile_payments = number_format($model->mobile_payments, 2);
-        $model->total_sales = number_format($model->total_sales, 2);
+
+        $model->card_sales = number_format($model->card_sales ?? 0, 2);
+        $model->mobile_payments = number_format($model->mobile_payments ?? 0, 2);
+        $model->total_sales = number_format($model->total_sales ?? 0, 2);
         // 
         return $model;
     }
