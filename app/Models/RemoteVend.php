@@ -24,7 +24,8 @@ class RemoteVend extends Model
         $product_id = $request->product_id;
         $search     = $request->search;
         $model      =  self::selectRaw("COUNT(*) as vended_items, SUM(IF(remote_vend_log.pay_method='	
-        pay_to_card',transactions.amount,0)) as card_sales, SUM(transactions.amount) as total_sales")->leftJoin("transactions", "transactions.transaction_id", '=', "remote_vend_log.transaction_id")->where("remote_vend_log.status", "2")->where('is_deleted', '0');
+        pay_to_card',transactions.amount,0)) as card_sales, SUM(IF(remote_vend_log.pay_method='	
+        pay_to_card',transactions.amount,0)) as card_sales, SUM(IF(remote_vend_log.pay_method IN('apple_pay','pay_to_card','google_pay','paypal'), transactions.amount, 0)) as mobile_payments, SUM(transactions.amount) as total_sales")->leftJoin("transactions", "transactions.transaction_id", '=', "remote_vend_log.transaction_id")->where("remote_vend_log.status", "2")->where('is_deleted', '0');
 
         if ($machine_id) {
             $model =  $model->where('machine_id', $machine_id);
