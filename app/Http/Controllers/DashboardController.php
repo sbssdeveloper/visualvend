@@ -47,7 +47,7 @@ class DashboardController extends BaseController
         $response                               = [];
         $response["vend_machines"]              = count($machine_ids);
         $response["items_vended"]               = Sale::recentVend($params);
-        $response["payments_types"]             = RemoteVend::recentVend($params);
+        $response["payment_types"]              = RemoteVend::recentVend($params);
         $response["vend_beat"]                  = self::machine_info($params, true);
 
         $response["stock_level"]                = MachineProductMap::stocks($params);
