@@ -25,7 +25,7 @@ class RemoteVend extends Model
         $product_id = $request->product_id;
         $search     = $request->search;
         $model      =  self::selectRaw("SUM(IF(remote_vend_log.pay_method='	
-        pay_to_card',transactions.amount,0)) as card_sales, SUM(IF(remote_vend_log.pay_method IN('apple_pay','pay_to_card','google_pay','paypal'), transactions.amount, 0)) as mobile_payments, SUM(IF(remote_vend_log.pay_method IN('pay at machine','pay_at_machine'), transactions.amount, 0)) as machine_payments")->leftJoin("transactions", "transactions.transaction_id", '=', "remote_vend_log.transaction_id")->where("remote_vend_log.status", "2")->where('is_deleted', '0');
+        pay_to_card',transactions.amount,0)) as card_sales, SUM(IF(remote_vend_log.pay_method IN('apple_pay','pay_to_card','google_pay','paypal'), transactions.amount, 0)) as mobile_payments")->leftJoin("transactions", "transactions.transaction_id", '=', "remote_vend_log.transaction_id")->where("remote_vend_log.status", "2")->where('is_deleted', '0');
 
         if ($machine_id) {
             $model =  $model->where('machine_id', $machine_id);
@@ -53,7 +53,6 @@ class RemoteVend extends Model
 
         $model->card_sales          = number_format($model->card_sales ?? 0, 2);
         $model->mobile_payments     = number_format($model->mobile_payments ?? 0, 2);
-        $model->machine_payments    = number_format($model->machine_payments ?? 0, 2);
         // 
         return $model;
     }
