@@ -48,7 +48,6 @@ class RemoteVend extends Model
             $model  = $model->whereRaw("updated_at<='$end_date'");
         }
         $model =  $model->get()->first();
-        dd($model);
         // selectRaw("COUNT(*) as vended_items")->
         return $model;
     }
