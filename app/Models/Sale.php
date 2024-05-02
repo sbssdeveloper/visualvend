@@ -50,7 +50,7 @@ class Sale extends Model
         }
         $model =  $model->get()->first();
         $today =  $today->get()->first();
-        dd($today->total_sales);
+        $model->today_sales = $today->total_sales??"0.00";
         return $model;
     }
 }
