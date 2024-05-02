@@ -23,7 +23,7 @@ class MachineProductMap extends Model
         $slowSell = $slowSell->groupBy(["product_id", "client_id"])->havingRaw(DB::raw('count <= CEIL(count/10)'))->get()->count();
         $model = $model->get()->first();
         if ($model) {
-            $model->slow_cell = $slowSell ?? 0;
+            $model->slow_sell = $slowSell ?? 0;
             if ($model->total_quantity == 0) {
                 $model->required_quantity = "0%";
             } else {
