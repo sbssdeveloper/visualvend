@@ -18,8 +18,8 @@ class Sale extends Model
         $product_id = $request->product_id;
         $search     = $request->search;
 
-        $model =  self::selectRaw("SUM(CAST(product_price AS DECIMAL(10,2))) as total_sales")->where('is_deleted', '0');
-        $today = self::selectRaw("COUNT(*) as vended_items, SUM(CAST(product_price AS DECIMAL(10,2))) as total_sales")->where('is_deleted', '0')->whereDate("timestamp", date("Y-m-d"));
+        $model =  self::selectRaw("COUNT(*) as vended_items, SUM(CAST(product_price AS DECIMAL(10,2))) as total_sales")->where('is_deleted', '0');
+        $today = self::selectRaw("SUM(CAST(product_price AS DECIMAL(10,2))) as total_sales")->where('is_deleted', '0')->whereDate("timestamp", date("Y-m-d"));
         if ($machine_id) {
             $model =  $model->where('machine_id', $machine_id);
             $today =  $today->where('machine_id', $machine_id);
@@ -49,7 +49,7 @@ class Sale extends Model
             $model  = $model->whereRaw("sale_report.timestamp<='$end_date'");
         }
         $model =  $model->get()->first();
-        $model->today_sales = $today->total_sales ?? "0.00";
+        dd($today);
         return $model;
     }
 }
