@@ -63,6 +63,10 @@ class PaymentsController extends BaseController
             $mobile_payments  = $mobile_payments->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("transactions.created_at <= '$end_date'")->whereRaw("remote_vend_log.id > 0");
         }
 
+        if ($machine_id > 0) {
+            $mobile_payments  = $mobile_payments->where("remote_vend_log.machine_id", $machine_id);
+        }
+
         $mobile_payments  = $mobile_payments->where("transactions.payment_status", "SUCCESS")->first();
 
         $model->visa_amount         = number_format(($mobile_payments ? ($mobile_payments->visa_amount ?? 0) : 0), 2);
