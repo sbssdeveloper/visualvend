@@ -15,7 +15,6 @@ class MachineProductMap extends Model
         extract($params);
         $model = self::selectRaw("SUM(IF(product_quantity=0 AND product_max_quantity>0,1,0)) as out_of_stock,SUM(IF(product_quantity>0 AND product_max_quantity>0,1,0)) as in_stock, SUM(product_max_quantity) as total_quantity,SUM(product_quantity) as remaining_quantity");
         $slowSell = Sale::select("COUNT(*) as count");
-        SELECT COUNT(*) as count, product_id FROM `sale_report` GROUP BY product_id,client_id HAVING count<=CEIL(count/10);
         if ($auth->client_id > 0) {
             $model = $model->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
             $slowSell = $slowSell->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
