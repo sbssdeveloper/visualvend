@@ -14,9 +14,13 @@ class MachineProductMap extends Model
     public static function stocks($params)
     {
         extract($params);
+        $machine_id = $request->machine_id;
         $model = self::selectRaw("SUM(IF(product_quantity=0 AND product_max_quantity>0,1,0)) as out_of_stock,SUM(IF(product_quantity>0 AND product_max_quantity>0,1,0)) as in_stock, SUM(product_max_quantity) as total_quantity,SUM(product_quantity) as remaining_quantity");
         $slowSell = Sale::selectRaw("COUNT(*) as count");
-        if ($auth->client_id > 0) {
+        if ($machine_id > 0) {
+            $model = $model->where("machine_id", $machine_id);
+            $slowSell = $slowSell->where("machine_id", $machine_id);
+        }else if ($auth->client_id > 0) {
             $model = $model->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
             $slowSell = $slowSell->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
         }

@@ -55,11 +55,11 @@ class DashboardController extends BaseController
         $response["feedback"]["vend_run"]       = self::recentVend($params)["recent_vend"];
         $response["feedback"]["tasks"]          = [["refill" => "no-data"]];
         $response["feedback"]["feed"]           = self::getFeed($params)["recent_feed"];
-        $today_sales                            = 
-        $response["other"]                      = [
-            'bump_in'   => "00",
-            'bump_out'  => "00"
-        ];
+        $today_sales                            =
+            $response["other"]                      = [
+                'bump_in'   => "00",
+                'bump_out'  => "00"
+            ];
         return parent::sendResponse($response, "Success");
     }
 
@@ -214,7 +214,9 @@ class DashboardController extends BaseController
 
         $model              = "SELECT `sale_report`.*, `client`.`client_name`, (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`) as refill FROM `sale_report` LEFT JOIN  `machine_product_map` ON `machine_product_map`.`machine_id`=`sale_report`.`machine_id` AND `machine_product_map`.`product_location`=`sale_report`.`aisle_no` AND `machine_product_map`.`product_id`=`sale_report`.`product_id` LEFT JOIN  `client` ON `sale_report`.`client_id`=`client`.`id` WHERE `sale_report`.`product_id`<>''";
 
-        if ($auth->client_id > 0) {
+        if ($machine_id > 0) {
+            $model         .= " AND `sale_report`.`machine_id`=$machine_id";
+        } else if ($auth->client_id > 0) {
             if (count($machine_ids) == 0) {
                 $machine_ids = ["no-machine"];
             }
@@ -223,9 +225,6 @@ class DashboardController extends BaseController
             $model         .= " AND `sale_report`.`machine_id` IN ($my_machines)";
         }
 
-        if ($machine_id > 0) {
-            $model         .= " AND `sale_report`.`machine_id`=$machine_id";
-        }
         $model         .= " AND `sale_report`.`timestamp`>='$start_date' AND `sale_report`.`timestamp`<='$end_date'";
 
         if (!empty($search)) {
