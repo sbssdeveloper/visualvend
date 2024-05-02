@@ -49,7 +49,7 @@ class Sale extends Model
             $model  = $model->whereRaw("sale_report.timestamp<='$end_date'");
         }
         $model =  $model->get()->first();
-        dd($today);
+        dd($today->total_sales);
         return $model;
     }
 }
