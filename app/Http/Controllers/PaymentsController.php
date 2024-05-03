@@ -185,7 +185,7 @@ class PaymentsController extends BaseController
         }
 
         if (!empty($start_date) && !empty($end_date)) {
-            $mobile_payments  = $mobile_payments->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("transactions.created_at <= '$end_date'");
+            $model  = $model->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("transactions.created_at <= '$end_date'");
         }
 
         if (!empty($pay_method)) {
