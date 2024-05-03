@@ -189,9 +189,13 @@ class PaymentsController extends BaseController
         }
 
         if (!empty($pay_method)) {
-            $model  = $model->where("remote_vend_log.pay_method", $pay_method);;
+            if ($pay_type === "card") {
+                $model  = $model->where("remote_vend_log.pay_method", $pay_method);
+            } else {
+                $model  = $model->where("transactions.response", 'LIKE', "%$pay_method%");
+            }
         }
-        
+
         if ($machine_id > 0) {
             $model  = $model->where("remote_vend_log.machine_id", $machine_id);
         }
