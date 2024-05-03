@@ -38,8 +38,7 @@ class PaymentsController extends BaseController
         $device     = $request->device;
 
         // From Remote vend log
-        $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0)) as in_progress, SUM(IF(remote_vend_log.status='2', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed, SUM(IF(transactions.id>0,1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00'),1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED',1,0)) as failed_mobile_payments")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id')->where("pay_method", "pay_to_card");
-
+        $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0)) as in_progress, SUM(IF(remote_vend_log.status='2', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed, SUM(IF(transactions.id>0,1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00'),1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED',1,0)) as failed_mobile_payments")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
         if (!empty($start_date) && !empty($end_date)) {
             $model  = $model->whereRaw("remote_vend_log.updated_at >= '$start_date'")->whereRaw("remote_vend_log.updated_at <= '$end_date'");
         }
@@ -47,7 +46,6 @@ class PaymentsController extends BaseController
         if ($machine_id > 0) {
             $model  = $model->where("remote_vend_log.machine_id", $machine_id);
         }
-
         if (in_array($type, ["approved", "declined", "timeout"])) {
             if ($type === "approved") {
                 $model  = $model->where("remote_vend_log.status", "0");
@@ -57,7 +55,6 @@ class PaymentsController extends BaseController
                 $model  = $model->where("remote_vend_log.status", '7');
             }
         }
-
         $model = $model->first();
 
         $mobile_payments = Transaction::selectRaw("COUNT(transactions.id) as successfull_mobile_vends, SUM(transactions.amount) as total_amount, SUM(IF(response LIKE '%DEBIT%',amount,0)) as debit_card_amount,SUM(IF(response LIKE '%CREDIT%',amount,0)) as credit_card_amount, SUM(IF(response LIKE '%VISA%',amount,0)) as visa_amount, SUM(IF(response LIKE '%MASTERCARD%',amount,0)) as mastercard_amount, SUM(IF(response LIKE '%AMEX%',amount,0)) as amex_amount, SUM(IF(pay_method='apple_pay',amount,0)) as apple_amount,  SUM(IF(pay_method='google_pay',amount,0)) as google_amount,  SUM(IF(pay_method='paypal',amount,0)) as paypal_amount,  SUM(IF(pay_method='after_pay',amount,0)) as after_pay_amount")->leftJoin('remote_vend_log', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
@@ -177,8 +174,9 @@ class PaymentsController extends BaseController
 
         $model      = Transaction::selectRaw("IF(pay_method='pay at machine','pay_at_machine',pay_method) as pay_method,remote_vend_log.aisle_number, transactions.amount, transactions.payment_status, machine_id,machine_name,product_id,product_name,transactions.created_at, transactions.response")->leftJoin('remote_vend_log', 'remote_vend_log.vend_id', '=', 'transactions.vend_uuid');
         // ->whereIn("pay_status", ["pay_to_card", "google_pay", "pay_at_machine", "paypal", "after_pay", "apple_pay", "pay at machine"])
-        if (!empty($search)) {
+        if(!empty($search)){
             $model  = $model->where(function ($query) use ($search) {
+
             });
         }
         if ($machine_id > 0) {
