@@ -174,9 +174,10 @@ class PaymentsController extends BaseController
 
         $model      = Transaction::selectRaw("IF(pay_method='pay at machine','pay_at_machine',pay_method) as pay_method,remote_vend_log.aisle_number, transactions.amount, transactions.payment_status, machine_id,machine_name,product_id,product_name,transactions.created_at, transactions.response, CASE WHEN response LIKE '%VISA%' THEN 'VISA' WHEN response LIKE '%MASTERCARD%' THEN 'MASTERCARD' WHEN response LIKE '%AMEX%' THEN 'AMEX' ELSE NULL END as card_type")->leftJoin('remote_vend_log', 'remote_vend_log.vend_id', '=', 'transactions.vend_uuid');
         // ->whereIn("pay_status", ["pay_to_card", "google_pay", "pay_at_machine", "paypal", "after_pay", "apple_pay", "pay at machine"])
-        
+
         if (!empty($search)) {
             $model  = $model->where(function ($query) use ($search) {
+                return $query->where("product_id", 'LIKE', "$search%")->orWhere("product_name", 'LIKE', "$search%")->orWhere("machine_name", 'LIKE', "$search%");
             });
         }
         if ($machine_id > 0) {
