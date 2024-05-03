@@ -38,7 +38,7 @@ class PaymentsController extends BaseController
         $device     = $request->device;
 
         // From Remote vend log
-        $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0)) as in_progress, SUM(IF(remote_vend_log.status='2', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED', 1, 0)) as pay_failed, SUM(IF(transactions.id>0,1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00'),1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED',1,0)) as failed_mobile_payments")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
+        $model      = RemoteVend::selectRaw("COUNT(*) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00'), 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0)) as in_progress, SUM(IF(remote_vend_log.status='2', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED' AND remote_vend_log.status IN ('0','1','7','11'), 1, 0)) as pay_failed, SUM(IF(transactions.id>0,1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00'),1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED',1,0)) as failed_mobile_payments")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
 
         if (!empty($start_date) && !empty($end_date)) {
             $model  = $model->whereRaw("remote_vend_log.updated_at >= '$start_date'")->whereRaw("remote_vend_log.updated_at <= '$end_date'");
@@ -58,7 +58,7 @@ class PaymentsController extends BaseController
             }
         }
 
-        $model = $model->groupBy("vend_id")->first();
+        $model = $model->first();
 
         $mobile_payments = Transaction::selectRaw("COUNT(transactions.id) as successfull_mobile_vends, SUM(transactions.amount) as total_amount, SUM(IF(response LIKE '%DEBIT%',amount,0)) as debit_card_amount,SUM(IF(response LIKE '%CREDIT%',amount,0)) as credit_card_amount, SUM(IF(response LIKE '%VISA%',amount,0)) as visa_amount, SUM(IF(response LIKE '%MASTERCARD%',amount,0)) as mastercard_amount, SUM(IF(response LIKE '%AMEX%',amount,0)) as amex_amount, SUM(IF(pay_method='apple_pay',amount,0)) as apple_amount,  SUM(IF(pay_method='google_pay',amount,0)) as google_amount,  SUM(IF(pay_method='paypal',amount,0)) as paypal_amount,  SUM(IF(pay_method='after_pay',amount,0)) as after_pay_amount")->leftJoin('remote_vend_log', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
 
