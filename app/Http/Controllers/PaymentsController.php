@@ -183,7 +183,7 @@ class PaymentsController extends BaseController
 
         if (!empty($search)) {
             $model  = $model->where(function ($query) use ($search) {
-                return $query->where("product_id", 'LIKE', "$search%")->orWhere("product_name", 'LIKE', "$search%")->orWhere("machine_name", 'LIKE', "$search%");
+                return $query->where("product_id", 'LIKE', "$search%")->orWhere("product_name", 'LIKE', "$search%")->orWhere("machine_name", 'LIKE', "$search%")->orWhere("client_name", 'LIKE', "$search%");
             });
         }
 
