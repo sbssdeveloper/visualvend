@@ -219,7 +219,7 @@ class PaymentsController extends BaseController
         $model = $model->paginate($request->length ?? 10);
         foreach ($model->items() as $key => $value) {
             if ($value->payment_status !== "SUCCESS" && parent::isJson($value->response)) {
-                $json = json_decode($value->response, true);
+                $json = json_decode($value->error_log, true);
                 if (isset($json[0]["category"])) {
                     $model->items()[$key]->error = str_replace('_', ' ', $json[0]["category"]);
                 } else if (isset($json[0]["code"])) {
