@@ -38,46 +38,49 @@ class PaymentsController extends BaseController
         $device     = $request->device;
 
         // From Remote vend log
-        $model      = RemoteVend::selectRaw("SUM(IF(pay_method='pay_to_card',1,0)) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00') AND (transactions.payment_status IS NULL OR transactions.payment_status<>'FAILED') AND pay_method='pay_to_card', 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0) AND pay_method='pay_to_card') as in_progress, SUM(IF(remote_vend_log.status='2' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED' AND pay_method='pay_to_card', 1, 0)) as pay_failed, SUM(IF(transactions.id>0 AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00') AND pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS',1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as failed_mobile_payments, SUM(IF(remote_vend_log.status='2' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as successfull_mobile_vends")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
+        // $model      = RemoteVend::selectRaw("SUM(IF(pay_method='pay_to_card',1,0)) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00') AND (transactions.payment_status IS NULL OR transactions.payment_status<>'FAILED') AND pay_method='pay_to_card', 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0) AND pay_method='pay_to_card') as in_progress, SUM(IF(remote_vend_log.status='2' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED' AND pay_method='pay_to_card', 1, 0)) as pay_failed, SUM(IF(transactions.id>0 AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00') AND pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS',1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as failed_mobile_payments, SUM(IF(remote_vend_log.status='2' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as successfull_mobile_vends")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
+        // if (!empty($start_date) && !empty($end_date)) {
+        //     $model  = $model->whereRaw("remote_vend_log.updated_at >= '$start_date'")->whereRaw("remote_vend_log.updated_at <= '$end_date'");
+        // }
+
+        // if ($machine_id > 0) {
+        //     $model  = $model->where("remote_vend_log.machine_id", $machine_id);
+        // }
+        // if (in_array($type, ["approved", "declined", "timeout"])) {
+        //     if ($type === "approved") {
+        //         $model  = $model->where("remote_vend_log.status", "0");
+        //     } else if ($type === "declined") {
+        //         $model  = $model->whereNotIn("remote_vend_log.status", ['0', '1', '2', '11']);
+        //     } else if ($type === "timeout") {
+        //         $model  = $model->where("remote_vend_log.status", '7');
+        //     }
+        // }
+        // $model = $model->first();
+
+        $other = "SUM(IF(pay_method='pay_to_card',1,0)) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00') AND (transactions.payment_status IS NULL OR transactions.payment_status<>'FAILED') AND pay_method='pay_to_card', 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0) AND pay_method='pay_to_card') as in_progress, SUM(IF(remote_vend_log.status='2' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED' AND pay_method='pay_to_card', 1, 0)) as pay_failed, SUM(IF(transactions.id>0 AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00') AND pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS',1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as failed_mobile_payments, SUM(IF(remote_vend_log.status='2' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as successfull_mobile_vends";
+
+
+        $model = Transaction::selectRaw("$other, SUM(IF(transactions.payment_status='SUCCESS', amount, 0)) as total_amount, SUM(IF(response LIKE '%DEBIT%' AND transactions.payment_status='SUCCESS',amount,0)) as debit_card_amount,SUM(IF(response LIKE '%CREDIT%' AND transactions.payment_status='SUCCESS',amount,0)) as credit_card_amount, SUM(IF(response LIKE '%VISA%' AND transactions.payment_status='SUCCESS',amount,0)) as visa_amount, SUM(IF(response LIKE '%MASTERCARD%' AND transactions.payment_status='SUCCESS',amount,0)) as mastercard_amount, SUM(IF(response LIKE '%AMEX%' AND transactions.payment_status='SUCCESS',amount,0)) as amex_amount, SUM(IF(pay_method='apple_pay' AND transactions.payment_status='SUCCESS',amount,0)) as apple_amount,  SUM(IF(pay_method='google_pay' AND transactions.payment_status='SUCCESS',amount,0)) as google_amount,  SUM(IF(pay_method='paypal' AND transactions.payment_status='SUCCESS',amount,0)) as paypal_amount,  SUM(IF(pay_method='after_pay' AND transactions.payment_status='SUCCESS',amount,0)) as after_pay_amount")->leftJoin('remote_vend_log', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
+
         if (!empty($start_date) && !empty($end_date)) {
-            $model  = $model->whereRaw("remote_vend_log.updated_at >= '$start_date'")->whereRaw("remote_vend_log.updated_at <= '$end_date'");
+            $model  = $model->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("transactions.created_at <= '$end_date'")->whereRaw("remote_vend_log.id > 0");
         }
 
         if ($machine_id > 0) {
             $model  = $model->where("remote_vend_log.machine_id", $machine_id);
         }
-        if (in_array($type, ["approved", "declined", "timeout"])) {
-            if ($type === "approved") {
-                $model  = $model->where("remote_vend_log.status", "0");
-            } else if ($type === "declined") {
-                $model  = $model->whereNotIn("remote_vend_log.status", ['0', '1', '2', '11']);
-            } else if ($type === "timeout") {
-                $model  = $model->where("remote_vend_log.status", '7');
-            }
-        }
-        $model = $model->first();
+        //->where("transactions.payment_status", "SUCCESS")
+        $model  = $model->first();
 
-        $mobile_payments = Transaction::selectRaw("SUM(transactions.amount) as total_amount, SUM(IF(response LIKE '%DEBIT%',amount,0)) as debit_card_amount,SUM(IF(response LIKE '%CREDIT%',amount,0)) as credit_card_amount, SUM(IF(response LIKE '%VISA%',amount,0)) as visa_amount, SUM(IF(response LIKE '%MASTERCARD%',amount,0)) as mastercard_amount, SUM(IF(response LIKE '%AMEX%',amount,0)) as amex_amount, SUM(IF(pay_method='apple_pay',amount,0)) as apple_amount,  SUM(IF(pay_method='google_pay',amount,0)) as google_amount,  SUM(IF(pay_method='paypal',amount,0)) as paypal_amount,  SUM(IF(pay_method='after_pay',amount,0)) as after_pay_amount")->leftJoin('remote_vend_log', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id')->where('payment_status', 'SUCCESS');
-
-        if (!empty($start_date) && !empty($end_date)) {
-            $mobile_payments  = $mobile_payments->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("transactions.created_at <= '$end_date'")->whereRaw("remote_vend_log.id > 0");
-        }
-
-        if ($machine_id > 0) {
-            $mobile_payments  = $mobile_payments->where("remote_vend_log.machine_id", $machine_id);
-        }
-
-        $mobile_payments  = $mobile_payments->where("transactions.payment_status", "SUCCESS")->first();
-
-        $model->visa_amount         = number_format(($mobile_payments ? ($mobile_payments->visa_amount ?? 0) : 0), 2);
-        $model->mastercard_amount   = number_format(($mobile_payments ? ($mobile_payments->mastercard_amount ?? 0) : 0), 2);
-        $model->amex_amount         = number_format(($mobile_payments ? ($mobile_payments->amex_amount ?? 0) : 0), 2);
-        $model->apple_amount        = number_format(($mobile_payments ? ($mobile_payments->apple_amount ?? 0) : 0), 2);
-        $model->google_amount       = number_format(($mobile_payments ? ($mobile_payments->google_amount ?? 0) : 0), 2);
-        $model->paypal_amount       = number_format(($mobile_payments ? ($mobile_payments->paypal_amount ?? 0) : 0), 2);
-        $model->after_pay_amount    = number_format(($mobile_payments ? ($mobile_payments->after_pay_amount ?? 0) : 0), 2);
-        $model->debit_card_amount   = number_format(($mobile_payments ? ($mobile_payments->debit_card_amount ?? 0) : 0), 2);
-        $model->credit_card_amount  = number_format(($mobile_payments ? ($mobile_payments->credit_card_amount ?? 0) : 0), 2);
+        // $model->visa_amount         = number_format(($mobile_payments ? ($mobile_payments->visa_amount ?? 0) : 0), 2);
+        // $model->mastercard_amount   = number_format(($mobile_payments ? ($mobile_payments->mastercard_amount ?? 0) : 0), 2);
+        // $model->amex_amount         = number_format(($mobile_payments ? ($mobile_payments->amex_amount ?? 0) : 0), 2);
+        // $model->apple_amount        = number_format(($mobile_payments ? ($mobile_payments->apple_amount ?? 0) : 0), 2);
+        // $model->google_amount       = number_format(($mobile_payments ? ($mobile_payments->google_amount ?? 0) : 0), 2);
+        // $model->paypal_amount       = number_format(($mobile_payments ? ($mobile_payments->paypal_amount ?? 0) : 0), 2);
+        // $model->after_pay_amount    = number_format(($mobile_payments ? ($mobile_payments->after_pay_amount ?? 0) : 0), 2);
+        // $model->debit_card_amount   = number_format(($mobile_payments ? ($mobile_payments->debit_card_amount ?? 0) : 0), 2);
+        // $model->credit_card_amount  = number_format(($mobile_payments ? ($mobile_payments->credit_card_amount ?? 0) : 0), 2);
 
         // $model->successfull_mobile_vends    = $mobile_payments ? ($mobile_payments->successfull_mobile_vends ?? 0) : 0;
 
