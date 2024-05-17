@@ -114,51 +114,46 @@ class PaymentsController extends BaseController
             $cardPayments  =   [
                 [
                     "name" => "Visa",
-                    "color" => "rgba(131, 167, 234, 1)",
+                    "color" => "#BBE409",
                     "population" => (float) $model->visa_amount,
                 ],
                 [
                     "name" => "Mastercard",
-                    "color" => "red",
+                    "color" => "#D5A804",
                     "population" => (float) $model->mastercard_amount,
                 ],
                 [
                     "name" => "Amex",
-                    "color" => "#7F7F7F",
+                    "color" => "#08CFD5",
                     "population" => (float) $model->amex_amount,
                 ],
                 [
                     "name" => "Debit Card",
-                    "color" => "#149CBE",
+                    "color" => "#D75DCC",
                     "population" => (float) $model->debit_card_amount,
-                ],
-                [
-                    "name" => "Credit Card",
-                    "color" => "blue",
-                    "population" => (float) $model->credit_card_amount,
-                ],
+                ]
             ];
             $model->card_payments = $cardPayments;
 
             $mobPayments  =   [
                 [
                     "name" => "Apple Pay",
-                    "color" => "rgba(131, 167, 234, 1)",
+                    "color" => "#D75DCC",
                     "population" => (float) $model->apple_amount,
                 ],
                 [
                     "name" => "Gpay",
-                    "color" => "red",
+                    "color" => "#BBE409",
                     "population" => (float) $model->google_amount,
                 ],
                 [
                     "name" => "Paypal",
-                    "color" => "#7F7F7F",
+                    "color" => "#08CFD5",
                     "population" => (float) $model->paypal_amount,
                 ],
                 [
                     "name" => "After Pay",
-                    "color" => "#149CBE",
+                    "color" => "#D5A804",
                     "population" => (float) $model->after_pay_amount,
                 ]
             ];
