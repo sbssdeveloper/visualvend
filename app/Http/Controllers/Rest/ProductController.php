@@ -19,4 +19,8 @@ class ProductController extends LinkedMachineController
         $this->validate($request, ['type' => 'required|in:both,assigned,unassigned', 'sort' => 'required']);
         return $this->sendResponseWithPagination($product->unAssignedList($request),"Success");
     }
+
+    public function archivedList(Request $request, Product $product){
+        
+    }
 }

@@ -23,5 +23,9 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         /****************************Product******************************/
         $router->post('product/assigned',       'ProductController@assignedList');
         $router->post('product/unassigned',     'ProductController@unAssignedList');
+        $router->post('product/archive',        'ProductController@archivedList');
+        
+        /****************************CATEGORY******************************/
+        $router->get('category/list',          'CategoryController@dropdownList');
     });
 });

@@ -58,7 +58,7 @@ class MachineProductMap extends Model
     public function currentStock($request)
     {
         $machine_id = $request->machine_id;
-        $model = self::select("product_location as aisle_no", "product_quantity", "product_max_quantity", "product_name", "product_id")->where("machine_id", $machine_id);
+        $model = self::select("product_location as aisle_no", "product_quantity", "product_max_quantity", "product_name", "product_id")->where("machine_id", $machine_id)->where("product_location","<>","");
 
         if (!empty($request->product_id)) {
             $model = $model->where("product_id", $product_id);
@@ -68,7 +68,7 @@ class MachineProductMap extends Model
             $model = $model->where("product_location", $aisle_no);
         }
 
-        $model = $model->get();
+        $model = $model->orderByRaw('CONVERT(aisle_no, SIGNED) asc')->get();
         return $model;
     }
 }

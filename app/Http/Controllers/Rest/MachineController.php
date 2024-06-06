@@ -22,7 +22,7 @@ class MachineController extends LinkedMachineController
                 $model  = $model->where("machine_client_id", $client_id)->whereIn("id", $machines);
             }
 
-            return ($model  = $model->paginate($request->length));
+            return ($model  = $model->get());
         });
 
         return parent::sendResponseWithPagination($response, "Success");

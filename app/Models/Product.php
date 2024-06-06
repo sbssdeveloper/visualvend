@@ -71,11 +71,6 @@ class Product extends Model
         return ['products' => $response];
     }
 
-    public function scopeWithMappedJoin(Builder $query)
-    {
-        $query;
-    }
-
     public function assignedList($request)
     {
         $model = self::select("product.*", "product.uuid")->leftJoin("machine_product_map", function ($join) {
@@ -122,5 +117,9 @@ class Product extends Model
             $query->select('image', 'uuid');
         }])->paginate($request->length ?? 100);
         return $model;
+    }
+
+    public function archive($request){
+        
     }
 }
