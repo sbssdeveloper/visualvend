@@ -4,10 +4,11 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     /**************************PUBLIC-URL*******************************/
     /****************************AUTH******************************/
     $router->post('login',                      'AuthController@login');
-
+    
     /****************************MEDIA******************************/
     $router->get('homepage/info',               'MediaController@homeInfo');
-
+    
+    /**************************PRIVATE-URL*******************************/
     $router->group(['middleware' => 'jwt'], function () use ($router) {
 
         /****************************DASHBOARD******************************/
