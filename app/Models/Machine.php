@@ -9,6 +9,11 @@ class Machine extends Model
     protected $table = 'machine';
     protected $fillable = ['*'];
 
+    public function heart_beats()
+    {
+        return $this->hasOne(MachineHeartBeat::class, 'machine_id', "id");
+    }
+
     public static function personal($auth, $type = "count", $select = ["id"])
     {
         $array =  self::select($select);
@@ -47,5 +52,38 @@ class Machine extends Model
         })->all();
 
         return compact('list', 'ids');
+    }
+
+    public static function dashboardInfo($auth, $machines)
+    {
+        $model = self::with(['heart_beats'])->where("is_deleted", 0);
+
+        if ($auth->client_id > 0) {
+            $model  = $model->where_in("id", $machines);
+        }
+
+        $model  = $model->select('id')->get();
+
+        $response["total"]          = count($model);
+        $response['connected']      = 0;
+        $response['fluctuating']    = 0;
+        $response['offline']        = 0;
+        $response['not_connected']  = 0;
+        foreach ($model as $value) {
+            $data = $value->heart_beats;
+            if ($data) {
+                $diff_time = (strtotime(date("y-m-d H:i:s")) - strtotime($data->last_sync_time));
+                if ($diff_time <= 1800) {
+                    $response['connected'] += 1;
+                } else if ($diff_time <= 4800) {
+                    $response['fluctuating'] += 1;
+                } else {
+                    $response['offline'] += 1;
+                }
+            }
+        }
+
+        $response['not_connected']  = $response["total"] - ($response['offline'] + $response['connected'] + $response['fluctuating']);
+        return ['machines' => $response];
     }
 }

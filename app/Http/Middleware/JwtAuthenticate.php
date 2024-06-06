@@ -41,6 +41,11 @@ class JWTAuthenticate
                 'ResponseCode' => '0',
                 'ResponseText' => 'Unauthorized request,Invalid token'
             ], 401);
+        } else if ($user->is_activated == 0) {
+            return response()->json([
+                'ResponseCode' => '0',
+                'ResponseText' => 'User is not active. Please contact admin.'
+            ], 401);
         }
         $request->auth = $user;
 
@@ -52,6 +57,7 @@ class JWTAuthenticate
         //     $machines = Machine::select(["id", "machine_name"])->orderBy('machine_name', "ASC")->get();
         // }
         // $request->auth->machines = $machines;
+        
         return $next($request);
     }
 }

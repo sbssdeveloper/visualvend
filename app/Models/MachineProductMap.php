@@ -11,6 +11,11 @@ class MachineProductMap extends Model
     protected $table = 'machine_product_map';
     protected $fillable = ['*'];
 
+    public function products()
+    {
+        return $this->belongsTo(Product::class, "product_id", "product_id");
+    }
+
     public static function stocks($params)
     {
         extract($params);
@@ -20,7 +25,7 @@ class MachineProductMap extends Model
         if ($machine_id > 0) {
             $model = $model->where("machine_id", $machine_id);
             $slowSell = $slowSell->where("machine_id", $machine_id);
-        }else if ($auth->client_id > 0) {
+        } else if ($auth->client_id > 0) {
             $model = $model->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
             $slowSell = $slowSell->whereIn("machine_id", $machine_ids)->where("client_id", $auth->client_id);
         }
