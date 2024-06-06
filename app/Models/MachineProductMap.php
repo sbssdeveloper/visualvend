@@ -54,4 +54,21 @@ class MachineProductMap extends Model
         $model = $model->havingRaw("refill>0")->limit(20)->get();
         return $model;
     }
+
+    public function currentStock($request)
+    {
+        $machine_id = $request->machine_id;
+        $model = self::select("product_location as aisle_no", "product_quantity", "product_max_quantity", "product_name", "product_id")->where("machine_id", $machine_id);
+
+        if (!empty($request->product_id)) {
+            $model = $model->where("product_id", $product_id);
+        }
+
+        if (!empty($request->aisle_no)) {
+            $model = $model->where("product_location", $aisle_no);
+        }
+
+        $model = $model->get();
+        return $model;
+    }
 }

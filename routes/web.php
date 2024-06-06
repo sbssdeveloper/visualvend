@@ -28,4 +28,9 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->post('list', 'PaymentsController@list');
         $router->post('activities', 'PaymentsController@activities');
     });
+    
+    $router->group(['prefix' => 'stock'], function () use ($router) {
+        $router->post('list',       'StockController@list');
+
+    });
 });

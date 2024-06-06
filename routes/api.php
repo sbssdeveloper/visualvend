@@ -1,6 +1,6 @@
 <?php
 
-$router->group(['prefix' => 'app'], function () use ($router) {
+$router->group(['prefix' => 'v1'], function () use ($router) {
     /**************************PUBLIC-URL*******************************/
     /****************************AUTH******************************/
     $router->post('login',                      'AuthController@login');
