@@ -4,14 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Builder;
+
 class Product extends Model
 {
     protected $table = 'product';
     protected $fillable = ['*'];
 
-    public function machine_products()
+    public function images()
     {
-        return $this->hasMany(MachineProductMap::class, "product_id", "product_id");
+        return $this->hasMany(ProductImage::class, "uuid", "uuid");
     }
 
     public function assigned($auth, $select = ["product.*"], $type = "count")
@@ -23,7 +25,7 @@ class Product extends Model
         if ($auth->client_id > 0) {
             $model = $model->where("product.client_id", $auth->client_id)->whereRaw(\DB::raw("FIND_IN_SET(machine_id,\"$auth->machines\")", '!=', null));
         }
-        $model = $model->groupby('product.id');
+        $model = $model->groupBy('product.id');
         if ($type === "count") {
             $model = $model->count();
         } else {
@@ -67,6 +69,58 @@ class Product extends Model
         $response["total"]      = self::totalProducts($auth->client_id);
         $response["unassigned"] = $response["total"] - $response["assigned"];
         return ['products' => $response];
+    }
 
+    public function scopeWithMappedJoin(Builder $query)
+    {
+        $query;
+    }
+
+    public function assignedList($request)
+    {
+        $model = self::select("product.*", "product.uuid")->leftJoin("machine_product_map", function ($join) {
+            $join->on('machine_product_map.product_id', '=', 'product.product_id');
+            $join->on('machine_product_map.client_id', '=', 'product.client_id');
+        })->where("machine_product_map.id", ">", 0)->where("is_deleted", 0);
+
+        if ($request->auth->client_id > 0) {
+            $model = $model->where("client_id", $request->auth->client_id);
+        }
+
+        if (!empty($request->search)) {
+            $search = $request->search;
+            $model = $model->where(function ($query) use ($search) {
+                $query->where("product.product_name", "like", $search . "%")->orWhere("product.product_id", "like", $search . "%");
+            });
+        }
+
+        $model = $model->with(['images' => function ($query) {
+            $query->select('image', 'uuid');
+        }])->paginate($request->length ?? 100);
+        return $model;
+    }
+
+    public function unAssignedList($request)
+    {
+        $model = self::select("product.*", "product.uuid")->leftJoin("machine_product_map", function ($join) {
+            $join->on('machine_product_map.product_id', '=', 'product.product_id');
+            $join->on('machine_product_map.client_id', '=', 'product.client_id');
+        })->whereNull("machine_product_map.id")->where("is_deleted", 0);
+
+        if ($request->auth->client_id > 0) {
+            $model = $model->where("client_id", $request->auth->client_id);
+        }
+
+        if (!empty($request->search)) {
+            $search = $request->search;
+            $model = $model->where(function ($query) use ($search) {
+                $query->where("product.product_name", "like", $search . "%")->orWhere("product.product_id", "like", $search . "%");
+            });
+        }
+
+        $model = $model->with(['images' => function ($query) {
+            $query->select('image', 'uuid');
+        }])->paginate($request->length ?? 100);
+        return $model;
     }
 }

@@ -13,7 +13,7 @@ class MachineProductMap extends Model
 
     public function products()
     {
-        return $this->belongsTo(Product::class, "product_id", "product_id");
+        return $this->belongsTo(Product::class, "product_id", "product_id")->where('client_id', 'client_id');;
     }
 
     public static function stocks($params)
