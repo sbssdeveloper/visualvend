@@ -31,6 +31,7 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     
     $router->group(['prefix' => 'stock'], function () use ($router) {
         $router->post('list',       'StockController@list');
-
+        $router->post('reset',      'StockController@reset');
+        $router->post('refill',     'StockController@refill');
     });
 });

@@ -10,10 +10,11 @@ class MachineProductMap extends Model
 {
     protected $table = 'machine_product_map';
     protected $fillable = ['*'];
+    public $timestamps = ["updated_at"];
 
-    public function products()
+    public function machine()
     {
-        return $this->belongsTo(Product::class, "product_id", "product_id")->where('client_id', 'client_id');;
+        return $this->belongsTo(Machine::class, "machine_id", "id");
     }
 
     public static function stocks($params)
@@ -58,7 +59,7 @@ class MachineProductMap extends Model
     public function currentStock($request)
     {
         $machine_id = $request->machine_id;
-        $model = self::select("product_location as aisle_no", "product_quantity", "product_max_quantity", "product_name", "product_id")->where("machine_id", $machine_id)->where("product_location","<>","");
+        $model = self::select("product_location as aisle_no", "product_quantity", "product_max_quantity", "product_name", "product_id")->where("machine_id", $machine_id)->where("product_location", "<>", "");
 
         if (!empty($request->product_id)) {
             $model = $model->where("product_id", $product_id);
