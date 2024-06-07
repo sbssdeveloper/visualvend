@@ -17,6 +17,11 @@ class MachineProductMap extends Model
         return $this->belongsTo(Machine::class, "machine_id", "id");
     }
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class, "category_id", "category_id");
+    }
+
     public static function stocks($params)
     {
         extract($params);

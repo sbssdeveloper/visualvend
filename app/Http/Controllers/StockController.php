@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Machine;
 use App\Models\MachineProductMap;
+use App\Models\RefillHistory;
 use App\Models\StockReset;
 use Illuminate\Http\Request;
 
@@ -28,6 +29,18 @@ class StockController extends BaseController
         extract($model);
         if ($response == "success") {
             return $this->sendSuccess("Aisle resetted successfully.");
+        } else {
+            return $this->sendError($message);
+        }
+    }
+
+    public function refill(Request $request, RefillHistory $model)
+    {
+        $this->validate($request, ['machine_id' => 'required|exists:machine,id', "aisles" => "required"]);
+        $model = $model->refill($request);
+        extract($model);
+        if ($response == "success") {
+            return $this->sendSuccess("Aisle Refilled successfully.");
         } else {
             return $this->sendError($message);
         }
