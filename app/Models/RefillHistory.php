@@ -48,10 +48,10 @@ class RefillHistory extends Model
         try {
             self::insert($array);
             MachineProductMap::whereIn("product_location", $request->aisles)->where("machine_id", $request->machine_id)->update([
-                "product_quantity" => DB::raw('`product_max_quantity`')
+                "product_quantity" => DB::raw('product_max_quantity')
             ]);
             MachineAssignProduct::whereIn("product_location", $request->aisles)->where("machine_id", $request->machine_id)->update([
-                "product_quantity" => DB::raw('`product_max_quantity`')
+                "product_quantity" => DB::raw('product_max_quantity')
             ]);
             DB::commit();
             return ["response" => "success"];
