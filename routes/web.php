@@ -21,7 +21,8 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     });
 
     $router->group(['prefix' => 'machine'], function () use ($router) {
-        $router->post('list', 'MachineController@list');
+        $router->post('list',       'MachineController@list');
+        $router->post('products',   'MachineController@products');
     });
 
     $router->group(['prefix' => 'payments'], function () use ($router) {

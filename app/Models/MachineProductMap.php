@@ -10,6 +10,7 @@ class MachineProductMap extends Model
 {
     protected $table = 'machine_product_map';
     protected $fillable = ['*'];
+    protected $hidden = ['id', 'client_id', "machine_id"];
     public $timestamps = ["updated_at"];
 
     public function machine()
@@ -75,6 +76,13 @@ class MachineProductMap extends Model
         }
 
         $model = $model->orderByRaw('CONVERT(aisle_no, SIGNED) asc')->get();
+        return $model;
+    }
+
+    public function machineProducts($request)
+    {
+        $machine_id = $request->machine_id;
+        $model = self::where("machine_id", $machine_id)->where("product_location", "<>", "")->get()->toArray();
         return $model;
     }
 }
