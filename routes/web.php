@@ -35,4 +35,8 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->post('reset',      'StockController@reset');
         $router->post('refill',     'StockController@refill');
     });
+
+    $router->group(['prefix' => 'product', 'middleware' => 'jwt'], function () use ($router) {
+        $router->post('list',       'ProductController@list');
+        $router->post('create',     'ProductController@create');    });
 });
