@@ -81,4 +81,20 @@ class ProductController extends BaseController
             //throw $th;
         }
     }
+
+    public function delete(Request $request)
+    {
+        $this->validate($request, ["uuid" => "required|exists:product,uuid"]);
+        try {
+            $model = Product::where('uuid', $request->uuid);
+            $model->update([
+                "is_deleted" => 1,
+                "delete_user_id" => $request->auth->client_id
+            ]);
+            $model->delete();
+            return $this->sendResponse("", "Product deleted successfully.");
+        } catch (\Throwable $th) {
+            return $this->sendError($th->getMessage());
+        }
+    }
 }

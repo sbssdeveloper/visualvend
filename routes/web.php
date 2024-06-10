@@ -40,5 +40,6 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->post('list',       'ProductController@list');
         $router->post('create',     'ProductController@create');    
         $router->post('update',     'ProductController@update');    
+        $router->post('delete',     'ProductController@delete');    
     });
 });
