@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Rules\ProductClientRule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProductController extends BaseController
 {
@@ -45,12 +46,36 @@ class ProductController extends BaseController
         $array                              = $request->all();
         $product_image                      = $request->file('product_image')->store('images', 'public/assets');
         $product_more_info                  = $request->file('product_more_info_image')->store('images', 'public/assets');
+        $array['uuid']                      = (string) Str::uuid();
         $array['product_image']             = $product_image;
         $array['product_more_info_image']   = $product_more_info;
 
         try {
             Product::insert($array);
             return $this->sendResponse([], 'Product created successfully');
+        } catch (\Throwable $th) {
+            return $this->sendError($th->getMessage());
+            //throw $th;
+        }
+    }
+
+    public function update(Request $request)
+    {
+        $client_id                      = $request->auth->client_id;
+        $rules = [
+            'uuid'                      => 'required|exists:product,uuid',
+            'product_name'              => 'required|string',
+            'product_price'             => 'required|numeric',
+            'discount_price'            => 'required|numeric',
+            'product_description'       => 'required|string|max:255'
+        ];
+        if ($request->auth->client_id <= 0) {
+            $rules["client_id"]   = 'required|exists:client,id';
+        }
+        $this->validate($request, $rules);
+        try {
+            Product::insert($array);
+            return $this->sendResponse([], 'Product updated successfully');
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
             //throw $th;

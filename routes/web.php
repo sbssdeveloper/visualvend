@@ -38,5 +38,7 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 
     $router->group(['prefix' => 'product', 'middleware' => 'jwt'], function () use ($router) {
         $router->post('list',       'ProductController@list');
-        $router->post('create',     'ProductController@create');    });
+        $router->post('create',     'ProductController@create');    
+        $router->post('update',     'ProductController@update');    
+    });
 });
