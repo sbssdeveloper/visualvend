@@ -1,6 +1,7 @@
 <?php
 
 $router->group(['prefix' => 'v1'], function () use ($router) {
+    $router->get('documentation', 'SwaggerLume\Http\Controllers\SwaggerLumeController@api');
     /**************************PUBLIC-URL*******************************/
     /****************************AUTH******************************/
     $router->post('login',                      'AuthController@login');
