@@ -8,6 +8,24 @@ use Illuminate\Support\Facades\Cache;
 
 class AdvertisementController extends LinkedMachineController
 {
+    /**
+     * @OA\Get(
+     *     path="/v1/advertisement/list",
+     *     summary="Advertisement list",
+     *     tags={"V1"},
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
     public function list(Request $request, Advertisement $model)
     {
         $admin              = $request->auth->admin_id ?? "client";

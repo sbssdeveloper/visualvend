@@ -24,7 +24,7 @@ class AuthController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/login",
+     *     path="/api/auth/login",
      *     summary="Login Client",
      *     tags={"Quizee"},
      *     @OA\RequestBody(

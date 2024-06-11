@@ -45,7 +45,7 @@ class DashboardController extends LinkedMachineController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Success with media information."
+     *         description="Success with dashboard information."
      *     )
      * )
      */
