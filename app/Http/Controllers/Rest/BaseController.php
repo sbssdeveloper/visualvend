@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Rest;
 
 use Exception;
 use App\Http\Controllers\Controller as Controller;
@@ -12,8 +12,8 @@ use Firebase\JWT\JWT;
 
 /**
  * @OA\Tag(
- *     name="Quizee",
- *     description="API Endpoints of quizeepay"
+ *     name="V1",
+ *     description="API Endpoints of website clone"
  * )
  */
 

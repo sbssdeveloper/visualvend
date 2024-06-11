@@ -22,6 +22,29 @@ class AuthController extends BaseController
         $this->middleware('pub', ['except' => ['login', 'signup', 'refresh', 'resetPassword', 'call_log', 'loginByToken', 'timezones']]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/login",
+     *     summary="Login Client",
+     *     tags={"Quizee"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="username", type="string"),
+     *             @OA\Property(property="password", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User logged in successfully."
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Other errors with JSON content."
+     *     )
+     * )
+     */
+
     public function login(Request $request)
     {
         $this->validate($request, ['username' => 'required', "password" => "required"]);

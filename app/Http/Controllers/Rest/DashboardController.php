@@ -21,6 +21,35 @@ class DashboardController extends LinkedMachineController
         \DB::statement("SET SQL_MODE=''");
     }
 
+    /**
+     * @OA\Post(
+     *     path="/v1/info",
+     *     summary="Dashboard Information",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="start_date", type="date", example="2024-01-01 00:00:00"),
+     *             @OA\Property(property="end_date", type="date", example="2024-01-01 00:00:00"),
+     *             @OA\Property(property="machine_id", type="date", example="machine_id"),
+     *             @OA\Property(property="product_id", type="date", example="product_id"),
+     *             @OA\Property(property="search", type="date", example="PEPSI"),
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with media information."
+     *     )
+     * )
+     */
+
     public function info(Request $request)
     {
         $machines = Machine::dashboardInfo($request->auth, $this->linked_machines);
@@ -33,7 +62,7 @@ class DashboardController extends LinkedMachineController
         $locNFn   = LocationNonFunctional::dashboardInfo($request, $this->linked_machines);
         $feedInfo = Feed::dashboardInfo($request, $this->linked_machines);
         $sale15   = Sale::sales15days($request, $this->linked_machines);
-        $response = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale15);        
+        $response = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale15);
         return  $this->sendResponse($response, "Sucess");
     }
 }

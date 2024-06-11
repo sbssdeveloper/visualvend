@@ -32,6 +32,7 @@ class DashboardController extends BaseController
     {
         $this->middleware('jwt'); //['except' => ['login']]
     }
+    
 
     public function dashboard(Request $request)
     {

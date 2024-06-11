@@ -23,7 +23,7 @@ class MachineController extends BaseController
     public function __construct()
     {
         $this->middleware('jwt'); //['except' => ['login']]
-    }
+    }    
 
     public function list(Request $request)
     {

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Rest;
 
-use App\Http\Controllers\BaseController;
 use Exception;
 use Illuminate\Http\Request;
 use App\Http\Requests\AuthRequest;
@@ -16,9 +15,6 @@ use App\Models\User;
 use DB;
 use Illuminate\Support\Facades\Hash;
 
-/**
- * @OA\Info(title="V1 APIS", version="1.0")
- */
 class AuthController extends BaseController
 {
     public function __construct()
@@ -30,6 +26,7 @@ class AuthController extends BaseController
      * @OA\Post(
      *     path="/v1/login",
      *     summary="Login Client",
+     *     tags={"V1"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -40,6 +37,10 @@ class AuthController extends BaseController
      *     @OA\Response(
      *         response=200,
      *         description="User logged in successfully."
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Other errors with JSON content."
      *     )
      * )
      */

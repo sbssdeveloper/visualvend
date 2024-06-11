@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Rest;
 
-use App\Http\Controllers\BaseController;
 use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;

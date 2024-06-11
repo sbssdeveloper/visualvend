@@ -9,4 +9,8 @@ class HomeConfig extends Model
     protected $table = 'home_config';
     protected $fillable = ['*'];
     protected $hidden = ['id'];
+
+    public function fetch(){
+        return self::first();
+    }
 }

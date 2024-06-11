@@ -1,14 +1,14 @@
 <?php
 
 $router->group(['prefix' => 'v1'], function () use ($router) {
-    $router->get('documentation', 'SwaggerLume\Http\Controllers\SwaggerLumeController@api');
+    $router->get('documentation', '\SwaggerLume\Http\Controllers\SwaggerLumeController@api');
     /**************************PUBLIC-URL*******************************/
     /****************************AUTH******************************/
     $router->post('login',                      'AuthController@login');
-    
+
     /****************************MEDIA******************************/
     $router->get('homepage/info',               'MediaController@homeInfo');
-    
+
     /**************************PRIVATE-URL*******************************/
     $router->group(['middleware' => 'jwt'], function () use ($router) {
 
@@ -27,7 +27,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('product/archive',        'ProductController@archivedList');
         $router->post('product/delete',         'ProductController@delete');
         $router->post('product/delete/bulk',    'ProductController@bulkDelete');
-        
+
         /****************************CATEGORY******************************/
         $router->get('category/list',          'CategoryController@dropdownList');
     });
