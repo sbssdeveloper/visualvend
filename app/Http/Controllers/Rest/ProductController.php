@@ -25,4 +25,26 @@ class ProductController extends LinkedMachineController
         return $this->sendResponseWithPagination($product->archive($request),"Success");
     }
 
+    public function delete(Request $request, Product $product)
+    {
+        $this->validate($request, ["uuid" => "required|exists:product,uuid"]);
+        try {
+            $product->deleteSingle($request);
+            return $this->sendResponse("", "Product deleted successfully.");
+        } catch (\Throwable $th) {
+            return $this->sendError($th->getMessage());
+        }
+    }
+
+    public function bulkDelete(Request $request, Product $product)
+    {
+        $this->validate($request, ["uuids" => "required"]);
+        try {
+            $product->deleteMultiple($request);
+            return $this->sendResponse("", "Products deleted successfully.");
+        } catch (\Throwable $th) {
+            return $this->sendError($th->getMessage());
+        }
+    }
+
 }

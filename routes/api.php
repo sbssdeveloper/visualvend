@@ -24,6 +24,8 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('product/assigned',       'ProductController@assignedList');
         $router->post('product/unassigned',     'ProductController@unAssignedList');
         $router->post('product/archive',        'ProductController@archivedList');
+        $router->post('product/delete',         'ProductController@delete');
+        $router->post('product/delete/bulk',    'ProductController@bulkDelete');
         
         /****************************CATEGORY******************************/
         $router->get('category/list',          'CategoryController@dropdownList');

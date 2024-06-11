@@ -16,6 +16,9 @@ use App\Models\User;
 use DB;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * @OA\Info(title="V1 APIS", version="1.0")
+ */
 class AuthController extends BaseController
 {
     public function __construct()
@@ -23,13 +26,31 @@ class AuthController extends BaseController
         $this->middleware('pub', ['except' => ['login', 'signup', 'refresh', 'resetPassword', 'call_log', 'loginByToken', 'timezones']]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/v1/login",
+     *     summary="Login Client",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="username", type="string"),
+     *             @OA\Property(property="password", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User logged in successfully."
+     *     )
+     * )
+     */
+
     public function login(Request $request)
     {
         $this->validate($request, ['username' => 'required', "password" => "required"]);
         $username = $request->username;
         $password = $request->password;
 
-        $user  =  User::select(["password", 'menus', 'reports', 'role', 'id', 'client_id','is_activated'])->where('mobilenumber', $username)->orWhere('username', $username)->first();
+        $user  =  User::select(["password", 'menus', 'reports', 'role', 'id', 'client_id', 'is_activated'])->where('mobilenumber', $username)->orWhere('username', $username)->first();
         if ($user) {
             if ($user->is_activated === 1) {
                 $verified = parent::verify_password($user->password, $password);
@@ -41,7 +62,7 @@ class AuthController extends BaseController
                         'reports' => $user->reports,
                         'role' => $user->role,
                     ];
-                    return response()->json($response, 200);
+                    return $this->sendSuccess("User logged in successfully.");
                 }
                 return parent::sendError("Password entered is incorrect");
             }

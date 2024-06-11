@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Product extends Model
 {
     use SoftDeletes;
-    
+
     protected $table = 'product';
     protected $fillable = ['*'];
 
@@ -126,7 +126,7 @@ class Product extends Model
     {
         $model = self::select("product_image", "product_name", "product_id", "product_price")->with(['images' => function ($query) {
             $query->select('image', 'uuid');
-        }])->where("is_deleted", 1);
+        }])->onlyTrashed();
 
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
@@ -145,5 +145,25 @@ class Product extends Model
             $model = $model->orderBy("deleted_at", "DESC");
         }
         return ($model = $model->paginate($request->length ?? 100));
+    }
+
+    public function deleteSingle($request)
+    {
+        $model = Product::where('uuid', $request->uuid);
+        $model->update([
+            "is_deleted" => 1,
+            "delete_user_id" => $request->auth->client_id
+        ]);
+        return $model->delete();
+    }
+
+    public function deleteMultiple($request)
+    {
+        $model = Product::whereIn("uuid", $request->uuids);
+        $model->update([
+            "is_deleted" => 1,
+            "delete_user_id" => $request->auth->client_id
+        ]);
+        return $model->delete();
     }
 }
