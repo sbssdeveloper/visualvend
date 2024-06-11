@@ -40,18 +40,18 @@ class ProductController extends BaseController
     public function list(Request $request)
     {
         $client_id  = $request->auth->client_id;
-        $products   = Product::where("is_deleted", 0);
+        $products   = Product::withCategories()->where("is_deleted", 0);
 
         if ($client_id != 1) {
-            $products->where("client_id", $client_id);
+            $products->where("product.client_id", $client_id);
         }
+        
         if (!empty($request->search)) {
             $products->where(function ($query) use ($request) {
-                $query->where("product_id", "LIKE", $request->search . "%")->orWhere("product_name", "LIKE", $request->search . "%");
+                $query->where("product.product_id", "LIKE", $request->search . "%")->orWhere("product_name", "LIKE", $request->search . "%");
             });
         }
-        $products = $products->paginate($request->length ?? 10);
-        return $this->sendResponse($products, 'Products retrieved successfully');
+        return $this->sendResponse($products->paginate($request->length ?? 10), 'Products retrieved successfully');
     }
 
     /**
@@ -183,7 +183,7 @@ class ProductController extends BaseController
         }
     }
 
-     /**
+    /**
      * @OA\Post(
      *     path="/api/product/delete",
      *     summary="Product Delete",
@@ -207,7 +207,7 @@ class ProductController extends BaseController
      *     )
      * )
      */
-    
+
     public function delete(Request $request, Product $model)
     {
         $this->validate($request, ["uuid" => "required|exists:product,uuid"]);

@@ -19,6 +19,14 @@ class Product extends Model
         return $this->hasMany(ProductImage::class, "uuid", "uuid");
     }
 
+    public function scopeWithCategories()
+    {
+        return $this->leftJoin("product_assign_category", function ($join) {
+            $join->on('product_assign_category.product_id', '=', 'product.product_id');
+            $join->on('product_assign_category.client_id', '=', 'product.client_id');
+        })->select('product.*', 'product_assign_category.category_id');
+    }
+
     public function assigned($auth, $select = ["product.*"], $type = "count")
     {
         $model = self::select($select)->leftJoin("machine_product_map", function ($leftJoin) {
