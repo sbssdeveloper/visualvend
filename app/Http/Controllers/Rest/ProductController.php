@@ -143,6 +143,31 @@ class ProductController extends LinkedMachineController
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/v1/product/delete/bulk",
+     *     summary="Products Delete in Bulk",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="uuids", type="object", example="xxxxx-xxxx-xxxx-xxxxxx-xxxxxx")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
     public function bulkDelete(Request $request, Product $product)
     {
         $this->validate($request, ["uuids" => "required"]);
