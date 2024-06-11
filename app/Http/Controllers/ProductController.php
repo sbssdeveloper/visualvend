@@ -10,6 +10,33 @@ use Illuminate\Support\Str;
 class ProductController extends BaseController
 {
 
+    /**
+     * @OA\Post(
+     *     path="/api/product/list",
+     *     summary="Products List",
+     *     tags={"Quizee"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="search", type="string"),
+     *             @OA\Property(property="length", type="integer", example=50),
+     *             @OA\Property(property="page", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
     public function list(Request $request)
     {
         $client_id  = $request->auth->client_id;
@@ -26,6 +53,51 @@ class ProductController extends BaseController
         $products = $products->paginate($request->length ?? 10);
         return $this->sendResponse($products, 'Products retrieved successfully');
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/product/create",
+     *     summary="Products Create",
+     *     tags={"Quizee"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                @OA\Property(property="product_name", type="string"),
+     *             @OA\Property(property="product_id", type="string"),
+     *             @OA\Property(property="product_price", type="float"),
+     *             @OA\Property(property="discount_price", type="float"),
+     *             @OA\Property(property="product_description", type="string"),
+     *                @OA\Property(
+     *                  property="product_image",
+     *                  description="Product Image",
+     *                  type="string",
+     *                  format="binary"
+     *                ),
+     *                @OA\Property(
+     *                  property="product_more_info_image",
+     *                  description="Product More Image",
+     *                  type="string",
+     *                  format="binary"
+     *                )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
 
     public function create(Request $request, ProductClientRule $rule)
     {
@@ -59,6 +131,35 @@ class ProductController extends BaseController
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/product/update",
+     *     summary="Products Update",
+     *     tags={"Quizee"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *          @OA\JsonContent(
+     *             @OA\Property(property="uuid", type="string"),
+     *             @OA\Property(property="product_name", type="string"),
+     *             @OA\Property(property="product_price", type="float"),
+     *             @OA\Property(property="discount_price", type="float"),
+     *             @OA\Property(property="product_description", type="string")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
     public function update(Request $request)
     {
         $client_id                      = $request->auth->client_id;
@@ -82,16 +183,36 @@ class ProductController extends BaseController
         }
     }
 
-    public function delete(Request $request)
+     /**
+     * @OA\Post(
+     *     path="/api/product/delete",
+     *     summary="Product Delete",
+     *     tags={"Quizee"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="uuid", type="string", example="xxxxx-xxxx-xxxx-xxxxxx-xxxxxx")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+    
+    public function delete(Request $request, Product $model)
     {
         $this->validate($request, ["uuid" => "required|exists:product,uuid"]);
         try {
-            $model = Product::where('uuid', $request->uuid);
-            $model->update([
-                "is_deleted" => 1,
-                "delete_user_id" => $request->auth->client_id
-            ]);
-            $model->delete();
+            $model->deleteSingle($request);
             return $this->sendResponse("", "Product deleted successfully.");
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
