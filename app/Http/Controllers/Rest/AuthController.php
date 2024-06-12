@@ -57,11 +57,12 @@ class AuthController extends BaseController
                 $verified = parent::verify_password($user->password, $password);
                 if ($verified) {
                     $response = [
-                        'success' => true,
-                        'token' => parent::jwt($user),
-                        'menus' => $user->menus,
-                        'reports' => $user->reports,
-                        'role' => $user->role,
+                        'success'   => true,
+                        'token'     => parent::jwt($user),
+                        'menus'     => $user->menus,
+                        'reports'   => $user->reports,
+                        'role'      => $user->role,
+                        'client_id' => $user->client_id,
                     ];
                     return $this->sendResponse($response, "User logged in successfully.");
                 }
