@@ -63,7 +63,7 @@ class AuthController extends BaseController
                         'reports' => $user->reports,
                         'role' => $user->role,
                     ];
-                    return response()->json($response, 200);
+                    return $this->sendResponse($response, "User logged in successfully.");
                 }
                 return parent::sendError("Password entered is incorrect");
             }
