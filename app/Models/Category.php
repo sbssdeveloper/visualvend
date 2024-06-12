@@ -19,4 +19,14 @@ class Category extends Model
         $model = $model->get();
         return $model;
     }
+
+    public function list($request)
+    {
+        $model = self::select("category_id", "category_name")->whereNotNull("category_name");
+        if ($request->auth->client_id > 0) {
+            $model = $model->where("client_id", $request->auth->client_id);
+        }
+        $model = $model->paginate($request->length);
+        return $model;
+    }
 }

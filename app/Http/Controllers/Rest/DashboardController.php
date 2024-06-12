@@ -29,11 +29,11 @@ class DashboardController extends LinkedMachineController
      *     @OA\RequestBody(
      *         required=false,
      *         @OA\JsonContent(
-     *             @OA\Property(property="start_date", type="date", example="2024-01-01 00:00:00"),
-     *             @OA\Property(property="end_date", type="date", example="2024-01-01 00:00:00"),
-     *             @OA\Property(property="machine_id", type="date", example="machine_id"),
-     *             @OA\Property(property="product_id", type="date", example="product_id"),
-     *             @OA\Property(property="search", type="date", example="PEPSI"),
+     *             @OA\Property(property="start_date", type="string", example="2024-01-01 00:00:00"),
+     *             @OA\Property(property="end_date", type="string", example="2024-01-01 00:00:00"),
+     *             @OA\Property(property="machine_id", type="integer"),
+     *             @OA\Property(property="product_id", type="string"),
+     *             @OA\Property(property="search", type="string"),
      *         )
      *     ),
      *     @OA\Parameter(
