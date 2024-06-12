@@ -30,5 +30,6 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
         /****************************CATEGORY******************************/
         $router->get('category/list',          'CategoryController@dropdownList');
+        $router->post('category/list',         'CategoryController@list');
     });
 });
