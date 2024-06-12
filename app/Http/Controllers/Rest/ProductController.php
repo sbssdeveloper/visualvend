@@ -170,7 +170,7 @@ class ProductController extends LinkedMachineController
 
     public function bulkDelete(Request $request, Product $product)
     {
-        $this->validate($request, ["uuids" => "required"]);
+        $this->validate($request, ["uuids" => "required|array"]);
         try {
             $product->deleteMultiple($request);
             return $this->sendResponse("", "Products deleted successfully.");
