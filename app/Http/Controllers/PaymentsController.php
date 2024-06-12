@@ -26,36 +26,43 @@ class PaymentsController extends BaseController
         $this->middleware('jwt'); //['except' => ['login']]
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/payments/list",
+     *     summary="Payments List",
+     *     tags={"Quizee"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="start_date", type="string"),
+     *             @OA\Property(property="end_date", type="string"),
+     *             @OA\Property(property="machine_id", type="integer"),
+     *             @OA\Property(property="type", type="string"),
+     *             @OA\Property(property="device", type="string")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
     public function list(Request $request)
     {
-        // $this->validate($request, ['start_date' => 'required|date_format:Y-m-d H:i:s', 'end_date' => 'required|date_format:Y-m-d H:i:s', 'type' => 'required|in:all,approved,declined,timeout,payment_types,machine_types']);
-
         $client_id  = $request->auth->client_id;
         $start_date = $request->start_date;
         $end_date   = $request->end_date;
         $machine_id = $request->machine_id;
         $type       = $request->type;
         $device     = $request->device;
-
-        // From Remote vend log
-        // $model      = RemoteVend::selectRaw("SUM(IF(pay_method='pay_to_card',1,0)) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00') AND (transactions.payment_status IS NULL OR transactions.payment_status<>'FAILED') AND pay_method='pay_to_card', 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0) AND pay_method='pay_to_card') as in_progress, SUM(IF(remote_vend_log.status='2' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED' AND pay_method='pay_to_card', 1, 0)) as pay_failed, SUM(IF(transactions.id>0 AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00') AND pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS',1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as failed_mobile_payments, SUM(IF(remote_vend_log.status='2' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as successfull_mobile_vends")->leftJoin('transactions', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
-        // if (!empty($start_date) && !empty($end_date)) {
-        //     $model  = $model->whereRaw("remote_vend_log.updated_at >= '$start_date'")->whereRaw("remote_vend_log.updated_at <= '$end_date'");
-        // }
-
-        // if ($machine_id > 0) {
-        //     $model  = $model->where("remote_vend_log.machine_id", $machine_id);
-        // }
-        // if (in_array($type, ["approved", "declined", "timeout"])) {
-        //     if ($type === "approved") {
-        //         $model  = $model->where("remote_vend_log.status", "0");
-        //     } else if ($type === "declined") {
-        //         $model  = $model->whereNotIn("remote_vend_log.status", ['0', '1', '2', '11']);
-        //     } else if ($type === "timeout") {
-        //         $model  = $model->where("remote_vend_log.status", '7');
-        //     }
-        // }
-        // $model = $model->first();
 
         $other = "SUM(IF(pay_method='pay_to_card',1,0)) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00') AND (transactions.payment_status IS NULL OR transactions.payment_status<>'FAILED') AND pay_method='pay_to_card', 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0) AND pay_method='pay_to_card') as in_progress, SUM(IF(remote_vend_log.status='2' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED' AND pay_method='pay_to_card', 1, 0)) as pay_failed, SUM(IF(transactions.id>0 AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00') AND pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS',1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as failed_mobile_payments, SUM(IF(remote_vend_log.status='2' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as successfull_mobile_vends";
 
@@ -69,20 +76,8 @@ class PaymentsController extends BaseController
         if ($machine_id > 0) {
             $model  = $model->where("remote_vend_log.machine_id", $machine_id);
         }
-        //->where("transactions.payment_status", "SUCCESS")
+
         $model  = $model->first();
-
-        // $model->visa_amount         = number_format(($mobile_payments ? ($mobile_payments->visa_amount ?? 0) : 0), 2);
-        // $model->mastercard_amount   = number_format(($mobile_payments ? ($mobile_payments->mastercard_amount ?? 0) : 0), 2);
-        // $model->amex_amount         = number_format(($mobile_payments ? ($mobile_payments->amex_amount ?? 0) : 0), 2);
-        // $model->apple_amount        = number_format(($mobile_payments ? ($mobile_payments->apple_amount ?? 0) : 0), 2);
-        // $model->google_amount       = number_format(($mobile_payments ? ($mobile_payments->google_amount ?? 0) : 0), 2);
-        // $model->paypal_amount       = number_format(($mobile_payments ? ($mobile_payments->paypal_amount ?? 0) : 0), 2);
-        // $model->after_pay_amount    = number_format(($mobile_payments ? ($mobile_payments->after_pay_amount ?? 0) : 0), 2);
-        // $model->debit_card_amount   = number_format(($mobile_payments ? ($mobile_payments->debit_card_amount ?? 0) : 0), 2);
-        // $model->credit_card_amount  = number_format(($mobile_payments ? ($mobile_payments->credit_card_amount ?? 0) : 0), 2);
-
-        // $model->successfull_mobile_vends    = $mobile_payments ? ($mobile_payments->successfull_mobile_vends ?? 0) : 0;
 
 
         $model->all_card_payments   = number_format($model->visa_amount + $model->mastercard_amount + $model->amex_amount, 2);
@@ -162,6 +157,37 @@ class PaymentsController extends BaseController
 
         return parent::sendResponse($model, "Success");
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/payments/activities",
+     *     summary="Payments Activities",
+     *     tags={"Quizee"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="machine_id", type="integer"),
+     *             @OA\Property(property="type", type="string"),
+     *             @OA\Property(property="pay_type", type="string"),
+     *             @OA\Property(property="pay_method", type="string"),
+     *             @OA\Property(property="search", type="string"),
+     *             @OA\Property(property="start_date", type="string"),
+     *             @OA\Property(property="end_date", type="string")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
 
     public function activities(Request $request)
     {
