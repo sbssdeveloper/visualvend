@@ -13,6 +13,7 @@ class Product extends Model
 
     protected $table = 'product';
     protected $fillable = ['*'];
+    protected $hidden = ['id'];
 
     public function images()
     {
@@ -173,5 +174,10 @@ class Product extends Model
             "delete_user_id" => $request->auth->client_id
         ]);
         return $model->delete();
+    }
+
+    public function upload($request){
+        $file = $request->file('file');
+        $path = $file->store('uploads', 'storage');
     }
 }

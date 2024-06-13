@@ -42,4 +42,8 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->post('update',     'ProductController@update');    
         $router->post('delete',     'ProductController@delete');    
     });
+    $router->group(['prefix' => 'category', 'middleware' => 'jwt'], function () use ($router) {
+        $router->get('list',          'CategoryController@dropdownList');
+        $router->post('list',         'CategoryController@list');
+    });
 });

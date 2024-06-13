@@ -38,7 +38,7 @@ class ProductController extends LinkedMachineController
     public function assignedList(Request $request, Product $product)
     {
         $this->validate($request, ['sort' => 'required']);
-        return $this->sendResponseWithPagination($product->assignedList($request),"Success");
+        return $this->sendResponseWithPagination($product->assignedList($request), "Success");
     }
 
     /**
@@ -71,7 +71,7 @@ class ProductController extends LinkedMachineController
     public function unAssignedList(Request $request, Product $product)
     {
         $this->validate($request, ['sort' => 'required']);
-        return $this->sendResponseWithPagination($product->unAssignedList($request),"Success");
+        return $this->sendResponseWithPagination($product->unAssignedList($request), "Success");
     }
 
     /**
@@ -102,9 +102,10 @@ class ProductController extends LinkedMachineController
      * )
      */
 
-    public function archivedList(Request $request, Product $product){
+    public function archivedList(Request $request, Product $product)
+    {
         $this->validate($request, ['sort' => 'required']);
-        return $this->sendResponseWithPagination($product->archive($request),"Success");
+        return $this->sendResponseWithPagination($product->archive($request), "Success");
     }
 
     /**
@@ -179,4 +180,9 @@ class ProductController extends LinkedMachineController
         }
     }
 
+    public function upload(Request $request, Product $product)
+    {
+        $request->validate(['file' => 'required|mimes:xlsx,xls|max:10240']);
+        
+    }
 }
