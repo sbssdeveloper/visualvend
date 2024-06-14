@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Cache;
 
 class ClientController extends BaseController
 {
+    public $admin_logged_in;
+
+    public function __construct()
+    {
+        $this->admin_logged_in = $request->auth->admin ?? "client";
+    }
     /**
      * @OA\Get(
      *     path="/api/client/list",
