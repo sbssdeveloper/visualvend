@@ -36,7 +36,7 @@ class ClientController extends BaseController
     public function dropdownList(Request $request, Client $client)
     {
         if ($request->auth->client_id < 0) {
-            $response = Cache::remember("client-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () {
+            $response = Cache::remember("client-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use($client) {
                 return $client->dropdownList();
             });
             return $this->sendResponse($response, "Success");
