@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\Rest\BaseController;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,7 @@ class Product extends Model
     protected $table = 'product';
     protected $fillable = ['*'];
     protected $hidden = ['id'];
+    protected $format = ["product code", "product name", "product price", "product description"];
 
     public function images()
     {
@@ -180,6 +182,7 @@ class Product extends Model
 
     public function upload($request)
     {
+        $client_id = $request->client_id ?? $request->auth->client_id;
         $path = storage_path("uploads");
 
         if (!file_exists($path)) {
@@ -191,10 +194,50 @@ class Product extends Model
             $reader = new XlsxReader();
             $spreadsheet = $reader->load($path . "/" . $file);
             $sheets  = $spreadsheet->getActiveSheet(0)->toArray();
-            dd($sheets);
+            if (
+                strtolower($sheets[0][0]) != 'product id' ||
+                strtolower($sheets[0][1]) != 'product name' ||
+                strtolower($sheets[0][2]) != 'product price' ||
+                strtolower($sheets[0][3]) != 'product description'
+            ) {
+                return BaseController::sendError("Wrong format.");
+            } else {
+                $errors = 0;
+                $error_text = 0;
+                $array = [];
+                array_shift($sheets);
+                if (count($sheets) > 0) {
+                    foreach ($sheets as $key => $value) {
+                        $exists = self::where("client_id", $client_id)->where("product_id", $value[0])->exists();
+                        if (!$exists) {
+                            $array[] = [
+                                'product_id'                        => $value[0],
+                                'product_name'                      => $value[1],
+                                'product_price'                     => $value[2] ?? "0.00",
+                                'product_description'               => $value[3],
+                                'more_info_text'                    => $value[4],
+                                'product_image'                     => $value[5] ?? "default_product.png",
+                                'product_image_thumbnail'           => $value[6] ?? "default_product.png",
+                                'product_more_info_image'           => $value[7] ?? "default_product.png",
+                                'product_more_info_image_thumbnail' => $value[8] ?? "default_product.png",
+                            ];
+                        } else {
+                            $error_text .= 'Row : ' . ($key + 1) . ' Product ID : ' . $value[0] . ' already exists;';
+                            $errors++;
+                        }
+                    }
+                    if (count($array) > 0) {
+                        self::insert($array);
+                        return BaseController::sendResponse("Product uploaded successfully.", ["errors" => $errors, "error_text" => $error_text]);
+                    } else {
+                        return BaseController::sendError("No data available.", ["errors" => $errors, "error_text" => $error_text]);
+                    }
+                } else {
+                    return BaseController::sendError("No data available.");
+                }
+            }
         } catch (\Throwable $th) {
-            die($th->getMessage());
-            //throw $th;
+            return BaseController::sendError($th->getMessage());
         }
     }
 }

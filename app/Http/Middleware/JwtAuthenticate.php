@@ -48,15 +48,6 @@ class JWTAuthenticate
             ], 401);
         }
         $request->auth = $user;
-
-        // if ($user->client_id > 0) {
-        //     $list   = explode(",", $user->machines);
-        //     $select = [];
-        //     $machines = Machine::select(["id", "machine_name"])->whereIn("id", $list)->orderBy('machine_name', "ASC")->get();
-        // } else {
-        //     $machines = Machine::select(["id", "machine_name"])->orderBy('machine_name', "ASC")->get();
-        // }
-        // $request->auth->machines = $machines;
         
         return $next($request);
     }

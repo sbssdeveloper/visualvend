@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Rest;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+
 class ProductController extends LinkedMachineController
 {
     /**
@@ -215,7 +216,8 @@ class ProductController extends LinkedMachineController
 
     public function upload(Request $request, Product $product)
     {
-        $this->validate($request, ['file' => 'required|mimes:xlsx,xls|max:10240']);
-        $product->upload($request);
+        $required_if = $request->auth->client_id > 0;
+        $this->validate($request, ['file' => 'required|mimes:xlsx,xls|max:10240', "client_id" => "required_if:$required_if"]);
+        return $product->upload($request);
     }
 }
