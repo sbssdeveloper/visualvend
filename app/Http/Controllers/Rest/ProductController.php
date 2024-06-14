@@ -214,10 +214,10 @@ class ProductController extends LinkedMachineController
      * )
      */
 
-    public function upload(Request $request, Product $product)
+    public function upload(Request $request, Product $product, BaseController $controller)
     {
-        $required_if = $request->auth->client_id > 0;
-        $this->validate($request, ['file' => 'required|mimes:xlsx,xls|max:10240', "client_id" => "required_if:$required_if"]);
-        return $product->upload($request);
+        $required_if = $request->auth->client_id > 0?1:0;
+        $this->validate($request, ['file' => 'required|mimes:xlsx,xls|max:10240', "client_id" => "required_if:$required_if,1"]);
+        return $product->upload($request, $controller);
     }
 }

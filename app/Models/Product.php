@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Http\Controllers\Rest\BaseController;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Builder;
@@ -180,7 +179,7 @@ class Product extends Model
         return $model->delete();
     }
 
-    public function upload($request)
+    public function upload($request, $controller)
     {
         $client_id = $request->client_id ?? $request->auth->client_id;
         $path = storage_path("uploads");
@@ -194,13 +193,18 @@ class Product extends Model
             $reader = new XlsxReader();
             $spreadsheet = $reader->load($path . "/" . $file);
             $sheets  = $spreadsheet->getActiveSheet(0)->toArray();
+            if (file_exists($path . "/" . $file)) {
+                unlink($path . "/" . $file);
+            }
+            // print_r($sheets[0]);
+            // die;
             if (
-                strtolower($sheets[0][0]) != 'product id' ||
+                strtolower($sheets[0][0]) != 'product code' ||
                 strtolower($sheets[0][1]) != 'product name' ||
                 strtolower($sheets[0][2]) != 'product price' ||
                 strtolower($sheets[0][3]) != 'product description'
             ) {
-                return BaseController::sendError("Wrong format.");
+                return $controller->sendError("Wrong format.");
             } else {
                 $errors = 0;
                 $error_text = 0;
@@ -211,6 +215,7 @@ class Product extends Model
                         $exists = self::where("client_id", $client_id)->where("product_id", $value[0])->exists();
                         if (!$exists) {
                             $array[] = [
+                                'uuid'                              => Encrypt::uuid(),
                                 'product_id'                        => $value[0],
                                 'product_name'                      => $value[1],
                                 'product_price'                     => $value[2] ?? "0.00",
@@ -228,16 +233,16 @@ class Product extends Model
                     }
                     if (count($array) > 0) {
                         self::insert($array);
-                        return BaseController::sendResponse("Product uploaded successfully.", ["errors" => $errors, "error_text" => $error_text]);
+                        return $controller->sendResponse("Product uploaded successfully.", ["errors" => $errors, "error_text" => $error_text]);
                     } else {
-                        return BaseController::sendError("No data available.", ["errors" => $errors, "error_text" => $error_text]);
+                        return $controller->sendError("No data available.", ["errors" => $errors, "error_text" => $error_text]);
                     }
                 } else {
-                    return BaseController::sendError("No data available.");
+                    return $controller->sendError("No data available.");
                 }
             }
         } catch (\Throwable $th) {
-            return BaseController::sendError($th->getMessage());
+            return $controller->sendError($th->getMessage());
         }
     }
 }

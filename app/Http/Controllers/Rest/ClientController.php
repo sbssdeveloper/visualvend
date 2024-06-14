@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Rest;
 
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ClientController extends BaseController
 {
@@ -29,7 +30,10 @@ class ClientController extends BaseController
     public function dropdownList(Request $request, Client $client)
     {
         if ($request->auth->client_id < 0) {
-            return self::sendResponse($client->dropdownList());
+            $response = Cache::remember("client-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () {
+                return $client->dropdownList();
+            });
+            return $this->sendResponse($response, "Success");
         }
         return self::sendError("Authentication failed");
     }
