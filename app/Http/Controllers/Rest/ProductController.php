@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Rest;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
-
 class ProductController extends LinkedMachineController
 {
     /**
@@ -180,9 +179,43 @@ class ProductController extends LinkedMachineController
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/v1/product/upload",
+     *     summary="Products Upload",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                @OA\Property(
+     *                  property="file",
+     *                  description="Product file",
+     *                  type="file",
+     *                  format="binary"
+     *                )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
     public function upload(Request $request, Product $product)
     {
-        $request->validate(['file' => 'required|mimes:xlsx,xls|max:10240']);
-        
+        $this->validate($request, ['file' => 'required|mimes:xlsx,xls|max:10240']);
+        $product->upload($request);
     }
 }

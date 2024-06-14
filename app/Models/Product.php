@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Encrypt;
+use XlsxReader;
 
 class Product extends Model
 {
@@ -176,8 +178,23 @@ class Product extends Model
         return $model->delete();
     }
 
-    public function upload($request){
-        $file = $request->file('file');
-        $path = $file->store('uploads', 'storage');
+    public function upload($request)
+    {
+        $path = storage_path("uploads");
+
+        if (!file_exists($path)) {
+            mkdir($path, $mode = 0777, true);
+        }
+        try {
+            $file = Encrypt::uuid() . '.xlsx';
+            $request->file->move($path, $file);
+            $reader = new XlsxReader();
+            $spreadsheet = $reader->load($path . "/" . $file);
+            $sheets  = $spreadsheet->getActiveSheet(0)->toArray();
+            dd($sheets);
+        } catch (\Throwable $th) {
+            die($th->getMessage());
+            //throw $th;
+        }
     }
 }

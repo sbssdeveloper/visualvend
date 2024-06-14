@@ -62,6 +62,7 @@ class AuthController extends BaseController
                         'menus' => $user->menus,
                         'reports' => $user->reports,
                         'role' => $user->role,
+                        'client_id' => $user->client_id
                     ];
                     return $this->sendResponse($response, "User logged in successfully.");
                 }

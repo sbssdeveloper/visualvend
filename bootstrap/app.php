@@ -100,6 +100,11 @@ $app->register(\SwaggerLume\ServiceProvider::class);
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 $app->register(\KitLoong\MigrationsGenerator\MigrationsGeneratorServiceProvider::class);
 
+class_alias(PhpOffice\PhpSpreadsheet\Spreadsheet::class,"Spreadsheet");
+class_alias( PhpOffice\PhpSpreadsheet\Writer\Xlsx::class,"XlsxWriter");
+class_alias(PhpOffice\PhpSpreadsheet\Reader\Xlsx::class,"XlsxReader");
+class_alias(Illuminate\Support\Str::class,"Encrypt");
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
