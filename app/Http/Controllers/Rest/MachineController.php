@@ -75,14 +75,14 @@ class MachineController extends LinkedMachineController
      */
 
     public function list(Request $request)
-    {    
+    {
         $admin_id   = $request->auth->admin_id;
         $client_id  = $request->auth->client_id;
         $machines   = $this->linked_machines;
 
-        $model      = Machine::where("is_deleted", "0"); {
-            /**Machine with search param */
-        }
+        $model      = Machine::where("is_deleted", "0");
+
+        /**Machine with search param */
 
         if ($request->has("search")) {
             $model = $model->where(function ($query) use ($request) {

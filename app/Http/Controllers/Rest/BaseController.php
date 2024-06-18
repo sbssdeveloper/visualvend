@@ -35,7 +35,7 @@ class BaseController extends Controller
 
         ];
 
-        if ($result == "") {
+        if (empty($result)) {
             unset($response['data']);
         }
 
