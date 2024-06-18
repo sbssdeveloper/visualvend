@@ -116,8 +116,8 @@ class ProductController extends BaseController
         }
         $this->validate($request, $rules);
         $array                              = $request->all();
-        $product_image                      = $request->file('product_image')->store('images', 'public/assets');
-        $product_more_info                  = $request->file('product_more_info_image')->store('images', 'public/assets');
+        $product_image                      = $request->file('product_image')->store('images', 'storage/uploads/images');
+        $product_more_info                  = $request->file('product_more_info_image')->store('images', 'storage/uploads/images');
         $array['uuid']                      = (string) Str::uuid();
         $array['product_image']             = $product_image;
         $array['product_more_info_image']   = $product_more_info;
