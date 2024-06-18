@@ -83,14 +83,21 @@ class MachineController extends LinkedMachineController
         $model      = Machine::where("is_deleted", "0"); {
             /**Machine with search param */
         }
+
         if ($request->has("search")) {
             $model = $model->where(function ($query) use ($request) {
                 $query->where("machine_name", "LIKE", $request->search . "%");
             });
         }
+
         if ($client_id > 0) {
             $model  = $model->where("machine_client_id", $client_id)->whereIn("id", $machines);
         }
+
+        if ($request->has("sort") && $request->has("direction")) {
+            $model  = $model->orderBy($request->sort, $request->direction);
+        }
+
         $model  = $model->paginate($request->length ?? 10);
         return parent::sendResponse($model, "Success");
     }
