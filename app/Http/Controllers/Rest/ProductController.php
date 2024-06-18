@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Rest;
 
+use Encrypt;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Rules\ProductClientRule;
