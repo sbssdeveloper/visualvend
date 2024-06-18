@@ -76,7 +76,6 @@ class MachineController extends LinkedMachineController
 
     public function list(Request $request)
     {
-        die("HERE");
         $response = Cache::remember("machine-list:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use ($request) {
             $admin_id   = $request->auth->admin_id;
             $client_id  = $request->auth->client_id;
