@@ -76,26 +76,22 @@ class MachineController extends LinkedMachineController
 
     public function list(Request $request)
     {
-        $response = Cache::remember("machine-list:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use ($request) {
-            $admin_id   = $request->auth->admin_id;
-            $client_id  = $request->auth->client_id;
-            $machines   = $this->linked_machines;
+        $admin_id   = $request->auth->admin_id;
+        $client_id  = $request->auth->client_id;
+        $machines   = $this->linked_machines;
 
-            $model      = Machine::where("is_deleted", "0");
-            
-            {/**Machine with search param */}
-            if ($request->has("search")) {
-                $model = $model->where(function ($query) use ($request) {
-                    $query->where("machine_name", "LIKE", $request->search . "%");
-                });
-            }
-            if ($client_id > 0) {
-                $model  = $model->where("machine_client_id", $client_id)->whereIn("id", $machines);
-            }
-
-            return ($model  = $model->paginate($request->length ?? 10));
-        });
-
-        return parent::sendResponse($response, "Success");
+        $model      = Machine::where("is_deleted", "0"); {
+            /**Machine with search param */
+        }
+        if ($request->has("search")) {
+            $model = $model->where(function ($query) use ($request) {
+                $query->where("machine_name", "LIKE", $request->search . "%");
+            });
+        }
+        if ($client_id > 0) {
+            $model  = $model->where("machine_client_id", $client_id)->whereIn("id", $machines);
+        }
+        $model  = $model->paginate($request->length ?? 10);
+        return parent::sendResponse($model, "Success");
     }
 }
