@@ -17,6 +17,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
         /****************************MACHINE******************************/
         $router->get('machine/list',            'MachineController@dropdownList');
+        $router->post('machine/list',           'MachineController@list');
 
         /****************************ADVERTISEMENT******************************/
         $router->get('advertisement/list',      'AdvertisementController@list');
