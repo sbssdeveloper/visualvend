@@ -338,7 +338,7 @@ class ProductController extends LinkedMachineController
         $product_more_info  = Encrypt::uuid() . '.' . $request->product_more_info_image->extension();
         $request->product_more_info_image->move($path . "/images", $product_more_info);
 
-        $array['uuid']                      = (string) Str::uuid();
+        $array['uuid']                      = (string) Encrypt::uuid();
         $array['product_image']             = "uploads/images/" . $product_image;
         $array['product_more_info_image']   = "uploads/images/" . $product_more_info;
 
