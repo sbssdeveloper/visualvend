@@ -80,7 +80,7 @@ class MachineController extends LinkedMachineController
         $client_id  = $request->auth->client_id;
         $machines   = $this->linked_machines;
 
-        $model      = Machine::where("is_deleted", "0");
+        $model      = Machine::select("id","machine_name")->where("is_deleted", "0");
 
         /**Machine with search param */
 
