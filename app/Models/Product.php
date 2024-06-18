@@ -210,6 +210,13 @@ class Product extends Model
                 array_shift($sheets);
                 if (count($sheets) > 0) {
                     foreach ($sheets as $key => $value) {
+                        if (empty($value[0])) {
+                            $error_text .= 'Row : ' . ($key + 1) . 'Product Code can\'\t be empty';
+                            $errors++;
+                        } else if (empty($value[1])) {
+                            $error_text .= 'Row : ' . ($key + 1) . 'Product Name can\'\t be empty';
+                            $errors++;
+                        }
                         $exists = self::where("client_id", $client_id)->where("product_id", $value[0])->exists();
                         if (!$exists) {
                             $array[] = [
@@ -247,144 +254,75 @@ class Product extends Model
 
     public function bulkUpdate($request, $controller)
     {
-            $type           = $this->input->post("type");
-            $error_text     = "";
-            $totalRows      = $inserted = $failed =  0;
-            $entry = $duplicateP = [];
-            $file           = self::upload_files('file', 20480, $allowed = "csv|xlsx");
-            if ($file["success"] === true) {
-                $filePath   = self::FILE_PATH . $file["data"]["file_name"];
-                $file_name  = explode('.', $file["data"]["file_name"]);
-                $extension  = end($file_name);
-                if ('csv' == $extension) {
-                    $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
-                } else if ('xls' == $extension) {
-                    $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
-                } else {
-                    $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-                }
-                $spreadsheet    = $reader->load($filePath)->getActiveSheet(0)->toArray();
-                if (file_exists($filePath)) {
-                    unlink($filePath);
-                }
-                if (
-                    strtolower($spreadsheet[0][0]) === 'product code' &&
-                    strtolower($spreadsheet[0][1]) === 'product name' &&
-                    strtolower($spreadsheet[0][2]) === 'product price' &&
-                    strtolower($spreadsheet[0][3]) === 'product description'
-                ) {
-                    array_shift($spreadsheet);
-                    $totalRows = count($spreadsheet);
-                    if ($totalRows > 0) {
-                        foreach ($spreadsheet as $key => $value) {
-                            $product_code           = trim($value[0]);
-                            $product_name           = trim($value[1]);
-                            $product_price          = trim($value[2]);
-                            $product_desc           = trim($value[3]);
-                            $product_more           = trim($value[4]);
-                            $product_img            = trim($value[5]);
-                            $product_img            = file_exists($product_img) ? $product_img : "ngapp/assets/img/default_category.png";
-                            $product_img_thumb      = trim($value[6]);
-                            $product_img_thumb      = file_exists($product_img_thumb) ? $product_img_thumb : "ngapp/assets/img/default_category.png";
-                            $product_img_more       = trim($value[7]);
-                            $product_img_more       = file_exists($product_img_more) ? $product_img_more : "ngapp/assets/img/default_category.png";
-                            $product_img_more_thumb = trim($value[8]);
-                            $product_img_more_thumb = file_exists($product_img_more_thumb) ? $product_img_more_thumb : "ngapp/assets/img/default_category.png";
-                            if ($product_code == "") {
-                                $failed++;
-                                $error_text         = $error_text . 'Row : ' . ($key + 1) . " Product Code can't be empty" . PHP_EOL;
-                                continue;
-                            }
-                            if ($product_name == "") {
-                                $failed++;
-                                $error_text         = $error_text . 'Row : ' . ($key + 1) . " Product Name can't be empty" . PHP_EOL;
-                                continue;
-                            }
-                            if ($product_price == "") {
-                                $failed++;
-                                $error_text         = $error_text . 'Row : ' . ($key + 1) . " Product Price can't be empty" . PHP_EOL;
-                                continue;
-                            }
-                            if ((float)$product_price < 0) {
-                                $failed++;
-                                $error_text         = $error_text . 'Row : ' . ($key + 1) . " Product Price can't be less than 0" . PHP_EOL;
-                                continue;
-                            }
-                            if (in_array($product_code, $duplicateP)) {
-                                $failed++;
-                                $error_text         = $error_text . 'Row : ' . ($key + 1) . " Product Code ($product_code) is duplicate in the sheet" . PHP_EOL;
-                                continue;
-                            }
-                            $duplicate = $this->db->where("product_id", $product_code)->where("client_id", $this->clientID)->get("product")->row();
-                            if (!$duplicate) {
-                                $failed++;
-                                $error_text = $error_text . 'Row : ' . ($key + 1) . " Product Code ($product_code) doesn't exist." . PHP_EOL;
-                                continue;
-                            }
-                            $old_price = $duplicate->product_price;
-                            $duplicateP[] = $product_code;
-                            $entry[]    = [
-                                "product_id" => $product_code,
-                                "product_name" => $product_name,
-                                "product_price" => (float) $product_price,
-                                "client_id" => $this->clientID,
-                                "product_image" => $product_img,
-                                "product_image_thumbnail" => $product_img_thumb,
-                                "product_more_info_image" => $product_img_more,
-                                "product_more_info_image_thumbnail" => $product_img_more_thumb,
-                                "product_description" => $product_desc,
-                                "more_info_text" => $product_more,
-                                "old_price" => (float) $old_price,
-                                "product_sku" => !empty($value[9]) ? trim($value[9]) : "",
-                                'is_deleted' => 0,
-                                'delete_user_id' => 0,
-                                'deleted_at' => NULL
-                            ];
-                            $inserted++;
-                        }
-                        $response = ["code" => 200, "msg" => "$inserted Products updated sucessfully."];
-                        if (count($entry) > 0) {
-                            if (count($entry) > 0) {
-                                foreach ($entry as $value) {
-                                    $product_price  = (float) $value["product_price"];
-                                    $old_price      = (float) $value["old_price"];
-                                    $array = $value;
-                                    unset($array["product_id"]);
-                                    unset($array["client_id"]);
-                                    unset($array["old_price"]);
-                                    $this->db->where(["product_id" => $value['product_id'], 'client_id' => $this->clientID])->update("product", $array);
-                                    if ($old_price != $product_price) {
-                                        $dataa = $this->db->where(["product_id" => $value['product_id'], 'client_id' => $this->clientID, "product_price" => $old_price])->get("machine_product_map", ["product_price" => $product_price]);
-                                    }
-                                }
-                            }
-                            $response["uploaded"]           = true;
-                            $response["no_of_product_updated"]             = $inserted;
-                        } else {
-                            $response["uploaded"]           = false;
-                            $response["msg"] = "Errors occured in products.";
-                        }
-                        $response["error_message"]          = $error_text;
-                        $response["no_of_error"]            = $failed;
-                        $response["legit_rows"]             = $inserted;
-                        return $this->output
-                            ->set_content_type('application/json')
-                            ->set_status_header(200)
-                            ->set_output(json_encode($response));
-                    }
-                    return $this->output
-                        ->set_content_type('application/json')
-                        ->set_status_header(422)
-                        ->set_output(json_encode(['code' => 422, 'message' => "No data available."]));
-                }
-                return $this->output
-                    ->set_content_type('application/json')
-                    ->set_status_header(422)
-                    ->set_output(json_encode(['code' => 422, 'message' => "Data Format is not as per requirement."]));
+        $client_id = $request->client_id ?? $request->auth->client_id;
+        $path = storage_path("uploads");
+
+        if (!file_exists($path)) {
+            mkdir($path, $mode = 0777, true);
+        }
+        try {
+            $file = Encrypt::uuid() . '.xlsx';
+            $request->file->move($path, $file);
+            $reader = new XlsxReader();
+            $spreadsheet = $reader->load($path . "/" . $file);
+            $sheets  = $spreadsheet->getActiveSheet(0)->toArray();
+            if (file_exists($path . "/" . $file)) {
+                unlink($path . "/" . $file);
             }
-            return $this->output
-                ->set_content_type('application/json')
-                ->set_status_header(422)
-                ->set_output(json_encode(['code' => 422, 'message' => $file["message"]]));
+            if (
+                strtolower($sheets[0][0]) != 'product code' ||
+                strtolower($sheets[0][1]) != 'product name' ||
+                strtolower($sheets[0][2]) != 'product price' ||
+                strtolower($sheets[0][3]) != 'product description'
+            ) {
+                return $controller->sendError("Wrong format.");
+            } else {
+                $errors = 0;
+                $error_text = 0;
+                $array = [];
+                array_shift($sheets);
+                if (count($sheets) > 0) {
+                    foreach ($sheets as $key => $value) {
+                        if (empty($value[0])) {
+                            $error_text .= 'Row : ' . ($key + 1) . 'Product Code can\'\t be empty';
+                            $errors++;
+                        } else if (empty($value[1])) {
+                            $error_text .= 'Row : ' . ($key + 1) . 'Product Name can\'\t be empty';
+                            $errors++;
+                        }
+                        $exists = self::where("client_id", $client_id)->where("product_id", $value[0])->first();
+                        if ($exists) {
+                            $array[] = [
+                                'product_name'                      => $value[1],
+                                'product_price'                     => $value[2] ?? "0.00",
+                                'product_description'               => $value[3],
+                                'more_info_text'                    => $value[4],
+                                'product_image'                     => $value[5] ?? "default_product.png",
+                                'product_image_thumbnail'           => $value[6] ?? "default_product.png",
+                                'product_more_info_image'           => $value[7] ?? "default_product.png",
+                                'product_more_info_image_thumbnail' => $value[8] ?? "default_product.png",
+                                'product_sku'                       => $value[9] ?? "",
+                                'is_deleted'                        => 0,
+                                'delete_user_id'                    => null,
+                                'deleted_at'                        => null,
+                            ];
+                            self::where("client_id", $client_id)->where("product_id", $value[0])->update($array);
+                        } else {
+                            $error_text .= 'Row : ' . ($key + 1) . ' Product ID : ' . $value[0] . ' already exists;';
+                            $errors++;
+                        }
+                    }
+                    if (count($array) > 0) {
+                        return $controller->sendResponse("Product updated successfully.", ["errors" => $errors, "error_text" => $error_text]);
+                    } else {
+                        return $controller->sendError("No data available.", ["errors" => $errors, "error_text" => $error_text]);
+                    }
+                } else {
+                    return $controller->sendError("No data available.");
+                }
+            }
+        } catch (\Throwable $th) {
+            return $controller->sendError($th->getMessage());
+        }
     }
 }
