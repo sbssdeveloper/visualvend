@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Rules\ProductClientRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Encrypt;
 
 class ProductController extends BaseController
 {
@@ -45,7 +46,7 @@ class ProductController extends BaseController
         if ($client_id != 1) {
             $products->where("product.client_id", $client_id);
         }
-        
+
         if (!empty($request->search)) {
             $products->where(function ($query) use ($request) {
                 $query->where("product.product_id", "LIKE", $request->search . "%")->orWhere("product_name", "LIKE", $request->search . "%");
@@ -116,11 +117,20 @@ class ProductController extends BaseController
         }
         $this->validate($request, $rules);
         $array                              = $request->all();
-        $product_image                      = $request->file('product_image')->store('images', 'storage/uploads/images');
-        $product_more_info                  = $request->file('product_more_info_image')->store('images', 'storage/uploads/images');
+        $path = storage_path("uploads");
+
+        if (!file_exists($path)) {
+            mkdir($path, $mode = 0777, true);
+        }
+        $product_image      = Encrypt::uuid() . '.' . $request->product_image->extension();
+        $request->product_image->move($path . "/images", $product_image);
+
+        $product_more_info  = Encrypt::uuid() . '.' . $request->product_more_info_image->extension();
+        $request->product_more_info_image->move($path . "/images", $product_more_info);
+
         $array['uuid']                      = (string) Str::uuid();
-        $array['product_image']             = $product_image;
-        $array['product_more_info_image']   = $product_more_info;
+        $array['product_image']             = "uploads/images/" . $product_image;
+        $array['product_more_info_image']   = "uploads/images/" . $product_more_info;
 
         try {
             Product::insert($array);
