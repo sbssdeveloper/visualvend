@@ -102,7 +102,6 @@ class ProductController extends BaseController
 
     public function create(Request $request, ProductClientRule $rule)
     {
-        set_time_limit(60);
         $client_id                      = $request->auth->client_id;
         $rules = [
             'product_name'              => 'required|string',
