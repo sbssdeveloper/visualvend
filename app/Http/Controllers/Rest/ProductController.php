@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Rest;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Rules\ProductClientRule;
 use Illuminate\Http\Request;
 
 class ProductController extends LinkedMachineController
