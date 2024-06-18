@@ -76,6 +76,9 @@ class MachineController extends LinkedMachineController
 
     public function list(Request $request)
     {
+        ini_set('max_execution_time', 300); // Increase execution time
+        ini_set('memory_limit', '512M'); // Increase memory limit
+    
         $admin_id   = $request->auth->admin_id;
         $client_id  = $request->auth->client_id;
         $machines   = $this->linked_machines;
