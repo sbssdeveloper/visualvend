@@ -220,4 +220,45 @@ class ProductController extends LinkedMachineController
         $this->validate($request, ['file' => 'required|mimes:xlsx,xls|max:10240', "client_id" => "required_if:$required_if,1"]);
         return $product->upload($request, $controller);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/product/bulk/update",
+     *     summary="Products Bulk Update",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                @OA\Property(
+     *                  property="file",
+     *                  description="Product file",
+     *                  type="file",
+     *                  format="binary"
+     *                )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function bulkUpdate(Request $request, Product $product, BaseController $controller)
+    {
+        $required_if = $request->auth->client_id > 0?1:0;
+        $this->validate($request, ['file' => 'required|mimes:xlsx,xls|max:10240', "client_id" => "required_if:$required_if,1"]);
+        return $product->bulkUpdate($request, $controller);
+    }
 }
