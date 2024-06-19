@@ -14,7 +14,9 @@ class RequestHelper
         if ($request->auth->client_id <= 0) {
             $client_id                  = $request->client_id;
         }
-        $array                          = array_filter($data, function($var){return array_filter($var);});
+        $array                          = array_filter($data, function ($var) {
+            return !empty($var['post_id']);
+        });
         dd($array);
         $array["client_id"]             = $client_id;
         $array['uuid']                  = (string) Encrypt::uuid();
