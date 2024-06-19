@@ -23,12 +23,9 @@ class Product extends Model
         return $this->hasMany(ProductImage::class, "uuid", "uuid");
     }
 
-    public function scopeWithCategories()
+    public function category()
     {
-        return $this->leftJoin("product_assign_category", function ($join) {
-            $join->on('product_assign_category.product_id', '=', 'product.product_id');
-            $join->on('product_assign_category.client_id', '=', 'product.client_id');
-        })->select('product.*', 'product_assign_category.category_id');
+        return $this->hasMany(Category::class, "uuid", "uuid");
     }
 
     public function assigned($auth, $select = ["product.*"], $type = "count")

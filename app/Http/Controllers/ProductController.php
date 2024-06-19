@@ -42,7 +42,7 @@ class ProductController extends BaseController
     public function list(Request $request)
     {
         $client_id  = $request->auth->client_id;
-        $products   = Product::withCategories()->where("is_deleted", 0);
+        $products   = Product::with("category")->where("is_deleted", 0);
 
         if ($client_id != 1) {
             $products->where("product.client_id", $client_id);
