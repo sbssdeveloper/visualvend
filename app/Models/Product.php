@@ -275,7 +275,7 @@ class Product extends Model
                 return $controller->sendError("Wrong format.");
             } else {
                 $errors = $uploaded = 0;
-                $error_text = 0;
+                $error_text = "";
                 $array = [];
                 array_shift($sheets);
                 if (count($sheets) > 0) {
