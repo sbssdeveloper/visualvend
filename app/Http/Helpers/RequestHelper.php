@@ -39,31 +39,31 @@ class RequestHelper
             $array['product_promo_image']   = "uploads/images/" . $product_more_info;
         }
 
-        if ($request->has("product_more_image_1")) {
+        if ($request->has("product_more_image_1") && !empty($request->product_more_image_1)) {
             $product_more_image_1          = Encrypt::uuid() . '.' . $request->product_more_image_1->extension();
             $request->product_more_image_1->move($path . "/images", $product_more_image_1);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_1];
         }
 
-        if ($request->has("product_more_image_2")) {
+        if ($request->has("product_more_image_2") && !empty($request->product_more_image_2)) {
             $product_more_image_2          = Encrypt::uuid() . '.' . $request->product_more_image_2->extension();
             $request->product_more_image_2->move($path . "/images", $product_more_image_2);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_2];
         }
 
-        if ($request->has("product_more_image_3")) {
+        if ($request->has("product_more_image_3") && !empty($request->product_more_image_3)) {
             $product_more_image_3          = Encrypt::uuid() . '.' . $request->product_more_image_3->extension();
             $request->product_more_image_3->move($path . "/images", $product_more_image_3);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_3];
         }
 
-        if ($request->has("product_more_image_4")) {
+        if ($request->has("product_more_image_4") && !empty($request->product_more_image_4)) {
             $product_more_image_4          = Encrypt::uuid() . '.' . $request->product_more_image_4->extension();
             $request->product_more_image_4->move($path . "/images", $product_more_image_4);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_4];
         }
 
-        if ($request->has("product_category")) {
+        if ($request->has("product_category") && !empty($request->product_category)) {
             dd($request->product_category);
             foreach ($request->product_category as $value) {
                 $categories[] = [
