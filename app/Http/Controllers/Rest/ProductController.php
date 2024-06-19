@@ -397,4 +397,40 @@ class ProductController extends LinkedMachineController
             //throw $th;
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/product/info",
+     *     summary="Products Info",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *          @OA\JsonContent(
+     *             @OA\Property(property="uuid", type="string")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function info(Request $request)
+    {
+        $client_id                      = $request->auth->client_id;
+        $rules = [
+            'uuid'                      => 'required|exists:product,uuid'
+        ];
+        $this->validate($request, $rules);
+        
+        return $this->sendResponse(Product::where("uuid", $request->uuid)->first(), 'Success');
+    }
 }

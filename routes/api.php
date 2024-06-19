@@ -31,8 +31,9 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('product/delete/bulk',    'ProductController@bulkDelete');
         $router->post('product/upload',         'ProductController@upload');
         $router->post('product/bulk/update',    'ProductController@bulkUpdate');
-        $router->post('product/create',                 'ProductController@create');
-        $router->post('product/update',                 'ProductController@update');
+        $router->post('product/create',         'ProductController@create');
+        $router->post('product/update',         'ProductController@update');
+        $router->post('product/info',           'ProductController@info');
 
         /****************************CATEGORY******************************/
         $router->get('category/list',          'CategoryController@dropdownList');
