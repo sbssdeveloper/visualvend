@@ -433,7 +433,7 @@ class ProductController extends LinkedMachineController
 
         return $this->sendResponse(Product::with(["images" => function ($query) {
             $query->select('image', 'id');
-        }, "assigned_categories" => function ($query) {
+        }])->with(["assigned_categories" => function ($query) {
             $query->select('category_id','id');
         }])->where("uuid", $request->uuid)->first(), 'Success');
     }
