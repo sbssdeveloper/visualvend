@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Rest;
 
 use Encrypt;
 use App\Http\Controllers\Controller;
+use App\Http\Helpers\RequestHelper;
 use App\Models\Product;
 use App\Rules\ProductClientRule;
 use Illuminate\Http\Request;
@@ -310,7 +311,7 @@ class ProductController extends LinkedMachineController
      * )
      */
 
-    public function create(Request $request, ProductClientRule $rule)
+    public function create(Request $request, ProductClientRule $rule, RequestHelper $requestHelper)
     {
         $client_id                      = $request->auth->client_id;
         $rules = [
@@ -320,25 +321,26 @@ class ProductController extends LinkedMachineController
             'discount_price'            => 'required|numeric',
             'product_description'       => 'required|string|max:255',
             'product_image'             => 'required|file|max:2048|mimes:jpg,png,jpeg',
-            'product_more_info_image'   => 'required|file|max:2048|mimes:jpg,png,jpeg'
+            'product_more_info_image'   => 'required|file|max:2048|mimes:jpg,png,jpeg',
         ];
+
         if ($request->auth->client_id <= 0) {
-            $rules["client_id"]   = 'required|exists:client,id';
+            $rules["client_id"]         = 'required|exists:client,id';
         }
         $this->validate($request, $rules);
-        $array                              = $request->all();
-        $path = storage_path("uploads");
+        $array = $requestHelper->productRequest($request);
+
+        $path                           = storage_path("uploads");
 
         if (!file_exists($path)) {
             mkdir($path, $mode = 0777, true);
         }
-        $product_image      = Encrypt::uuid() . '.' . $request->product_image->extension();
+        $product_image              = Encrypt::uuid() . '.' . $request->product_image->extension();
         $request->product_image->move($path . "/images", $product_image);
 
-        $product_more_info  = Encrypt::uuid() . '.' . $request->product_more_info_image->extension();
+        $product_more_info          = Encrypt::uuid() . '.' . $request->product_more_info_image->extension();
         $request->product_more_info_image->move($path . "/images", $product_more_info);
 
-        $array['uuid']                      = (string) Encrypt::uuid();
         $array['product_image']             = "uploads/images/" . $product_image;
         $array['product_more_info_image']   = "uploads/images/" . $product_more_info;
 
