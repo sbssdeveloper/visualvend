@@ -118,28 +118,17 @@ class ProductController extends BaseController
             $rules["client_id"]         = 'required|exists:client,id';
         }
         $this->validate($request, $rules);
-        $array = $requestHelper->productRequest($request);
+        extract($requestHelper->productRequest($request));
 
-        $path                           = storage_path("uploads");
-
-        if (!file_exists($path)) {
-            mkdir($path, $mode = 0777, true);
-        }
-        $product_image              = Encrypt::uuid() . '.' . $request->product_image->extension();
-        $request->product_image->move($path . "/images", $product_image);
-
-        $product_more_info          = Encrypt::uuid() . '.' . $request->product_more_info_image->extension();
-        $request->product_more_info_image->move($path . "/images", $product_more_info);
-        
-        $array['product_image']             = "uploads/images/" . $product_image;
-        $array['product_more_info_image']   = "uploads/images/" . $product_more_info;
-
+        DB::beginTransaction();
         try {
-            Product::insert($array);
-            return $this->sendResponse([], 'Product created successfully');
-        } catch (\Throwable $th) {
+            Product::insert($product);
+            ProductImage::insert($product_images);
+            ProductAssignCategory::insert($product_assign_category);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
             return $this->sendError($th->getMessage());
-            //throw $th;
         }
     }
 
