@@ -64,7 +64,6 @@ class RequestHelper
         }
 
         if ($request->has("product_category") && !empty($request->product_category)) {
-            dd($request->product_category);
             foreach ($request->product_category as $value) {
                 $categories[] = [
                     "product_id" => $array["product_id"], "category_id" => $value, "client_id" => $client_id
