@@ -45,6 +45,7 @@ class CategoryController extends BaseController
 
     public function dropdownList(Request $request, Category $category)
     {
+        print_r($request->all());
         die("HERE");
         $response = Cache::remember("category-dropdown-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use ($request, $category) {
             return $category->dropdownList($request);
