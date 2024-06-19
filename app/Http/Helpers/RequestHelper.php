@@ -86,7 +86,7 @@ class RequestHelper
             $client_id                  = $request->client_id;
         }
         $array                          = array_filter($data, function ($var) {
-            return !empty($var) && $var != "null";
+            return $var!="" && $var != "null";
         });
 
         if ($request->has("product_category") && !empty($request->product_category) && $request->product_category != "null") {
