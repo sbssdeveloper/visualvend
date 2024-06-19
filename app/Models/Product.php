@@ -286,32 +286,33 @@ class Product extends Model
                         } else if (empty($value[1])) {
                             $error_text .= 'Row : ' . ($key + 1) . 'Product Name can\'\t be empty';
                             $errors++;
-                        }
-                        $exists = self::where("client_id", $client_id)->where("product_id", $value[0])->first();
-                        if ($exists) {
-                            $array = [
-                                'product_name'                      => $value[1],
-                                'product_price'                     => $value[2] ?? "0.00",
-                                'product_description'               => $value[3],
-                                'more_info_text'                    => $value[4],
-                                'product_image'                     => $value[5] ?? "default_product.png",
-                                'product_image_thumbnail'           => $value[6] ?? "default_product.png",
-                                'product_more_info_image'           => $value[7] ?? "default_product.png",
-                                'product_more_info_image_thumbnail' => $value[8] ?? "default_product.png",
-                                'product_sku'                       => $value[9] ?? "",
-                                'is_deleted'                        => 0,
-                                'delete_user_id'                    => null,
-                                'deleted_at'                        => null,
-                            ];
-                            self::where("client_id", $client_id)->where("product_id", $value[0])->update($array);
-                            $uploaded++;
                         } else {
-                            $error_text .= 'Row : ' . ($key + 1) . ' Product ID : ' . $value[0] . ' already exists;';
-                            $errors++;
+                            $exists = self::where("client_id", $client_id)->where("product_id", $value[0])->first();
+                            if ($exists) {
+                                $array = [
+                                    'product_name'                      => $value[1],
+                                    'product_price'                     => $value[2] ?? "0.00",
+                                    'product_description'               => $value[3],
+                                    'more_info_text'                    => $value[4],
+                                    'product_image'                     => $value[5] ?? "default_product.png",
+                                    'product_image_thumbnail'           => $value[6] ?? "default_product.png",
+                                    'product_more_info_image'           => $value[7] ?? "default_product.png",
+                                    'product_more_info_image_thumbnail' => $value[8] ?? "default_product.png",
+                                    'product_sku'                       => $value[9] ?? "",
+                                    'is_deleted'                        => 0,
+                                    'delete_user_id'                    => null,
+                                    'deleted_at'                        => null,
+                                ];
+                                self::where("client_id", $client_id)->where("product_id", $value[0])->update($array);
+                                $uploaded++;
+                            } else {
+                                $error_text .= 'Row : ' . ($key + 1) . ' Product ID : ' . $value[0] . ' already exists;';
+                                $errors++;
+                            }
                         }
                     }
                     if (count($array) > 0) {
-                        return $controller->sendResponse("Product updated successfully.", ["errors" => $errors, "error_text" => $error_text, "uploaded"=>$uploaded]);
+                        return $controller->sendResponse("Product updated successfully.", ["errors" => $errors, "error_text" => $error_text, "uploaded" => $uploaded]);
                     } else {
                         return $controller->sendError("No data available.", ["errors" => $errors, "error_text" => $error_text]);
                     }
