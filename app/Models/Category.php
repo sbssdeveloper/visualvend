@@ -10,14 +10,14 @@ class Category extends Model
     protected $fillable = ['*'];
     protected $hidden = ['id'];
 
-    public function dropdownList($request)
+    public function dropdownList($request, $cid)
     {
 
         $model = self::select("category_id", "category_name")->whereNotNull("category_name");
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
-        }else{
-            $cid = $request->query('cid');
+        } else {
+            $cid    = $request->has("cid") ? $request->cid : $cid;
             $model = $model->where("client_id", $cid);
         }
         $model = $model->get();
