@@ -502,7 +502,7 @@ class ProductController extends LinkedMachineController
                 }
                 $image              = Encrypt::uuid() . '.' . $request->image->extension();
                 $request->image->move($path . "/images", $image);
-                $model->$type  = "uploads/images/" . $image;
+                $model->image  = "uploads/images/" . $image;
                 $model->save();
             } else {
                 $image              = Encrypt::uuid() . '.' . $request->image->extension();
