@@ -436,4 +436,83 @@ class ProductController extends LinkedMachineController
 
         return $this->sendResponse(Product::with("images", "assigned_categories")->where("uuid", $request->uuid)->first(), 'Success');
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/product/upload/image",
+     *     summary="Products Image update",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                  required={"image", "uuid", "type"},
+     *                 @OA\Property(property="image", type="string", format="binary"),
+     *                 @OA\Property(property="uuid", type="string"),
+     *                 @OA\Property(property="type", type="string"),
+     *                 @OA\Property(property="image_id", type="string"),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function uploadImage(Request $request)
+    {
+        $client_id                      = $request->auth->client_id;
+
+        $rules = [
+            'uuid'                      => 'required|exists:product,uuid',
+            'type'                      => 'required|in:product_image,more_info_image,product_promo_image,product_more_info_image',
+            'image_id'                  => 'required_if|type:product_more_info_image',
+            'image'                     => 'required|file|max:2048|mimes:jpg,png,jpeg'
+        ];
+        $path                           = storage_path("uploads");
+        $this->validate($request, $rules);
+
+        if ($request->type != "product_more_info_image") {
+            $type = $request->type;
+            if (file_exists($model->$type)) {
+                unlink($model->$type);
+            }
+            $model = Product::where("uuid", $request->uuid)->first();
+            $image              = Encrypt::uuid() . '.' . $request->image->extension();
+            $request->image->move($path . "/images", $image);
+            $model->$type  = "uploads/images/" . $image;
+            $model->save();
+            return $this->sendSuccess('Image updated successfully');
+        } else {
+            if ($request->image_id > 0) {
+                $model = ProductImage::where("id", $request->image_id)->first();
+                if (file_exists($model->image)) {
+                    unlink($model->image);
+                }
+                $image              = Encrypt::uuid() . '.' . $request->image->extension();
+                $request->image->move($path . "/images", $image);
+                $model->$type  = "uploads/images/" . $image;
+                $model->save();
+            } else {
+                $image              = Encrypt::uuid() . '.' . $request->image->extension();
+                $request->image->move($path . "/images", $image);
+                ProductImage::insert([
+                    "uuid" => $request->uuid,
+                    "image" => "uploads/images/" . $image
+                ]);
+            }
+            return $this->sendSuccess('Image updated successfully');
+        }
+    }
 }
