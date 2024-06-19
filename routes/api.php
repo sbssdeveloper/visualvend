@@ -36,7 +36,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('product/info',           'ProductController@info');
 
         /****************************CATEGORY******************************/
-        $router->get('category/list/{cid?}',    'CategoryController@dropdownList');
+        $router->get('category/list[/{cid}]',   'CategoryController@dropdownList');
         $router->post('category/list',          'CategoryController@list');
 
         /****************************CLIENT******************************/
