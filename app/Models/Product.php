@@ -239,7 +239,7 @@ class Product extends Model
                         self::insert($array);
                         return $controller->sendResponse(["errors" => $errors, "error_text" => $error_text], "Product uploaded successfully.");
                     } else {
-                        return $controller->sendResponse("No data available.", ["errors" => $errors, "error_text" => $error_text]);
+                        return $controller->sendResponse("No data available.", ["errors" => $errors, "error_text" => $error_text, "uploaded" => 0]);
                     }
                 } else {
                     return $controller->sendError("No data available.");
@@ -314,7 +314,7 @@ class Product extends Model
                     if (count($array) > 0) {
                         return $controller->sendResponse(["errors" => $errors, "error_text" => $error_text, "uploaded" => $uploaded], "Product updated successfully.");
                     } else {
-                        return $controller->sendResponse("No data available.", ["errors" => $errors, "error_text" => $error_text]);
+                        return $controller->sendResponse("No data available.", ["errors" => $errors, "error_text" => $error_text, "uploaded" => 0]);
                     }
                 } else {
                     return $controller->sendError("No data available.");
