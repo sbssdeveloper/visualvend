@@ -15,7 +15,7 @@ class RequestHelper
             $client_id                  = $request->client_id;
         }
         $array                          = array_filter($data, function ($var) {
-            return !empty($var);
+            return !empty($var) && $var != "null";
         });
         dd($array);
         $array["client_id"]             = $client_id;
