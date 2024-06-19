@@ -311,7 +311,7 @@ class Product extends Model
                         }
                     }
                     if (count($array) > 0) {
-                        return $controller->sendResponse("Product updated successfully.", ["errors" => $errors, "error_text" => $error_text, "uploaded" => $uploaded]);
+                        return $controller->sendResponse(["errors" => $errors, "error_text" => $error_text, "uploaded" => $uploaded], "Product updated successfully.");
                     } else {
                         return $controller->sendError("No data available.", ["errors" => $errors, "error_text" => $error_text]);
                     }
