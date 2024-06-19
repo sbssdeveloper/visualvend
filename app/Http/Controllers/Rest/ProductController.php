@@ -431,6 +431,6 @@ class ProductController extends LinkedMachineController
         ];
         $this->validate($request, $rules);
 
-        return $this->sendResponse(Product::with("images")->where("uuid", $request->uuid)->first(), 'Success');
+        return $this->sendResponse(Product::with("images","category")->where("uuid", $request->uuid)->first(), 'Success');
     }
 }
