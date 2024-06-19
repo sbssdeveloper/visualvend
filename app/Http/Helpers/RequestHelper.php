@@ -42,7 +42,6 @@ class RequestHelper
         }
 
         if ($request->has("product_more_image_1") && !empty($request->product_more_image_1) && $request->product_more_image_1 != "null") {
-            dd($request->product_more_image_1);
             $product_more_image_1          = Encrypt::uuid() . '.' . $request->product_more_image_1->extension();
             $request->product_more_image_1->move($path . "/images", $product_more_image_1);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_1];
