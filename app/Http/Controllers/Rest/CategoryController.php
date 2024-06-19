@@ -20,6 +20,15 @@ class CategoryController extends BaseController
      *     path="/v1/category/list",
      *     summary="Category List For Dropdown",
      *     tags={"V1"},
+     *      @OA\Parameter(
+     *         name="cid",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer"
+     *         ),
+     *         description="Client ID"
+     *     ),
      *     @OA\Parameter(
      *         name="X-Auth-Token",
      *         in="header",

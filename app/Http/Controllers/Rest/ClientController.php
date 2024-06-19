@@ -16,7 +16,7 @@ class ClientController extends BaseController
     }
     /**
      * @OA\Get(
-     *     path="/v2/client/list",
+     *     path="/v1/client/list",
      *     summary="Clients List",
      *     tags={"V1"},
      *     @OA\Parameter(
