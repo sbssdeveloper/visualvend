@@ -484,11 +484,11 @@ class ProductController extends LinkedMachineController
         $this->validate($request, $rules);
 
         if ($request->type != "product_more_info_image") {
+            $model = Product::where("uuid", $request->uuid)->first();
             $type = $request->type;
             if (file_exists($model->$type)) {
                 unlink($model->$type);
             }
-            $model = Product::where("uuid", $request->uuid)->first();
             $image              = Encrypt::uuid() . '.' . $request->image->extension();
             $request->image->move($path . "/images", $image);
             $model->$type  = "uploads/images/" . $image;
