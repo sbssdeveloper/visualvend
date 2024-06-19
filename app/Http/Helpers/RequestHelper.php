@@ -33,13 +33,14 @@ class RequestHelper
         $array['product_image']             = "uploads/images/" . $product_image;
         $array['product_more_info_image']   = "uploads/images/" . $product_more_info;
 
-        if ($request->has("product_promo_image")) {
+        if ($request->has("product_promo_image") && !empty($request->product_promo_image)) {
             $product_promo_image          = Encrypt::uuid() . '.' . $request->product_promo_image->extension();
             $request->product_promo_image->move($path . "/images", $product_promo_image);
             $array['product_promo_image']   = "uploads/images/" . $product_more_info;
         }
 
         if ($request->has("product_more_image_1") && !empty($request->product_more_image_1)) {
+            dd($request->product_more_image_1);
             $product_more_image_1          = Encrypt::uuid() . '.' . $request->product_more_image_1->extension();
             $request->product_more_image_1->move($path . "/images", $product_more_image_1);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_1];
