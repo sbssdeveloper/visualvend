@@ -203,6 +203,7 @@ class Product extends Model
             } else {
                 $errors = $uploaded = 0;
                 $error_text = "";
+                $array = [];
                 array_shift($sheets);
                 if (count($sheets) > 0) {
                     foreach ($sheets as $key => $value) {
