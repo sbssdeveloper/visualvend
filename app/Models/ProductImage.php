@@ -8,7 +8,7 @@ class ProductImage extends Model
 {
     protected $table = 'product_images';
     protected $fillable = ['*'];
-    protected $timestamps = false;
+    public $timestamps = false;
     public function product()
     {
         return $this->belongsTo(Product::class, "uuid", "uuid");
