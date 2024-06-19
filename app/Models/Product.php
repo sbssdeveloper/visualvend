@@ -23,9 +23,9 @@ class Product extends Model
         return $this->hasMany(ProductImage::class, "uuid", "uuid");
     }
 
-    public function category()
+    public function assigned_categories()
     {
-        return $this->hasMany(Category::class, "uuid", "uuid");
+        return $this->hasMany(ProductAssignCategory::class, "uuid", "uuid");
     }
 
     public function assigned($auth, $select = ["product.*"], $type = "count")
