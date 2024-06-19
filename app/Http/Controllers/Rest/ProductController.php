@@ -391,7 +391,7 @@ class ProductController extends LinkedMachineController
         $this->validate($request, $rules);
         extract($requestHelper->productUpdateRequest($request));
         try {
-            Product::where("uuid", $request->uuid)->update($array);
+            Product::where("uuid", $request->uuid)->update($product);
             ProductAssignCategory::where("uuid", $request->uuid)->delete();
             ProductAssignCategory::insert($product_assign_category);
             return $this->sendResponse([], 'Product updated successfully');
