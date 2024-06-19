@@ -476,14 +476,14 @@ class ProductController extends LinkedMachineController
 
         $rules = [
             'uuid'                      => 'required|exists:product,uuid',
-            'type'                      => 'required|in:product_image,more_info_image,product_promo_image,product_more_info_image',
-            'image_id'                  => 'required_if:type,product_more_info_image',
+            'type'                      => 'required|in:product_image,product_more_info_image,product_promo_image,more_product_images',
+            'image_id'                  => 'required_if:type,more_product_images',
             'image'                     => 'required|file|max:2048|mimes:jpg,png,jpeg'
         ];
         $path                           = storage_path("uploads");
         $this->validate($request, $rules);
 
-        if ($request->type != "product_more_info_image") {
+        if ($request->type != "more_product_images") {
             $model = Product::where("uuid", $request->uuid)->first();
             $type = $request->type;
             if (file_exists($model->$type)) {
