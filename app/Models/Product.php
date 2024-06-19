@@ -289,7 +289,7 @@ class Product extends Model
                         }
                         $exists = self::where("client_id", $client_id)->where("product_id", $value[0])->first();
                         if ($exists) {
-                            $array[] = [
+                            $array = [
                                 'product_name'                      => $value[1],
                                 'product_price'                     => $value[2] ?? "0.00",
                                 'product_description'               => $value[3],
