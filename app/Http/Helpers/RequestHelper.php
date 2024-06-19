@@ -17,7 +17,6 @@ class RequestHelper
         $array                          = array_filter($data, function ($var) {
             return !empty($var) && $var != "null";
         });
-        dd($array);
         $array["client_id"]             = $client_id;
         $array['uuid']                  = (string) Encrypt::uuid();
 
