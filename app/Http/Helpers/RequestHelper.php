@@ -15,6 +15,7 @@ class RequestHelper
             $client_id                  = $request->client_id;
         }
         $array                          = array_filter($data);
+        dd($array);
         $array["client_id"]             = $client_id;
         $array['uuid']                  = (string) Encrypt::uuid();
 
