@@ -38,7 +38,7 @@ class CategoryController extends BaseController
         $response = Cache::remember("category-dropdown-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use ($request, $category) {
             return $category->dropdownList($request);
         });
-        return $this->sendResponse($response, "Success");
+        return $this->sendResponse("Success",$response);
     }
 
     /**
@@ -73,6 +73,6 @@ class CategoryController extends BaseController
         $response = Cache::remember("category-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use ($request, $category) {
             return $category->list($request);
         });
-        return $this->sendResponse($response, "Success");
+        return $this->sendResponse("Success",$response);
     }
 }

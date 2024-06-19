@@ -53,7 +53,7 @@ class ProductController extends BaseController
                 $query->where("product.product_id", "LIKE", $request->search . "%")->orWhere("product_name", "LIKE", $request->search . "%");
             });
         }
-        return $this->sendResponse($products->paginate($request->length ?? 10), 'Products retrieved successfully');
+        return $this->sendResponse('Products retrieved successfully', $products->paginate($request->length ?? 10));
     }
 
     /**
@@ -178,7 +178,7 @@ class ProductController extends BaseController
         $this->validate($request, $rules);
         try {
             Product::insert($array);
-            return $this->sendResponse([], 'Product updated successfully');
+            return $this->sendSuccess('Product updated successfully');
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
             //throw $th;
@@ -215,7 +215,7 @@ class ProductController extends BaseController
         $this->validate($request, ["uuid" => "required|exists:product,uuid"]);
         try {
             $model->deleteSingle($request);
-            return $this->sendResponse("", "Product deleted successfully.");
+            return $this->sendResponse("Product deleted successfully.");
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
         }

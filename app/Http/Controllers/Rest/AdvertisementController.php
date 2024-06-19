@@ -33,6 +33,6 @@ class AdvertisementController extends LinkedMachineController
         $response = Cache::remember("advertisement-info:'$admin'", env('GLOBAL_CACHE_TIME', 600), function () use ($model, $request, $linked_machines) {
             return $model->bundle($request, $linked_machines);
         });
-        return $this->sendResponse($response, "Success");
+        return $this->sendResponse("Success",$response);
     }
 }

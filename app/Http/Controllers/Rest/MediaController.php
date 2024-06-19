@@ -26,6 +26,6 @@ class MediaController extends BaseController
             return $homeConfig->fetch();
         });
 
-        return self::sendResponse($model, "Success");
+        return self::sendResponse("Success", $model);
     }
 }

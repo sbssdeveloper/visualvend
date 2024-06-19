@@ -37,7 +37,7 @@ class MachineController extends BaseController
         $model = $model->orderBy('machine_name', "ASC");
         if ($request->type === "list") {
             $model = $model->select(["id", "machine_name as name"])->get();
-            return parent::sendResponse($model, "Success");
+            return parent::sendResponse("Success", $model);
         } else {
             $model = $model->paginate($request->length);
             return parent::sendResponseWithPagination($model, "Success");
@@ -47,6 +47,6 @@ class MachineController extends BaseController
     public function products(Request $request, MachineProductMap $model)
     {
         $this->validate($request, ['machine_id' => 'required||exists:machine,id']);
-        return $this->sendResponse($model->machineProducts($request), "Success");
+        return $this->sendResponse("Success", $model->machineProducts($request));
     }
 }

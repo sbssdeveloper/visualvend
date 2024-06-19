@@ -155,7 +155,7 @@ class PaymentsController extends BaseController
             $model->mobile_payments = $mobPayments;
         }
 
-        return parent::sendResponse($model, "Success");
+        return parent::sendResponse("Success", $model);
     }
 
     /**

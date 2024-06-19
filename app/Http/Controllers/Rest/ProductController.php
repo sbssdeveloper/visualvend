@@ -144,7 +144,7 @@ class ProductController extends LinkedMachineController
         $this->validate($request, ["uuid" => "required|exists:product,uuid"]);
         try {
             $product->deleteSingle($request);
-            return $this->sendResponse("", "Product deleted successfully.");
+            return $this->sendSuccess("Product deleted successfully.");
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
         }
@@ -180,7 +180,7 @@ class ProductController extends LinkedMachineController
         $this->validate($request, ["uuids" => "required|array"]);
         try {
             $product->deleteMultiple($request);
-            return $this->sendResponse("", "Products deleted successfully.");
+            return $this->sendSuccess("Products deleted successfully.");
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
         }
@@ -394,7 +394,7 @@ class ProductController extends LinkedMachineController
             Product::where("uuid", $request->uuid)->update($product);
             ProductAssignCategory::where("uuid", $request->uuid)->delete();
             ProductAssignCategory::insert($product_assign_category);
-            return $this->sendResponse([], 'Product updated successfully');
+            return $this->sendSuccess('Product updated successfully');
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
             //throw $th;
@@ -434,7 +434,7 @@ class ProductController extends LinkedMachineController
         ];
         $this->validate($request, $rules);
 
-        return $this->sendResponse(Product::with("images", "assigned_categories")->where("uuid", $request->uuid)->first(), 'Success');
+        return $this->sendResponse('Success', Product::with("images", "assigned_categories")->where("uuid", $request->uuid)->first());
     }
 
     /**

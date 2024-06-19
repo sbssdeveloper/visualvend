@@ -38,7 +38,7 @@ class ClientController extends BaseController
             $response = Cache::remember("client-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use($client) {
                 return $client->dropdownList();
             });
-            return $this->sendResponse($response, "Success");
+            return $this->sendResponse("Success",$response);
         }
         return self::sendError("Authentication failed");
     }

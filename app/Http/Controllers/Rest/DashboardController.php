@@ -63,6 +63,6 @@ class DashboardController extends LinkedMachineController
         $feedInfo = Feed::dashboardInfo($request, $this->linked_machines);
         $sale15   = Sale::sales15days($request, $this->linked_machines);
         $response = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale15);
-        return  $this->sendResponse($response, "Sucess");
+        return  $this->sendResponse("Success",$response);
     }
 }

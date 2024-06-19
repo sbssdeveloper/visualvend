@@ -64,7 +64,7 @@ class AuthController extends BaseController
                         'role'      => $user->role,
                         'client_id' => $user->client_id,
                     ];
-                    return $this->sendResponse($response, "User logged in successfully.");
+                    return $this->sendResponse("User logged in successfully.",$response);
                 }
                 return parent::sendError("Password entered is incorrect");
             }

@@ -201,9 +201,8 @@ class Product extends Model
             ) {
                 return $controller->sendError("Wrong format.");
             } else {
-                $errors = 0;
-                $error_text = 0;
-                $array = [];
+                $errors = $uploaded = 0;
+                $error_text = "";
                 array_shift($sheets);
                 if (count($sheets) > 0) {
                     foreach ($sheets as $key => $value) {
@@ -229,6 +228,7 @@ class Product extends Model
                                 'product_more_info_image_thumbnail' => $value[8] ?? "default_product.png",
                                 'product_sku'                       => $value[9] ?? "",
                             ];
+                            $uploaded++;
                         } else {
                             $error_text .= 'Row : ' . ($key + 1) . ' Product ID : ' . $value[0] . ' already exists;';
                             $errors++;
@@ -236,7 +236,7 @@ class Product extends Model
                     }
                     if (count($array) > 0) {
                         self::insert($array);
-                        return $controller->sendResponse("Product uploaded successfully.", ["errors" => $errors, "error_text" => $error_text]);
+                        return $controller->sendResponse(["errors" => $errors, "error_text" => $error_text], "Product uploaded successfully.");
                     } else {
                         return $controller->sendError("No data available.", ["errors" => $errors, "error_text" => $error_text]);
                     }

@@ -45,7 +45,7 @@ class CategoryController extends BaseController
 
     public function dropdownList($cid = null, Request $request, Category $category)
     {
-        return $this->sendResponse($category->dropdownList($request, $cid), "Success");
+        return $this->sendResponse("Success", $category->dropdownList($request, $cid));
     }
 
     /**
@@ -80,6 +80,6 @@ class CategoryController extends BaseController
         $response = Cache::remember("category-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use ($request, $category) {
             return $category->list($request);
         });
-        return $this->sendResponse($response, "Success");
+        return $this->sendResponse("Success",$response);
     }
 }

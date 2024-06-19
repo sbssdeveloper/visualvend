@@ -44,7 +44,7 @@ class MachineController extends LinkedMachineController
             return ($model  = $model->get());
         });
 
-        return parent::sendResponse($response, "Success");
+        return parent::sendResponse("Success", $response);
     }
 
     /**
@@ -99,7 +99,7 @@ class MachineController extends LinkedMachineController
         }
 
         $model  = $model->paginate($request->length ?? 10);
-        return parent::sendResponse($model, "Success");
+        return parent::sendResponse("Success", $model);
     }
 
     /**
@@ -133,6 +133,6 @@ class MachineController extends LinkedMachineController
 
         $model      = Machine::select("id", "machine_name")->where("id", $machine_id)->get();
         
-        return parent::sendResponse($model, "Success");
+        return parent::sendResponse("Success", $model);
     }
 }

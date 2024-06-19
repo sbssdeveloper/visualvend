@@ -61,7 +61,7 @@ class DashboardController extends BaseController
                 'bump_in'   => "00",
                 'bump_out'  => "00"
             ];
-        return parent::sendResponse($response, "Success");
+        return parent::sendResponse("Success", $response);
     }
 
     public function info(Request $request)
@@ -76,7 +76,7 @@ class DashboardController extends BaseController
 
         $params     = compact("auth", "machines", 'machine_ids');
         $response = array_merge(self::machine_info($params), self::products_info($params), self::staff_info($auth), self::customers_info(), self::machine_users_info($params), self::recentVend($params, $request), self::recentRefill($params, $request), self::recentFeedback($params, $request), self::recentVendError($params, $request), self::getFeed($params, $request), self::sales15days($params, $request));
-        return parent::sendResponse($response, "Success");
+        return parent::sendResponse("Success", $response);
     }
 
     function machine_info($params, $type = false)
