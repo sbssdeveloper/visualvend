@@ -477,7 +477,7 @@ class ProductController extends LinkedMachineController
         $rules = [
             'uuid'                      => 'required|exists:product,uuid',
             'type'                      => 'required|in:product_image,more_info_image,product_promo_image,product_more_info_image',
-            'image_id'                  => 'required_if|type:product_more_info_image',
+            'image_id'                  => 'required_if:type,product_more_info_image',
             'image'                     => 'required|file|max:2048|mimes:jpg,png,jpeg'
         ];
         $path                           = storage_path("uploads");
