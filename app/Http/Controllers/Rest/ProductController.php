@@ -375,7 +375,7 @@ class ProductController extends LinkedMachineController
      * )
      */
 
-    public function update(Request $request)
+    public function update(Request $request, RequestHelper $requestHelper)
     {
         $client_id                      = $request->auth->client_id;
         $rules = [
