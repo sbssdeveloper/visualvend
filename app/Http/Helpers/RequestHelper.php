@@ -77,4 +77,25 @@ class RequestHelper
 
         return ["product" => $array, "product_images" => $other_images, "product_assign_category" => $categories];
     }
+
+    public function productUpdateRequest($request)
+    {
+        $categories = [];
+        $data       = $request->only("others", "verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_name");
+
+        $array                          = array_filter($data, function ($var) {
+            return !empty($var) && $var != "null";
+        });
+
+        if ($request->has("product_category") && !empty($request->product_category) && $request->product_category != "null") {
+            $request->product_category = explode(",", $request->product_category);
+            foreach ($request->product_category as $value) {
+                $categories[] = [
+                    "product_id" => $array["product_id"], "category_id" => $value, "client_id" => $client_id, "uuid" => $request->uuid
+                ];
+            }
+        }
+
+        return ["product" => $array, "product_assign_category" => $categories];
+    }
 }

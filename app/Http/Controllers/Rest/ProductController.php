@@ -389,8 +389,11 @@ class ProductController extends LinkedMachineController
             $rules["client_id"]   = 'required|exists:client,id';
         }
         $this->validate($request, $rules);
+        extract($requestHelper->productRequest($request));
         try {
-            Product::insert($array);
+            Product::where("uuid", $request->uuid)->update($array);
+            ProductAssignCategory::where("uuid", $request->uuid)->delete();
+            ProductAssignCategory::insert($product_assign_category);
             return $this->sendResponse([], 'Product updated successfully');
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
@@ -431,6 +434,6 @@ class ProductController extends LinkedMachineController
         ];
         $this->validate($request, $rules);
 
-        return $this->sendResponse(Product::with("images","assigned_categories")->where("uuid", $request->uuid)->first(), 'Success');
+        return $this->sendResponse(Product::with("images", "assigned_categories")->where("uuid", $request->uuid)->first(), 'Success');
     }
 }
