@@ -125,10 +125,11 @@ class ProductController extends BaseController
             Product::insert($product);
             ProductImage::insert($product_images);
             ProductAssignCategory::insert($product_assign_category);
-            DB::commit();
+            DB::commit(); 
+            return $this->sendSuccess("Product created successfully.");
         } catch (\Exception $e) {
             DB::rollback();
-            return $this->sendError($th->getMessage());
+            return $this->sendError($e->getMessage());
         }
     }
 

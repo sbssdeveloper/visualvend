@@ -339,9 +339,9 @@ class ProductController extends LinkedMachineController
             ProductImage::insert($product_images);
             ProductAssignCategory::insert($product_assign_category);
             DB::commit();
+            return $this->sendSuccess("Product created successfully.");
         } catch (\Exception $e) {
             DB::rollback();
-        
             return $this->sendError($e->getMessage());
         }
     }
