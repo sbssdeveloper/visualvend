@@ -90,7 +90,7 @@ class RequestHelper
             $request->product_category = explode(",", $request->product_category);
             foreach ($request->product_category as $value) {
                 $categories[] = [
-                    "product_id" => $array["product_id"], "category_id" => $value, "client_id" => $client_id, "uuid" => $request->uuid
+                    "product_id" => $request->product_id, "category_id" => $value, "client_id" => $client_id, "uuid" => $request->uuid
                 ];
             }
         }
