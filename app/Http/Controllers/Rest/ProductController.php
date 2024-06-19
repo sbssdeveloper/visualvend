@@ -389,7 +389,7 @@ class ProductController extends LinkedMachineController
             $rules["client_id"]   = 'required|exists:client,id';
         }
         $this->validate($request, $rules);
-        extract($requestHelper->productRequest($request));
+        extract($requestHelper->productUpdateRequest($request));
         try {
             Product::where("uuid", $request->uuid)->update($array);
             ProductAssignCategory::where("uuid", $request->uuid)->delete();
