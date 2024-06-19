@@ -274,7 +274,7 @@ class Product extends Model
             ) {
                 return $controller->sendError("Wrong format.");
             } else {
-                $errors = 0;
+                $errors = $uploaded = 0;
                 $error_text = 0;
                 $array = [];
                 array_shift($sheets);
@@ -304,13 +304,14 @@ class Product extends Model
                                 'deleted_at'                        => null,
                             ];
                             self::where("client_id", $client_id)->where("product_id", $value[0])->update($array);
+                            $uploaded++;
                         } else {
                             $error_text .= 'Row : ' . ($key + 1) . ' Product ID : ' . $value[0] . ' already exists;';
                             $errors++;
                         }
                     }
                     if (count($array) > 0) {
-                        return $controller->sendResponse("Product updated successfully.", ["errors" => $errors, "error_text" => $error_text]);
+                        return $controller->sendResponse("Product updated successfully.", ["errors" => $errors, "error_text" => $error_text, "uploaded"=>$uploaded]);
                     } else {
                         return $controller->sendError("No data available.", ["errors" => $errors, "error_text" => $error_text]);
                     }
