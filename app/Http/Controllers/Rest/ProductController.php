@@ -341,7 +341,8 @@ class ProductController extends LinkedMachineController
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
-            return $this->sendError($te->getMessage());
+        
+            return $this->sendError($e->getMessage());
         }
     }
 
