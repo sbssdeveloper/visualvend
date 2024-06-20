@@ -325,7 +325,7 @@ class CategoryController extends BaseController
         ];
 
         if ($request->auth->client_id <= 0) {
-            $rules['client_id'] = "required";
+            $rules['client_id'] = "required|integer|min:1";
         }
 
         $this->validate($request, $rules);
