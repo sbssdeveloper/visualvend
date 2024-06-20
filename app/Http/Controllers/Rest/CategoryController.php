@@ -107,6 +107,7 @@ class CategoryController extends BaseController
      *         name="X-Auth-Token",
      *         in="header",
      *         required=true,
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxODc4NTMyNiwiZXhwIjoxNzIzOTY5MzI2fQ.k5JBAi5K4p3FDzp6HIs4whNrffllIFid7VOk40Sdkkc",
      *         description="Authorization token",
      *         @OA\Schema(type="string")
      *     ),
