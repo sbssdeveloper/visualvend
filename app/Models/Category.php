@@ -14,11 +14,10 @@ class Category extends Model
 
     public function dropdownList($request, $cid)
     {
-        die("here");
         $model = self::select("category_id", "category_name")->whereNotNull("category_name");
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
-        } else if($request->has("cid") || $cid) {
+        } else if($request->has("cid") || $cid>0) {
             $cid    = $request->has("cid") ? $request->cid : $cid;
             $model = $model->where("client_id", $cid);
         }
