@@ -250,8 +250,8 @@ class CategoryController extends BaseController
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"id"},
-     *             @OA\Property(property="id", type="integer"),
+     *             required={"category_id"},
+     *             @OA\Property(property="category_id", type="integer"),
      *             @OA\Property(property="client_id", type="integer")
      *         )
      *     ),
@@ -273,7 +273,7 @@ class CategoryController extends BaseController
     public function delete(Request $request)
     {
         $rules = [
-            'id'                            => 'required|exists:category,id'
+            'category_id'      => 'required|exists:category,category_id'
         ];
 
         if ($request->auth->client_id <= 0) {
@@ -283,7 +283,7 @@ class CategoryController extends BaseController
         $this->validate($request, $rules);
 
         try {
-            Category::where("client_id", $request->client_id ?? $request->auth->client_id)->where('id', $request->id)->delete();
+            Category::where("client_id", $request->client_id ?? $request->auth->client_id)->where('category_id', $request->category_id)->delete();
             return $this->sendSuccess("Category deleted successfully.");
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
