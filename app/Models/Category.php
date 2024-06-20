@@ -120,7 +120,7 @@ class Category extends Model
                 unlink($path . "/" . $file);
             }
             if (
-                strtolower($sheets[0][0]) != 'category id' || strtolower($sheets[0][1]) != 'category name'
+                strtolower($sheets[0][0]) != 'category code' || strtolower($sheets[0][1]) != 'category name'
             ) {
                 return $controller->sendError("Wrong format.");
             } else {
