@@ -122,7 +122,7 @@ class CategoryController extends BaseController
             'category_id'                   => ['required', $rule],
             'category_name'                 => 'required|max:50'
         ];
-        
+
         if ($request->auth->client_id <= 0) {
             $rules['client_id'] = "required";
         }
@@ -131,6 +131,56 @@ class CategoryController extends BaseController
 
         try {
             $category->create($request);
+            return $this->sendSuccess("Category created successfully.");
+        } catch (\Throwable $th) {
+            return $this->sendError($th->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/category/update",
+     *     summary="Category Update",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"id","category_name"},
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="category_name", type="string"),
+     *             @OA\Property(property="client_id", type="integer")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxODc4NTMyNiwiZXhwIjoxNzIzOTY5MzI2fQ.k5JBAi5K4p3FDzp6HIs4whNrffllIFid7VOk40Sdkkc",
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function update(Request $request, Category $category)
+    {
+        $rules = [
+            'id'                            => 'required|exists:category,id',
+            'category_name'                 => 'required|max:50'
+        ];
+
+        if ($request->auth->client_id <= 0) {
+            $rules['client_id'] = "required";
+        }
+
+        $this->validate($request, $rules);
+
+        try {
+            $category->updateCategory($request);
             return $this->sendSuccess("Category created successfully.");
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());

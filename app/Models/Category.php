@@ -38,9 +38,9 @@ class Category extends Model
             });
         }
         if ($request->has("sort") && !empty($request->sort)) {
-            if($request->sort=="recent"){
+            if ($request->sort == "recent") {
                 $model = $model->orderBy("id", "desc");
-            }else{
+            } else {
                 $model = $model->orderBy("category_name", "ASC");
             }
         }
@@ -64,6 +64,13 @@ class Category extends Model
             "client_id" => $request->client_id ?? $request->auth->client_id,
             "category_image" => "uploads/category/" . $category_image,
             "category_image_thumbnail" => "uploads/category/" . $category_image
+        ]);
+    }
+
+    public function updateCategory($request)
+    {
+        return self::where("id", $request->id)->where("client_id", $request->client_id ?? $request->auth->client_id)->update([
+            "category_name" => $request->category_name
         ]);
     }
 }
