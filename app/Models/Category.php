@@ -81,16 +81,90 @@ class Category extends Model
         if (!file_exists($path)) {
             mkdir($path, $mode = 0777, true);
         }
-        $model = self::find($request->id)->first();
+        $model = self::where("category_id", $request->category_id)->where("client_id", $request->client_id ?? $request->auth->client_id)->first();
         if ($model->category_image && file_exists($model->category_image)) {
             unlink($model->category_image);
         }
 
         $category_image  = Encrypt::uuid() . '.' . $request->image->extension();
         $request->image->move($path . "/category", $category_image);
-        return self::where("id", $request->id)->update([
+        return self::where("category_id", $request->category_id)->where("client_id", $request->client_id ?? $request->auth->client_id)->update([
             "category_image" => "uploads/category/" . $category_image,
             "category_image_thumbnail" => "uploads/category/" . $category_image
         ]);
+    }
+
+    public function uploadList($request, $controller)
+    {
+        $client_id = $request->client_id ?? $request->auth->client_id;
+        $path = storage_path("uploads");
+
+        if (!file_exists($path)) {
+            mkdir($path, $mode = 0777, true);
+        }
+        try {
+            $file = Encrypt::uuid() . '.xlsx';
+            $request->file->move($path, $file);
+            $reader = new XlsxReader();
+            $spreadsheet = $reader->load($path . "/" . $file);
+            $sheets  = $spreadsheet->getActiveSheet(0)->toArray();
+            if (file_exists($path . "/" . $file)) {
+                unlink($path . "/" . $file);
+            }
+            if (
+                strtolower($sheets[0][0]) != 'product code' ||
+                strtolower($sheets[0][1]) != 'product name' ||
+                strtolower($sheets[0][2]) != 'product price' ||
+                strtolower($sheets[0][3]) != 'product description'
+            ) {
+                return $controller->sendError("Wrong format.");
+            } else {
+                $errors = $uploaded = 0;
+                $error_text = "";
+                $array = [];
+                array_shift($sheets);
+                if (count($sheets) > 0) {
+                    foreach ($sheets as $key => $value) {
+                        if (empty($value[0])) {
+                            $error_text .= 'Row : ' . ($key + 1) . 'Product Code can\'\t be empty';
+                            $errors++;
+                        } else if (empty($value[1])) {
+                            $error_text .= 'Row : ' . ($key + 1) . 'Product Name can\'\t be empty';
+                            $errors++;
+                        }
+                        $exists = self::where("client_id", $client_id)->where("product_id", $value[0])->exists();
+                        if (!$exists) {
+                            $array[] = [
+                                'uuid'                              => Encrypt::uuid(),
+                                'product_id'                        => $value[0],
+                                'product_name'                      => $value[1],
+                                'product_price'                     => $value[2] ?? "0.00",
+                                'product_description'               => $value[3],
+                                'more_info_text'                    => $value[4],
+                                'product_image'                     => $value[5] ?? "default_product.png",
+                                'product_image_thumbnail'           => $value[6] ?? "default_product.png",
+                                'product_more_info_image'           => $value[7] ?? "default_product.png",
+                                'product_more_info_image_thumbnail' => $value[8] ?? "default_product.png",
+                                'product_sku'                       => $value[9] ?? "",
+                            ];
+                            $uploaded++;
+                        } else {
+                            $error_text .= 'Row : ' . ($key + 1) . ' Product ID : ' . $value[0] . ' already exists;';
+                            $errors++;
+                        }
+                    }
+                    if (count($array) > 0) {
+                        self::insert($array);
+                        return $controller->sendResponse("Product uploaded successfully.", ["errors" => $errors, "error_text" => $error_text]);
+                    } else {
+                        return $controller->sendResponse("No data available.", ["errors" => $errors, "error_text" => $error_text, "uploaded" => 0]);
+                    }
+                } else {
+                    return $controller->sendError("No data available.");
+                }
+            }
+        } catch (\Throwable $th) {
+            return $controller->sendError($th->getMessage());
+        }
     }
 }

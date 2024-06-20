@@ -145,8 +145,8 @@ class CategoryController extends BaseController
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"id","category_name"},
-     *             @OA\Property(property="id", type="integer"),
+     *             required={"category_id","category_name"},
+     *             @OA\Property(property="category_id", type="integer"),
      *             @OA\Property(property="category_name", type="string"),
      *             @OA\Property(property="client_id", type="integer")
      *         )
@@ -169,7 +169,7 @@ class CategoryController extends BaseController
     public function update(Request $request, Category $category)
     {
         $rules = [
-            'id'                            => 'required|exists:category,id',
+            'category_id'                   => 'required|exists:category,category_id',
             'category_name'                 => 'required|max:50'
         ];
 
