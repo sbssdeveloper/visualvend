@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Encrypt;
+use XlsxReader;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
