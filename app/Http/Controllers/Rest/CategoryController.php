@@ -145,10 +145,9 @@ class CategoryController extends BaseController
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"category_id","category_name"},
-     *             @OA\Property(property="category_id", type="integer"),
+     *             @OA\Property(property="category_id", type="string"),
      *             @OA\Property(property="category_name", type="string"),
-     *             @OA\Property(property="client_id", type="integer")
+     *             @OA\Property(property="client_id", type="number")
      *         )
      *     ),
      *     @OA\Parameter(
