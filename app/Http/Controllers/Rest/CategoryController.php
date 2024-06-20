@@ -330,11 +330,6 @@ class CategoryController extends BaseController
 
         $this->validate($request, $rules);
 
-        try {
-            $category->uploadList($request, $controller);
-            return $this->sendSuccess("Category deleted successfully.");
-        } catch (\Throwable $th) {
-            return $this->sendError($th->getMessage());
-        }
+        return $category->uploadList($request, $controller);
     }
 }
