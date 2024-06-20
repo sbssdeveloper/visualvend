@@ -17,7 +17,7 @@ class Category extends Model
         $model = self::select("category_id", "category_name")->whereNotNull("category_name");
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
-        } else if($request->has("cid") || $cid>0) {
+        } else if ($request->has("cid") || $cid > 0) {
             $cid    = $request->has("cid") ? $request->cid : $cid;
             $model = $model->where("client_id", $cid);
         }
@@ -30,6 +30,19 @@ class Category extends Model
         $model = self::select("category_id", "category_name")->whereNotNull("category_name");
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
+        }
+        if ($request->has("search") && !empty($request->search)) {
+            $model = $model->where(function ($query) use ($request) {
+                $query->where("category_name", "LIKE", "{$request->search}%");
+                $query->orWhere("category_id", "LIKE", "{$request->search}%");
+            });
+        }
+        if ($request->has("sort") && !empty($request->sort)) {
+            if($request->sort=="recent"){
+                $model = $model->orderBy("id", "desc");
+            }else{
+                $model = $model->orderBy("category_name", "ASC");
+            }
         }
         $model = $model->paginate($request->length);
         return $model;

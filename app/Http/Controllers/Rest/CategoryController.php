@@ -78,10 +78,7 @@ class CategoryController extends BaseController
 
     public function list(Request $request, Category $category)
     {
-        $response = Cache::remember("category-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use ($request, $category) {
-            return $category->list($request);
-        });
-        return $this->sendResponse("Success", $response);
+        return $this->sendResponse("Success", $category->list($request));
     }
 
     /**
