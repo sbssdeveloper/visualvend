@@ -119,10 +119,7 @@ class Category extends Model
                 unlink($path . "/" . $file);
             }
             if (
-                strtolower($sheets[0][0]) != 'product code' ||
-                strtolower($sheets[0][1]) != 'product name' ||
-                strtolower($sheets[0][2]) != 'product price' ||
-                strtolower($sheets[0][3]) != 'product description'
+                strtolower($sheets[0][0]) != 'category id' || strtolower($sheets[0][1]) != 'category name'
             ) {
                 return $controller->sendError("Wrong format.");
             } else {
@@ -133,36 +130,30 @@ class Category extends Model
                 if (count($sheets) > 0) {
                     foreach ($sheets as $key => $value) {
                         if (empty($value[0])) {
-                            $error_text .= 'Row : ' . ($key + 1) . 'Product Code can\'\t be empty';
+                            $error_text .= 'Row : ' . ($key + 1) . 'Category ID can\'\t be empty';
                             $errors++;
                         } else if (empty($value[1])) {
-                            $error_text .= 'Row : ' . ($key + 1) . 'Product Name can\'\t be empty';
+                            $error_text .= 'Row : ' . ($key + 1) . 'Category Name can\'\t be empty';
                             $errors++;
                         }
-                        $exists = self::where("client_id", $client_id)->where("product_id", $value[0])->exists();
+                        $exists = self::where("client_id", $client_id)->where("category_id", $value[0])->exists();
                         if (!$exists) {
                             $array[] = [
-                                'uuid'                              => Encrypt::uuid(),
-                                'product_id'                        => $value[0],
-                                'product_name'                      => $value[1],
-                                'product_price'                     => $value[2] ?? "0.00",
-                                'product_description'               => $value[3],
-                                'more_info_text'                    => $value[4],
-                                'product_image'                     => $value[5] ?? "default_product.png",
-                                'product_image_thumbnail'           => $value[6] ?? "default_product.png",
-                                'product_more_info_image'           => $value[7] ?? "default_product.png",
-                                'product_more_info_image_thumbnail' => $value[8] ?? "default_product.png",
-                                'product_sku'                       => $value[9] ?? "",
+                                'category_id'              => $value[0],
+                                'category_name'            => $value[1],
+                                'client_id'                => $client_id,
+                                'category_image'           => "uploads/category/default_category.png",
+                                'category_image_thumbnail' => "uploads/category/default_category.png",
                             ];
                             $uploaded++;
                         } else {
-                            $error_text .= 'Row : ' . ($key + 1) . ' Product ID : ' . $value[0] . ' already exists;';
+                            $error_text .= 'Row : ' . ($key + 1) . ' Category ID : ' . $value[0] . ' already exists;';
                             $errors++;
                         }
                     }
                     if (count($array) > 0) {
                         self::insert($array);
-                        return $controller->sendResponse("Product uploaded successfully.", ["errors" => $errors, "error_text" => $error_text]);
+                        return $controller->sendResponse("Categories uploaded successfully.", ["errors" => $errors, "error_text" => $error_text]);
                     } else {
                         return $controller->sendResponse("No data available.", ["errors" => $errors, "error_text" => $error_text, "uploaded" => 0]);
                     }
