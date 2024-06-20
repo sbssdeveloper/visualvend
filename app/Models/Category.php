@@ -33,4 +33,24 @@ class Category extends Model
         $model = $model->paginate($request->length);
         return $model;
     }
+
+    public function create($request)
+    {
+
+        $path = storage_path("uploads");
+
+        if (!file_exists($path)) {
+            mkdir($path, $mode = 0777, true);
+        }
+
+        $category_image  = Encrypt::uuid() . '.' . $request->image->extension();
+        $request->image->move($path . "/category", $category_image);
+        return self::insert([
+            "category_id" => $request->category_id,
+            "category_name" => $request->category_name,
+            "client_id" => $request->client_id ?? $request->auth->client_id,
+            "category_image" => "uploads/category/" . $category_image,
+            "category_image_thumbnail" => "uploads/category/" . $category_image
+        ]);
+    }
 }

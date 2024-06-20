@@ -41,7 +41,7 @@ class MachineController extends LinkedMachineController
                 $model  = $model->where("machine_client_id", $client_id)->whereIn("id", $machines);
             }
 
-            return ($model  = $model->get());
+            return ($model  = $model->orderBy('machine_name', "ASC")->get());
         });
 
         return parent::sendResponse("Success", $response);

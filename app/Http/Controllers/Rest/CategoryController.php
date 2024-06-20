@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Rest;
 
 use App\Models\Category;
+use App\Rules\UniqueCategoryRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -80,6 +81,60 @@ class CategoryController extends BaseController
         $response = Cache::remember("category-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use ($request, $category) {
             return $category->list($request);
         });
-        return $this->sendResponse("Success",$response);
+        return $this->sendResponse("Success", $response);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/category/create",
+     *     summary="Category Create",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                  required={"image", "category_id", "category_name"},
+     *                 @OA\Property(property="image", type="string", format="binary"),
+     *                 @OA\Property(property="category_id", type="string"),
+     *                 @OA\Property(property="category_name", type="string"),
+     *                 @OA\Property(property="client_id", type="string"),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function create(Request $request, Category $category, UniqueCategoryRule $rule)
+    {
+
+        $required_if                        = $request->auth->client_id > 0 ? 1 : 0;
+
+        $rules = [
+            'image'                         => 'required|file|max:2048|mimes:jpg,png,jpeg',
+            'category_id'                   => ['required', $rule],
+            'category_name'                 => 'required|max:50',
+            'client_id'                     => "required_if:$required_if,1"
+        ];
+
+        $this->validate($request, $rules);
+        try {
+            $category->create($request);
+            return $this->sendSuccess("Category created successfully.");
+        } catch (\Throwable $th) {
+            return $this->sendError($th->getMessage());
+        }
     }
 }
