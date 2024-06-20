@@ -199,9 +199,9 @@ class CategoryController extends BaseController
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                type="object",
-     *                  required={"image", "id"},
+     *                  required={"image", "category_id"},
      *                 @OA\Property(property="image", type="string", format="binary"),
-     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="category_id", type="string"),
      *                 @OA\Property(property="client_id", type="integer"),
      *             )
      *         )
@@ -225,7 +225,7 @@ class CategoryController extends BaseController
     {
         $rules = [
             'image'           => 'required|file|max:2048|mimes:jpg,png,jpeg',
-            'id'              => 'required|exists:category,id'
+            'category_id'     => 'required|exists:category,category_id'
         ];
 
         if ($request->auth->client_id <= 0) {

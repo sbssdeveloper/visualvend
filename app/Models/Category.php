@@ -86,16 +86,19 @@ class Category extends Model
             mkdir($path, $mode = 0777, true);
         }
         $model = self::where("category_id", $request->category_id)->where("client_id", $request->client_id ?? $request->auth->client_id)->first();
+        if (!$model) {
+            return false;
+        }
         if ($model->category_image && file_exists($model->category_image)) {
             unlink($model->category_image);
         }
 
         $category_image  = Encrypt::uuid() . '.' . $request->image->extension();
         $request->image->move($path . "/category", $category_image);
-        return self::where("category_id", $request->category_id)->where("client_id", $request->client_id ?? $request->auth->client_id)->update([
-            "category_image" => "uploads/category/" . $category_image,
-            "category_image_thumbnail" => "uploads/category/" . $category_image
-        ]);
+        $model->category_image = "uploads/category/" . $category_image;
+        $model->category_image_thumbnail = "uploads/category/" . $category_image;
+        $model->save();
+        return true;
     }
 
     public function uploadList($request, $controller)
