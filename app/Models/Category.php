@@ -14,11 +14,11 @@ class Category extends Model
 
     public function dropdownList($request, $cid)
     {
-
+        die("here");
         $model = self::select("category_id", "category_name")->whereNotNull("category_name");
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
-        } else {
+        } else if($request->has("cid") || $cid) {
             $cid    = $request->has("cid") ? $request->cid : $cid;
             $model = $model->where("client_id", $cid);
         }
@@ -38,10 +38,6 @@ class Category extends Model
 
     public function create($request)
     {
-        echo "++".$request->auth->client_id;
-        echo "--".$request->client_id;
-        die;
-        die($request->auth->client_id);
         $path = storage_path("uploads");
 
         if (!file_exists($path)) {

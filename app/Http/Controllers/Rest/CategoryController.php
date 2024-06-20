@@ -44,8 +44,9 @@ class CategoryController extends BaseController
      * )
      */
 
-    public function dropdownList($cid = null, Request $request, Category $category)
+    public function dropdownList(Request $request, Category $category, $cid = null)
     {
+        die("here");
         return $this->sendResponse("Success", $category->dropdownList($request, $cid));
     }
 

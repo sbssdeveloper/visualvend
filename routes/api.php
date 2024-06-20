@@ -41,6 +41,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->get('category/list[/{cid}]',   'CategoryController@dropdownList');
         $router->post('category/list',          'CategoryController@list');
         $router->post('category/create',        'CategoryController@create');
+        $router->post('category/update',        'CategoryController@update');
 
         /****************************CLIENT******************************/
         $router->get('client/list',             'ClientController@dropdownList');
