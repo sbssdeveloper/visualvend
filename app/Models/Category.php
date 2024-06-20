@@ -10,6 +10,7 @@ class Category extends Model
     protected $table = 'category';
     protected $fillable = ['*'];
     protected $hidden = ['id'];
+    public $timestamps = false;
 
     public function dropdownList($request, $cid)
     {
@@ -37,7 +38,10 @@ class Category extends Model
 
     public function create($request)
     {
-
+        echo "++".$request->auth->client_id;
+        echo "--".$request->client_id;
+        die;
+        die($request->auth->client_id);
         $path = storage_path("uploads");
 
         if (!file_exists($path)) {

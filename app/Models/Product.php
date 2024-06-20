@@ -156,6 +156,31 @@ class Product extends Model
         return ($model = $model->paginate($request->length ?? 100));
     }
 
+    public function allActiveProducts($request)
+    {
+        $model = self::select("product_image", "product_name", "product_id", "product_price")->with(['images' => function ($query) {
+            $query->select('image', 'uuid');
+        }])->where("is_deleted", 0);
+
+        if ($request->auth->client_id > 0) {
+            $model = $model->where("client_id", $request->auth->client_id);
+        }
+
+        if (!empty($request->search)) {
+            $search = $request->search;
+            $model = $model->where(function ($query) use ($search) {
+                $query->where("product_name", "like", $search . "%")->orWhere("product_id", "like", $search . "%");
+            });
+        }
+
+        if ($request->sort == "name") {
+            $model = $model->orderBy("product_name", "ASC");
+        } else {
+            $model = $model->orderBy("deleted_at", "DESC");
+        }
+        return ($model = $model->paginate($request->length ?? 100));
+    }
+
     public function deleteSingle($request)
     {
         $model = Product::where('uuid', $request->uuid);

@@ -24,6 +24,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->get('advertisement/list',      'AdvertisementController@list');
 
         /****************************Product******************************/
+        $router->post('product/list',           'ProductController@allActiveProducts');
         $router->post('product/assigned',       'ProductController@assignedList');
         $router->post('product/unassigned',     'ProductController@unAssignedList');
         $router->post('product/archive',        'ProductController@archivedList');

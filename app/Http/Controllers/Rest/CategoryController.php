@@ -120,17 +120,18 @@ class CategoryController extends BaseController
 
     public function create(Request $request, Category $category, UniqueCategoryRule $rule)
     {
-
-        $required_if                        = $request->auth->client_id > 0 ? 1 : 0;
-
         $rules = [
             'image'                         => 'required|file|max:2048|mimes:jpg,png,jpeg',
             'category_id'                   => ['required', $rule],
-            'category_name'                 => 'required|max:50',
-            'client_id'                     => "required_if:$required_if,1"
+            'category_name'                 => 'required|max:50'
         ];
+        
+        if ($request->auth->client_id <= 0) {
+            $rules['client_id'] = "required";
+        }
 
         $this->validate($request, $rules);
+
         try {
             $category->create($request);
             return $this->sendSuccess("Category created successfully.");

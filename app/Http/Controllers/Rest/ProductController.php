@@ -515,4 +515,38 @@ class ProductController extends LinkedMachineController
             return $this->sendSuccess('Image updated successfully');
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/product/list",
+     *     summary="Active Products List",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="search", type="date", example="PEPSI"),
+     *             @OA\Property(property="length", type="integer", example=100),
+     *             @OA\Property(property="page", type="integer", example="1"),
+     *             @OA\Property(property="sort", type="STRING", example="product"),
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function allActiveProducts(Request $request, Product $product)
+    {
+        $this->validate($request, ['sort' => 'required']);
+        return $this->sendResponseWithPagination($product->archive($request), "Success");
+    }
 }
