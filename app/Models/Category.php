@@ -69,9 +69,13 @@ class Category extends Model
 
     public function updateCategory($request)
     {
-        return self::where("id", $request->id)->where("client_id", $request->client_id ?? $request->auth->client_id)->update([
-            "category_name" => $request->category_name
-        ]);
+        $model = self::where("category_id", $request->category_id)->where("client_id", $request->client_id ?? $request->auth->client_id)->first();
+        if ($model) {
+            $model->category_name = $request->category_name;
+            $model->save();
+            return true;
+        }
+        return false;
     }
 
     public function upload($request)

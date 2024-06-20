@@ -179,8 +179,10 @@ class CategoryController extends BaseController
         $this->validate($request, $rules);
 
         try {
-            $category->updateCategory($request);
-            return $this->sendSuccess("Category updated successfully.");
+            if ($category->updateCategory($request)) {
+                return $this->sendSuccess("Category updated successfully.");
+            }
+            return $this->sendError("Category doesn't exist.");
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
         }
