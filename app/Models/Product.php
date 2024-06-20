@@ -176,7 +176,7 @@ class Product extends Model
         if ($request->sort == "name") {
             $model = $model->orderBy("product_name", "ASC");
         } else {
-            $model = $model->orderBy("deleted_at", "DESC");
+            $model = $model->orderBy("id", "DESC");
         }
         return ($model = $model->paginate($request->length ?? 100));
     }
