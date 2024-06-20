@@ -158,9 +158,7 @@ class Product extends Model
 
     public function allActiveProducts($request)
     {
-        $model = self::with(['images' => function ($query) {
-            $query->select('image', 'uuid');
-        }])->where("is_deleted", 0);
+        $model = self::with('images','assigned_categories')->where("is_deleted", 0);
 
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
