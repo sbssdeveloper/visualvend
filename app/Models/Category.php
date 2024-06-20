@@ -27,7 +27,7 @@ class Category extends Model
 
     public function list($request)
     {
-        $model = self::select("category_id", "category_name", "category_image")->whereNotNull("category_name");
+        $model = self::select("category_id", "category_name", "category_image", "client_id")->whereNotNull("category_name");
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
         }
