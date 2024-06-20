@@ -43,6 +43,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('category/create',        'CategoryController@create');
         $router->post('category/update',        'CategoryController@update');
         $router->post('category/upload',        'CategoryController@upload');
+        $router->post('category/delete',        'CategoryController@delete');
 
         /****************************CLIENT******************************/
         $router->get('client/list',             'ClientController@dropdownList');
