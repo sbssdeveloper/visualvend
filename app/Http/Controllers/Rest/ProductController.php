@@ -547,6 +547,6 @@ class ProductController extends LinkedMachineController
     public function allActiveProducts(Request $request, Product $product)
     {
         $this->validate($request, ['sort' => 'required']);
-        return $this->sendResponseWithPagination($product->archive($request), "Success");
+        return $this->sendResponseWithPagination($product->allActiveProducts($request), "Success");
     }
 }
