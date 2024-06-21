@@ -15,7 +15,6 @@ class LinkedMachineController extends BaseController
         $this->admin_logged_in = $request->auth->admin ?? 0;
         $this->linked_machines = Cache::remember("linked_machines:$this->admin_logged_in", env('MACHINES_CACHE_TIME', 600), function () use ($request) {
             $userMachines = Admin::linkedMachines($request->auth);
-            print_r($userMachines);
             if (method_exists($userMachines, 'toArray')) {
                 $userMachines = $userMachines->toArray();
             }
