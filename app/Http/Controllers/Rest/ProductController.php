@@ -496,8 +496,9 @@ class ProductController extends LinkedMachineController
             $request->image->move($path . "/images", $image);
             $model->$type  = "uploads/images/" . $image;
             $model->save();
-            return $this->sendSuccess('Image updated successfully');
+            return $this->sendResponse('Image updated successfully', ["path" => $model->$type]);
         } else {
+            $imgPath = null;
             if ($request->image_id > 0) {
                 $model = ProductImage::where("id", $request->image_id)->first();
                 if (file_exists($model->image)) {
@@ -507,15 +508,17 @@ class ProductController extends LinkedMachineController
                 $request->image->move($path . "/images", $image);
                 $model->image  = "uploads/images/" . $image;
                 $model->save();
+                $imgPath = $model->image;
             } else {
                 $image              = Encrypt::uuid() . '.' . $request->image->extension();
                 $request->image->move($path . "/images", $image);
+                $imgPath = "uploads/images/" . $image;
                 ProductImage::insert([
                     "uuid" => $request->uuid,
-                    "image" => "uploads/images/" . $image
+                    "image" => $imgPath
                 ]);
             }
-            return $this->sendSuccess('Image updated successfully');
+            return $this->sendResponse('Image updated successfully', ["path" => $imgPath]);
         }
     }
 

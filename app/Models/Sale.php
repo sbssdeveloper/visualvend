@@ -126,7 +126,7 @@ class Sale extends Model
 
         if ($client_id > 0) {
             $model          = $model->where("sale_report.client_id", $client_id);
-            $model          = $model->whereIn("sale_report.machine_id", $my_machines);
+            $model          = $model->whereIn("sale_report.machine_id", $machines);
             if (!in_array($role, ["Super Admin", "Full Access"])) {
                 $model          = $model->whereRaw("sale_report.id NOT IN (SELECT `sale_id` FROM `hidden_sale_reports` WHERE `user_id`=$admin_id)");
             }

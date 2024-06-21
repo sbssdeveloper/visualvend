@@ -14,7 +14,7 @@ class MachineUser extends Model
     {
         $model = self::select('user.status', 'user.activated_on')->where("is_deactivated", 0);
         if ($auth->client_id > 0) {
-            $model  = $model->leftJoin("machine", "machine.machine_username", "=", "user.username")->where_in("machine.id", $machines);
+            $model  = $model->leftJoin("machine", "machine.machine_username", "=", "user.username")->whereIn("machine.id", $machines);
         }
         $model      = $model->groupBy("user.id")->get();
         $response["total"]      = count($model);

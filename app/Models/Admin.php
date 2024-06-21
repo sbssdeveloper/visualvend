@@ -14,7 +14,6 @@ class Admin extends Model
         if ($auth->client_id == -1) {
             return "all";
         }
-        print_r(self::find($auth->id)->select("machines")->first()->toArray());
-        return self::find($auth->id)->select(["machines"])->first();
+        return self::where("id",$auth->id)->select(["machines"])->first();
     }
 }

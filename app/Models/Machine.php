@@ -58,13 +58,10 @@ class Machine extends Model
 
     public static function dashboardInfo($auth, $machines)
     {
-        echo "HERE";
-        print_r($machines);
-        die;
         $model = self::with(['heart_beats'])->where("is_deleted", 0);
 
         if ($auth->client_id > 0) {
-            $model  = $model->where_in("id", $machines);
+            $model  = $model->whereIn("id", $machines);
         }
 
         $model  = $model->select('id')->get();
