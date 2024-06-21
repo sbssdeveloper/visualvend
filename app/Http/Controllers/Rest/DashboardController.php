@@ -18,7 +18,6 @@ class DashboardController extends LinkedMachineController
 {
     public function __construct(Request $request)
     {
-        print_r($request->auth);
         parent::__construct($request);
         \DB::statement("SET SQL_MODE=''");
     }
