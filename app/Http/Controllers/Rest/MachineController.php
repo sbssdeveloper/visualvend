@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Rest;
 
+use App\Http\Helpers\MachineHelper;
 use App\Models\Admin;
 use App\Models\Machine;
 use Illuminate\Http\Request;
@@ -105,7 +106,7 @@ class MachineController extends LinkedMachineController
     /**
      * @OA\Post(
      *     path="/v1/machine/info",
-     *     summary="Machine liinfost",
+     *     summary="Machine Information",
      *     tags={"V1"},
      *     @OA\RequestBody(
      *         required=true,
@@ -132,7 +133,25 @@ class MachineController extends LinkedMachineController
         $machine_id   = $request->machine_id;
 
         $model      = Machine::select("id", "machine_name")->where("id", $machine_id)->get();
-        
+
+        return parent::sendResponse("Success", $model);
+    }
+
+    public function create(Request $request, MachineHelper $helper, BaseController $controller)
+    {
+        $data = $request->only("machine_username", "machine_row", "machine_column", "machine_address", "machine_latitude", "machine_longitude", "machine_is_single_category");
+        $rules = [
+            'machine_username'      => ["required"]
+        ];
+
+        if ($request->auth->client_id <= 0) {
+            $rules['client_id'] = "required|integer|min:1";
+        }
+
+        $this->validate($request, $rules);
+
+        $model      = Machine::select("id", "machine_name")->where("id", $machine_id)->get();
+
         return parent::sendResponse("Success", $model);
     }
 }

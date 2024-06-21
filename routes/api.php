@@ -19,6 +19,12 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->get('machine/list',            'MachineController@dropdownList');
         $router->post('machine/list',           'MachineController@list');
         $router->post('machine/info',           'MachineController@info');
+        $router->post('machine/create',         'MachineController@create');
+        $router->post('machine/edit',           'MachineController@edit');
+        $router->post('machine/delete',         'MachineController@delete');
+        $router->post('machine/clone',          'MachineController@clone');
+        $router->post('machine/configure',      'MachineController@configure');
+        $router->post('machine/products/reset', 'MachineController@reset');
 
         /****************************ADVERTISEMENT******************************/
         $router->get('advertisement/list',      'AdvertisementController@list');

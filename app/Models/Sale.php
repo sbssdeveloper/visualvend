@@ -88,9 +88,9 @@ class Sale extends Model
         }
 
         if (!empty($search)) {
-            $model =  $model->where(function ($query) {
-                return $query->like("sale_report.machine_name", $search, "after")
-                    ->orLike('sale_report.product_name', $search, "after");
+            $model =  $model->where(function ($query) use($search) {
+                return $query->where("sale_report.machine_name", "LIKE", "$search%")
+                    ->orWhere('sale_report.product_name', "LIKE", "$search%");
             });
         }
 
@@ -139,8 +139,8 @@ class Sale extends Model
         $model          = $model->where("sale_report.timestamp", "<=", "$end_date");
 
         if (!empty($search)) {
-            $model          = $model->where(function ($query) {
-                return $query->like("`sale_report`.`product_name`", "$search%")->orLike("`sale_report`.`machine_name`", "$search%");
+            $model          = $model->where(function ($query) use($search) {
+                $query->where("sale_report.product_name","LIKE", "$search%")->orWhere("sale_report.machine_name", "LIKE", "$search%");
             });
         }
         $model          = $model->groupBy(["sale_report.product_id", "sale_report.machine_id", "sale_report.aisle_no"]);

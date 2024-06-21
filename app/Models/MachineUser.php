@@ -8,7 +8,8 @@ class MachineUser extends Model
 {
     protected $table = 'user';
     protected $fillable = ['*'];
-
+    public  $timestamps = false;
+    
     public static function dashboardInfo($auth, $machines)
     {
         $model = self::select('user.status', 'user.activated_on')->where("is_deactivated", 0);

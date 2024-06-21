@@ -36,8 +36,8 @@ class LocationNonFunctional extends Model
 
         if (!empty($search)) {
             $model =  $model->where(function ($query) use ($search) {
-                $query->like("location_non_functional.machine_name", "$search%")
-                    ->orLike('location_non_functional.product_name', "$search%");
+                $query->where("location_non_functional.machine_name", "LIKE", "$search%")
+                    ->orWhere('location_non_functional.product_name', "LIKE", "$search%");
             });
         }
 

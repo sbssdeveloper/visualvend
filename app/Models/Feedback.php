@@ -37,8 +37,8 @@ class Feedback extends Model
 
         if (!empty($search)) {
             $model =  $model->where(function ($query) use ($search) {
-                $query->like("machine.machine_name", "$search%")
-                    ->orLike('feedback.product_name', "$search%");
+                $query->where("machine.machine_name", "LIKE", "$search%")
+                    ->orWhere('feedback.product_name', "LIKE", "$search%");
             });
         }
 
