@@ -11,6 +11,7 @@ use App\Models\ProductAssignCategory;
 use App\Models\ProductImage;
 use App\Rules\ProductClientRule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends LinkedMachineController
 {
@@ -319,6 +320,7 @@ class ProductController extends LinkedMachineController
 
     public function create(Request $request, ProductClientRule $rule, RequestHelper $requestHelper)
     {
+        Log::debug("Product Create:" . json_encode($request->all()));
         $client_id                      = $request->auth->client_id;
         $rules = [
             'product_name'              => 'required|string',
