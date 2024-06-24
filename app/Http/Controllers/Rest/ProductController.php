@@ -474,7 +474,7 @@ class ProductController extends LinkedMachineController
      * )
      */
 
-    public function uploadImage(Request $request)
+    public function uploadImage(Request $request, RequestHelper $helper)
     {
         $client_id                      = $request->auth->client_id;
 
@@ -482,7 +482,7 @@ class ProductController extends LinkedMachineController
             'uuid'                      => 'required|exists:product,uuid',
             'type'                      => 'required|in:product_image,product_more_info_image,product_promo_image,more_product_images',
             'image_id'                  => 'required_if:type,more_product_images',
-            'image'                     => 'required|max:2048|mimes:jpg,png,jpeg'
+            'image'                     => 'required|image|max:2048|mimes:jpg,png,jpeg'
         ];
         $path                           = storage_path("uploads");
         $this->validate($request, $rules);
@@ -493,7 +493,7 @@ class ProductController extends LinkedMachineController
             if (file_exists($model->$type)) {
                 unlink($model->$type);
             }
-            $image              = Encrypt::uuid() . '.' . $request->image->extension();
+            $image              = Encrypt::uuid() . '.' . $helper->file_extension($request->image);
             $request->image->move($path . "/images", $image);
             $model->$type  = "uploads/images/" . $image;
             $model->save();

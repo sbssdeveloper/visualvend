@@ -6,6 +6,12 @@ use Encrypt;
 
 class RequestHelper
 {
+
+    public function file_extension($request)
+    {
+        return !empty($request->getClientOriginalExtension()) ? $request->getClientOriginalExtension() : File::guessExtension($request);
+    }
+
     public function productRequest($request)
     {
         $other_images = $categories = [];
@@ -26,41 +32,41 @@ class RequestHelper
             mkdir($path, $mode = 0777, true);
         }
 
-        $product_image              = Encrypt::uuid() . '.' . $request->product_image->extension();
+        $product_image              = Encrypt::uuid() . '.' . $this->file_extension($request->product_image);
         $request->product_image->move($path . "/images", $product_image);
 
-        $product_more_info          = Encrypt::uuid() . '.' . $request->product_more_info_image->extension();
+        $product_more_info          = Encrypt::uuid() . '.' . $this->file_extension($request->product_more_info_image);
         $request->product_more_info_image->move($path . "/images", $product_more_info);
 
         $array['product_image']             = "uploads/images/" . $product_image;
         $array['product_more_info_image']   = "uploads/images/" . $product_more_info;
 
         if ($request->has("product_promo_image") && !empty($request->product_promo_image) && $request->product_promo_image != "null") {
-            $product_promo_image          = Encrypt::uuid() . '.' . $request->product_promo_image->extension();
+            $product_promo_image          = Encrypt::uuid() . '.' . $this->file_extension($request->product_promo_image);
             $request->product_promo_image->move($path . "/images", $product_promo_image);
             $array['product_promo_image']   = "uploads/images/" . $product_more_info;
         }
 
         if ($request->has("product_more_image_1") && !empty($request->product_more_image_1) && $request->product_more_image_1 != "null") {
-            $product_more_image_1          = Encrypt::uuid() . '.' . $request->product_more_image_1->extension();
+            $product_more_image_1          = Encrypt::uuid() . '.' . $this->file_extension($request->product_more_image_1);
             $request->product_more_image_1->move($path . "/images", $product_more_image_1);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_1];
         }
 
         if ($request->has("product_more_image_2") && !empty($request->product_more_image_2) && $request->product_more_image_2 != "null") {
-            $product_more_image_2          = Encrypt::uuid() . '.' . $request->product_more_image_2->extension();
+            $product_more_image_2          = Encrypt::uuid() . '.' . $this->file_extension($request->product_more_image_2);
             $request->product_more_image_2->move($path . "/images", $product_more_image_2);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_2];
         }
 
         if ($request->has("product_more_image_3") && !empty($request->product_more_image_3) && $request->product_more_image_3 != "null") {
-            $product_more_image_3          = Encrypt::uuid() . '.' . $request->product_more_image_3->extension();
+            $product_more_image_3          = Encrypt::uuid() . '.' . $this->file_extension($request->product_more_image_3);
             $request->product_more_image_3->move($path . "/images", $product_more_image_3);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_3];
         }
 
         if ($request->has("product_more_image_4") && !empty($request->product_more_image_4) && $request->product_more_image_4 != "null") {
-            $product_more_image_4          = Encrypt::uuid() . '.' . $request->product_more_image_4->extension();
+            $product_more_image_4          = Encrypt::uuid() . '.' . $this->file_extension($request->product_more_image_4);
             $request->product_more_image_4->move($path . "/images", $product_more_image_4);
             $other_images[] = ["uuid" => $array['uuid'], "image" => "uploads/images/" . $product_more_image_4];
         }
@@ -86,7 +92,7 @@ class RequestHelper
             $client_id                  = $request->client_id;
         }
         $array                          = array_filter($data, function ($var) {
-            return $var!="" && $var != "null";
+            return $var != "" && $var != "null";
         });
 
         if ($request->has("product_category") && !empty($request->product_category) && $request->product_category != "null") {
