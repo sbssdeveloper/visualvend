@@ -12,14 +12,23 @@ class RequestHelper
         return !empty($request->getClientOriginalExtension()) ? $request->getClientOriginalExtension() : File::guessExtension($request);
     }
 
-    public function isBase64($string)
+    public function isBase64($base64_string)
     {
-        // Check if the string matches the base64 pattern
-        if (preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $string)) {
-            // Decode the string and check if it re-encodes to the same string
-            $decoded = base64_decode($string, true);
-            if ($decoded !== false && base64_encode($decoded) === $string) {
-                return true;
+        // Check if the string is a valid base64
+        if (preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $base64_string)) {
+            // Decode the base64 string
+            $decoded_data = base64_decode($base64_string, true);
+
+            // Check if decoding was successful
+            if ($decoded_data !== false) {
+                // Create an image resource from the decoded string
+                $image = @imagecreatefromstring($decoded_data);
+
+                if ($image !== false) {
+                    // It's a valid image
+                    imagedestroy($image);
+                    return true;
+                }
             }
         }
         return false;
