@@ -327,8 +327,8 @@ class ProductController extends LinkedMachineController
             'product_price'             => 'required|numeric',
             'discount_price'            => 'required|numeric',
             'product_description'       => 'required|string|max:255',
-            'product_image'             => 'required|max:2048|mimes:jpg,png,jpeg',
-            'product_more_info_image'   => 'required|max:2048|mimes:jpg,png,jpeg',
+            'product_image'             => 'required|image|max:2048|mimes:jpg,png,jpeg',
+            'product_more_info_image'   => 'required|image|max:2048|mimes:jpg,png,jpeg',
         ];
 
         if ($request->auth->client_id <= 0) {
@@ -482,7 +482,7 @@ class ProductController extends LinkedMachineController
             'uuid'                      => 'required|exists:product,uuid',
             'type'                      => 'required|in:product_image,product_more_info_image,product_promo_image,more_product_images',
             'image_id'                  => 'required_if:type,more_product_images',
-            'image'                     => 'required|file|max:2048|mimes:jpg,png,jpeg'
+            'image'                     => 'required|max:2048|mimes:jpg,png,jpeg'
         ];
         $path                           = storage_path("uploads");
         $this->validate($request, $rules);
