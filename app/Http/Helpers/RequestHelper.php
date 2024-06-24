@@ -12,6 +12,30 @@ class RequestHelper
         return !empty($request->getClientOriginalExtension()) ? $request->getClientOriginalExtension() : File::guessExtension($request);
     }
 
+    public function isBase64($string)
+    {
+        // Check if the string matches the base64 pattern
+        if (preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $string)) {
+            // Decode the string and check if it re-encodes to the same string
+            $decoded = base64_decode($string, true);
+            if ($decoded !== false && base64_encode($decoded) === $string) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function base64Decode($data)
+    {
+        if (preg_match('/^data\:([a-zA-Z]+\/[a-zA-Z]+);base64\,([a-zA-Z0-9\+\/]+\=*)$/', $data, $matches)) {
+            return [
+                'mime' => $matches[1],
+                'data' => base64_decode($matches[2]),
+            ];
+        }
+        return false;
+    }
+
     public function productRequest($request)
     {
         $other_images = $categories = [];
