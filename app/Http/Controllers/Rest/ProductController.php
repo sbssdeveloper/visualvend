@@ -322,6 +322,7 @@ class ProductController extends LinkedMachineController
     {
         $client_id                      = $request->auth->client_id;
         if ($requestHelper->isBase64($request->product_image)) {
+            die("IS A VALID IMAGE");
             $request->product_image = $requestHelper->base64Decode($request->product_image);
         }else{
             die("Not a valid image");
