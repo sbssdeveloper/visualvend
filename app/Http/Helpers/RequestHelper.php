@@ -36,13 +36,7 @@ class RequestHelper
 
     function base64Decode($data)
     {
-        if (preg_match('/^data\:([a-zA-Z]+\/[a-zA-Z]+);base64\,([a-zA-Z0-9\+\/]+\=*)$/', $data, $matches)) {
-            return [
-                'mime' => $matches[1],
-                'data' => base64_decode($matches[2]),
-            ];
-        }
-        return false;
+        return base64_decode($data);;
     }
 
     public function productRequest($request)
