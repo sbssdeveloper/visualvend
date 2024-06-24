@@ -324,8 +324,7 @@ class ProductController extends LinkedMachineController
         if ($requestHelper->isBase64($request->product_image)) {
             $request->product_image = $requestHelper->base64Decode($request->product_image);
         }
-        print_r($request->product_image);
-        die;
+        
         if ($requestHelper->isBase64($request->product_more_info_image)) {
             $request->product_more_info_image = $requestHelper->base64Decode($request->product_more_info_image);
         }
