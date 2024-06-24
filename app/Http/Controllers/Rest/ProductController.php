@@ -363,9 +363,9 @@ class ProductController extends LinkedMachineController
         $this->validate($request, $rules);
         extract($requestHelper->productRequest($request));
 
+        print_r($product);
         DB::beginTransaction();
         try {
-            print_r($product);
             Product::insert($product);
             ProductImage::insert($product_images);
             ProductAssignCategory::insert($product_assign_category);
