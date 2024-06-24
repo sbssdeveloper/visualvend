@@ -328,6 +328,25 @@ class ProductController extends LinkedMachineController
             $request->product_more_info_image = $requestHelper->base64Decode($request->product_more_info_image);
         }
 
+        if ($requestHelper->isBase64($request->product_promo_image)) {
+            $request->product_promo_image = $requestHelper->base64Decode($request->product_promo_image);
+        }
+
+        if ($requestHelper->isBase64($request->product_more_image_1)) {
+            $request->product_more_image_1 = $requestHelper->base64Decode($request->product_more_image_1);
+        }
+
+        if ($requestHelper->isBase64($request->product_more_image_2)) {
+            $request->product_more_image_2 = $requestHelper->base64Decode($request->product_more_image_2);
+        }
+
+        if ($requestHelper->isBase64($request->product_more_image_3)) {
+            $request->product_more_image_3 = $requestHelper->base64Decode($request->product_more_image_3);
+        }
+        if ($requestHelper->isBase64($request->product_more_image_4)) {
+            $request->product_more_image_4 = $requestHelper->base64Decode($request->product_more_image_4);
+        }
+
         $rules = [
             'product_name'              => 'required|string',
             'product_id'                => ['required', $rule],
