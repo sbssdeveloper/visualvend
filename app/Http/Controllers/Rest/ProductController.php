@@ -320,7 +320,6 @@ class ProductController extends LinkedMachineController
 
     public function create(Request $request, ProductClientRule $rule, RequestHelper $requestHelper)
     {
-        Log::debug("Product Create:" . json_encode($request->all()));
         $client_id                      = $request->auth->client_id;
         $rules = [
             'product_name'              => 'required|string',
@@ -328,8 +327,8 @@ class ProductController extends LinkedMachineController
             'product_price'             => 'required|numeric',
             'discount_price'            => 'required|numeric',
             'product_description'       => 'required|string|max:255',
-            'product_image'             => 'required|file|max:2048|mimes:jpg,png,jpeg',
-            'product_more_info_image'   => 'required|file|max:2048|mimes:jpg,png,jpeg',
+            'product_image'             => 'required|max:2048|mimes:jpg,png,jpeg',
+            'product_more_info_image'   => 'required|max:2048|mimes:jpg,png,jpeg',
         ];
 
         if ($request->auth->client_id <= 0) {
