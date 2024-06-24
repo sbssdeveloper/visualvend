@@ -14,8 +14,6 @@ class RequestHelper
 
     public function isBase64($string)
     {
-        print_r($string);
-        die;
         // Check if the string matches the base64 pattern
         if (preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $string)) {
             // Decode the string and check if it re-encodes to the same string
