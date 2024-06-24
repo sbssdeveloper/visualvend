@@ -363,7 +363,6 @@ class ProductController extends LinkedMachineController
         $this->validate($request, $rules);
         extract($requestHelper->productRequest($request));
 
-        print_r($product);
         DB::beginTransaction();
         try {
             Product::insert($product);
