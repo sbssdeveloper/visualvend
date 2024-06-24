@@ -321,11 +321,11 @@ class ProductController extends LinkedMachineController
     public function create(Request $request, ProductClientRule $rule, RequestHelper $requestHelper)
     {
         $client_id                      = $request->auth->client_id;
-        echo $requestHelper->isBase64($request->product_image)?"ISBASE64":"NOT";
-        die;
         if ($requestHelper->isBase64($request->product_image)) {
             $request->product_image = $requestHelper->base64Decode($request->product_image);
         }
+        print_r($request->product_image);
+        die;
         if ($requestHelper->isBase64($request->product_more_info_image)) {
             $request->product_more_info_image = $requestHelper->base64Decode($request->product_more_info_image);
         }
