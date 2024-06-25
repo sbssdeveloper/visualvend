@@ -1,5 +1,11 @@
 <?php
 
+$router->group(['prefix' => 's3'], function () use ($router) {
+    $router->group(['middleware' => 'jwt'], function () use ($router) {
+        $router->post('preassigned/url', 'S3BucketController@getPresignedUrl');
+    });
+});
+
 $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->get('documentation', '\SwaggerLume\Http\Controllers\SwaggerLumeController@api');
     /**************************PUBLIC-URL*******************************/

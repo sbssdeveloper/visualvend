@@ -61,6 +61,7 @@ $app->singleton(
 
 $app->configure('app');
 $app->configure('swagger-lume');
+$app->configure('filesystems');
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +100,8 @@ $app->register(App\Providers\AppServiceProvider::class);
 $app->register(\SwaggerLume\ServiceProvider::class);
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 $app->register(\KitLoong\MigrationsGenerator\MigrationsGeneratorServiceProvider::class);
+$app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
+$app->register(App\Providers\S3BucketServiceProvider::class);
 
 class_alias(PhpOffice\PhpSpreadsheet\Spreadsheet::class,"Spreadsheet");
 class_alias( PhpOffice\PhpSpreadsheet\Writer\Xlsx::class,"XlsxWriter");

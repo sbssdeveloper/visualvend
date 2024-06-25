@@ -280,28 +280,16 @@ class ProductController extends LinkedMachineController
      *     tags={"V1"},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="multipart/form-data",
-     *             @OA\Schema(
-     *                type="object",
-     *                @OA\Property(property="product_name", type="string"),
+     *          @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *             @OA\Property(property="product_name", type="string"),
      *             @OA\Property(property="product_id", type="string"),
      *             @OA\Property(property="product_price", type="float"),
      *             @OA\Property(property="discount_price", type="float"),
-     *             @OA\Property(property="product_description", type="string"),
-     *                @OA\Property(
-     *                  property="product_image",
-     *                  description="Product Image",
-     *                  type="string",
-     *                  format="binary"
-     *                ),
-     *                @OA\Property(
-     *                  property="product_more_info_image",
-     *                  description="Product More Image",
-     *                  type="string",
-     *                  format="binary"
-     *                )
-     *             )
+     *             @OA\Property(property="product_description", type="string")
+     *             @OA\Property(property="product_image", type="string")
+     *             @OA\Property(property="product_more_info_image", type="string")
      *         )
      *     ),
      *     @OA\Parameter(
@@ -326,14 +314,15 @@ class ProductController extends LinkedMachineController
             'product_price'             => 'required|numeric',
             'discount_price'            => 'required|numeric',
             'product_description'       => 'required|string|max:255',
-            'product_image'             => 'required|image|max:2048|mimes:jpg,png,jpeg',
-            'product_more_info_image'   => 'required|image|max:2048|mimes:jpg,png,jpeg',
+            'product_image'             => 'required|string|max:45',
+            'product_more_info_image'   => 'required|string|max:45'
         ];
 
         if ($request->auth->client_id <= 0) {
             $rules["client_id"]         = 'required|exists:client,id';
         }
         $this->validate($request, $rules);
+
         extract($requestHelper->productRequest($request));
 
         DB::beginTransaction();
@@ -386,7 +375,9 @@ class ProductController extends LinkedMachineController
             'product_name'              => 'required|string',
             'product_price'             => 'required|numeric',
             'discount_price'            => 'required|numeric',
-            'product_description'       => 'required|string|max:255'
+            'product_description'       => 'required|string|max:255',
+            'product_image'             => 'required|string|max:45',
+            'product_more_info_image'   => 'required|string|max:45'
         ];
         if ($request->auth->client_id <= 0) {
             $rules["client_id"]   = 'required|exists:client,id';
@@ -396,6 +387,8 @@ class ProductController extends LinkedMachineController
         try {
             Product::where("uuid", $request->uuid)->update($product);
             ProductAssignCategory::where("uuid", $request->uuid)->delete();
+            ProductImage::where("uuid", $request->uuid)->delete();
+            ProductImage::insert($product_images);
             ProductAssignCategory::insert($product_assign_category);
             return $this->sendSuccess('Product updated successfully');
         } catch (\Throwable $th) {
@@ -554,12 +547,5 @@ class ProductController extends LinkedMachineController
     {
         $this->validate($request, ['sort' => 'required']);
         return $this->sendResponseWithPagination($product->allActiveProducts($request), "Success");
-    }
-
-    public function demoImage(Request $request){
-        echo "FILE";
-        print_r($_FILES);
-        echo "POST";
-        print_r($_POST);
     }
 }
