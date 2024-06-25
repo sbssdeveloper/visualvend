@@ -280,15 +280,13 @@ class ProductController extends LinkedMachineController
      *     tags={"V1"},
      *     @OA\RequestBody(
      *         required=true,
-     *          @OA\RequestBody(
-     *          required=true,
      *          @OA\JsonContent(
      *             @OA\Property(property="product_name", type="string"),
      *             @OA\Property(property="product_id", type="string"),
      *             @OA\Property(property="product_price", type="float"),
      *             @OA\Property(property="discount_price", type="float"),
-     *             @OA\Property(property="product_description", type="string")
-     *             @OA\Property(property="product_image", type="string")
+     *             @OA\Property(property="product_description", type="string"),
+     *             @OA\Property(property="product_image", type="string"),
      *             @OA\Property(property="product_more_info_image", type="string")
      *         )
      *     ),
