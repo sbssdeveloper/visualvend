@@ -320,34 +320,6 @@ class ProductController extends LinkedMachineController
 
     public function create(Request $request, ProductClientRule $rule, RequestHelper $requestHelper)
     {
-        $client_id                      = $request->auth->client_id;
-        if ($requestHelper->isBase64($request->product_image)) {
-            $request->product_image = $requestHelper->base64Decode($request->product_image);
-        }
-        
-        if ($requestHelper->isBase64($request->product_more_info_image)) {
-            $request->product_more_info_image = $requestHelper->base64Decode($request->product_more_info_image);
-        }
-
-        if ($requestHelper->isBase64($request->product_promo_image)) {
-            $request->product_promo_image = $requestHelper->base64Decode($request->product_promo_image);
-        }
-
-        if ($requestHelper->isBase64($request->product_more_image_1)) {
-            $request->product_more_image_1 = $requestHelper->base64Decode($request->product_more_image_1);
-        }
-
-        if ($requestHelper->isBase64($request->product_more_image_2)) {
-            $request->product_more_image_2 = $requestHelper->base64Decode($request->product_more_image_2);
-        }
-
-        if ($requestHelper->isBase64($request->product_more_image_3)) {
-            $request->product_more_image_3 = $requestHelper->base64Decode($request->product_more_image_3);
-        }
-        if ($requestHelper->isBase64($request->product_more_image_4)) {
-            $request->product_more_image_4 = $requestHelper->base64Decode($request->product_more_image_4);
-        }
-
         $rules = [
             'product_name'              => 'required|string',
             'product_id'                => ['required', $rule],
@@ -582,5 +554,12 @@ class ProductController extends LinkedMachineController
     {
         $this->validate($request, ['sort' => 'required']);
         return $this->sendResponseWithPagination($product->allActiveProducts($request), "Success");
+    }
+
+    public function demoImage(Request $request){
+        echo "FILE";
+        print_r($_FILES);
+        echo "POST";
+        print_r($_POST);
     }
 }

@@ -3,42 +3,10 @@
 namespace App\Http\Helpers;
 
 use Encrypt;
+use Illuminate\Http\UploadedFile;
 
 class RequestHelper
 {
-
-    public function file_extension($request)
-    {
-        return !empty($request->getClientOriginalExtension()) ? $request->getClientOriginalExtension() : File::guessExtension($request);
-    }
-
-    public function isBase64($base64_string)
-    {
-        // Check if the string is a valid base64
-        if (preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $base64_string)) {
-            // Decode the base64 string
-            $decoded_data = base64_decode($base64_string, true);
-
-            // Check if decoding was successful
-            if ($decoded_data !== false) {
-                // Create an image resource from the decoded string
-                $image = @imagecreatefromstring($decoded_data);
-
-                if ($image !== false) {
-                    // It's a valid image
-                    imagedestroy($image);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    function base64Decode($data)
-    {
-        return base64_decode($data);;
-    }
-
     public function productRequest($request)
     {
         $other_images = $categories = [];
@@ -112,6 +80,7 @@ class RequestHelper
 
     public function productUpdateRequest($request)
     {
+
         $categories = [];
         $data       = $request->only("others", "verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_name");
         $client_id                      = $request->auth->client_id;
@@ -132,5 +101,10 @@ class RequestHelper
         }
 
         return ["product" => $array, "product_assign_category" => $categories];
+    }
+
+    public function file_extension($request)
+    {
+        return !empty($request->getClientOriginalExtension()) ? $request->getClientOriginalExtension() : File::guessExtension($request);;
     }
 }
