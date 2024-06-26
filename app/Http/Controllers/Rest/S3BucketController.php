@@ -111,7 +111,7 @@ class S3BucketController extends Controller
 
         $this->validate($request, $rules);
 
-        $key        = "$request->type/$filename";
+        $key        = "$request->type/$request->filename";
 
         try {
             $this->s3Client->deleteObject([
@@ -259,7 +259,7 @@ class S3BucketController extends Controller
             header('Content-Type: ' . $contentType);
             $file = file_get_contents($get_url);
             echo $file;
-            return ;
+            return;
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
