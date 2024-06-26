@@ -33,8 +33,7 @@ class S3BucketController extends Controller
      *         required=true,
      *          @OA\JsonContent(
      *             @OA\Property(property="type", type="string"),
-     *             @OA\Property(property="extension", type="string"),
-     *             @OA\Property(property="client_id", type="integer"),
+     *             @OA\Property(property="extension", type="string")
      *         )
      *     ),
      *     @OA\Parameter(
@@ -56,14 +55,12 @@ class S3BucketController extends Controller
     {
         $rules = [
             'type'      => 'required|in:image,video,file',
-            'extension' => 'required|in:jpeg,jpg,png,csv,xlsx',
-            'client_id' => 'required'
+            'extension' => 'required|in:jpeg,jpg,png,csv,xlsx'
         ];
         $this->validate($request, $rules);
         $filename       = (string) Encrypt::uuid();
         $filename       .= "." . $request->extension;
-        $client_id      = md5($request->client_id);
-        $key            = "$client_id/$request->type/$filename";
+        $key            = "$request->type/$filename";
 
         $cmd = $this->s3Client->getCommand('PutObject', [
             'Bucket' => env('S3_BUCKET'),
@@ -87,8 +84,7 @@ class S3BucketController extends Controller
      *         required=true,
      *          @OA\JsonContent(
      *             @OA\Property(property="type", type="string"),
-     *             @OA\Property(property="filename", type="string"),
-     *             @OA\Property(property="client_id", type="integer")
+     *             @OA\Property(property="filename", type="string")
      *         )
      *     ),
      *     @OA\Parameter(
@@ -110,14 +106,12 @@ class S3BucketController extends Controller
     {
         $rules = [
             'filename'  => 'required',
-            'type'      => 'required|in:image,video,file',
-            'client_id' => 'required'
+            'type'      => 'required|in:image,video,file'
         ];
 
         $this->validate($request, $rules);
 
-        $client_id  = md5($request->client_id);
-        $key        = "$client_id/$request->type/$filename";
+        $key        = "$request->type/$filename";
 
         try {
             $this->s3Client->deleteObject([
@@ -140,8 +134,7 @@ class S3BucketController extends Controller
      *         required=true,
      *          @OA\JsonContent(
      *             @OA\Property(property="type", type="string"),
-     *             @OA\Property(property="filename", type="string"),
-     *             @OA\Property(property="client_id", type="integer")
+     *             @OA\Property(property="filename", type="string")
      *         )
      *     ),
      *     @OA\Parameter(
@@ -163,13 +156,11 @@ class S3BucketController extends Controller
     {
         $rules = [
             'filename'  => 'required',
-            'type'      => 'required|in:image,video,file',
-            'client_id' => 'required'
+            'type'      => 'required|in:image,video,file'
         ];
         $this->validate($request, $rules);
 
-        $client_id  = md5($request->client_id);
-        $key        = "$client_id/$request->type/$filename";
+        $key        = "$request->type/$filename";
 
         try {
             $result = $this->s3Client->headObject([
@@ -195,8 +186,7 @@ class S3BucketController extends Controller
      *         required=true,
      *          @OA\JsonContent(
      *             @OA\Property(property="type", type="string"),
-     *             @OA\Property(property="filename", type="string"),
-     *             @OA\Property(property="client_id", type="integer")
+     *             @OA\Property(property="filename", type="string")
      *         )
      *     ),
      *     @OA\Parameter(
@@ -218,13 +208,12 @@ class S3BucketController extends Controller
     {
         $rules = [
             'filename'  => 'required',
-            'type'      => 'required|in:image,video,file',
-            'client_id' => 'required'
+            'type'      => 'required|in:image,video,file'
         ];
-        $this->validate($request, $rules);
 
-        $client_id  = md5($request->client_id);
-        $key        = "$client_id/$request->type/$request->filename";
+        $this->validate($request, $rules);
+        
+        $key        = "$request->type/$request->filename";
         try {
             $cmd = $this->s3Client->getCommand('GetObject', [
                 'Bucket' => env('S3_BUCKET'),
