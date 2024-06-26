@@ -64,24 +64,13 @@ class Category extends Model
     {
         $model = self::where("category_id", $request->category_id)->where("client_id", $request->client_id ?? $request->auth->client_id)->first();
         if ($model) {
-            $model->category_name = $request->category_name;
+            $model->category_name               = $request->category_name;
+            $model->category_image              = $request->image;
+            $model->category_image_thumbnail    = $request->image;
             $model->save();
             return true;
         }
         return false;
-    }
-
-    public function upload($request)
-    {
-        $model = self::where("category_id", $request->category_id)->where("client_id", $request->client_id ?? $request->auth->client_id)->first();
-        if (!$model) {
-            return false;
-        }
-
-        $model->category_image = $request->image;
-        $model->category_image_thumbnail = $request->image;
-        $model->save();
-        return true;
     }
 
     public function uploadList($request, $controller)
