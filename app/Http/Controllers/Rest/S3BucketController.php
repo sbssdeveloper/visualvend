@@ -265,6 +265,60 @@ class S3BucketController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/s3/preassigned/multiple/url",
+     *     summary="Wasabi Preassigned Urls",
+     *     tags={"S3"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *          @OA\JsonContent(
+     *             @OA\Property(property="type", type="image", default="image"),
+     *             @OA\Property(property="extensions", type="object")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOjE2MSwiYWRtaW5faWQiOjE1OX0sImlhdCI6MTcxODk2ODA3OSwiZXhwIjoxNzI0MTUyMDc5fQ.LuLaN2o66G1CYxBRa0uheC-ETKD2IiOv3sxEq8QPg7g",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function getPresignedMultipleUrls(Request $request)
+    {
+        $rules = [
+            'type'      => 'required|in:image,video,file',
+            'data'      => 'required|array'
+        ];
+        $urls = [];
+        $this->validate($request, $rules);
+        foreach ($request->data as $key => $value) {
+            if (in_array($value, ["png", "jpeg", "jpg"])) {
+                $filename       = (string) Encrypt::uuid();
+                $filename       .= "." . $value;
+                $path            = "$request->type/$filename";
+                $cmd = $this->s3Client->getCommand('PutObject', [
+                    'Bucket' => env('S3_BUCKET'),
+                    'Key' => $path,
+                    'ContentType' => $request->query('content_type', "$request->type/$value"),
+                ]);
+                $s3Request = $this->s3Client->createPresignedRequest($cmd, '+20 minutes');
+                $presignedUrl = (string) $s3Request->getUri();
+                
+                $urls[$key] = ["url" => $presignedUrl, "filename" => $filename];                
+            }
+        }
+        return response()->json($urls);
+    }
+
     function getMimeType($ext)
     {
         switch ($ext) {
