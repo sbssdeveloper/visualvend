@@ -212,7 +212,7 @@ class S3BucketController extends Controller
         ];
 
         $this->validate($request, $rules);
-        
+
         $key        = "$request->type/$request->filename";
         try {
             $cmd = $this->s3Client->getCommand('GetObject', [
@@ -226,6 +226,83 @@ class S3BucketController extends Controller
             return response()->json(['url' => $presignedUrl]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/s3/media/{type}/{filename}",
+     *     summary="Wasabi fetch url",
+     *     tags={"S3"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function fetchUrl($type, $filename)
+    {
+
+        $key        = "$type/$filename";
+        try {
+            $cmd = $this->s3Client->getCommand('GetObject', [
+                'Bucket' => env('S3_BUCKET'),
+                'Key' => $key,
+            ]);
+
+            $request = $this->s3Client->createPresignedRequest($cmd, '+20 minutes');
+            $get_url = (string) $request->getUri();
+            $extension = pathinfo($filename, PATHINFO_EXTENSION);
+            $contentType = $this->getMimeType($extension);
+
+            header('Content-Type: ' . $contentType);
+            $file = file_get_contents($get_url);
+            echo $file;
+            return ;
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    function getMimeType($ext)
+    {
+        switch ($ext) {
+            case 'mp4':
+                return 'video/mp4';
+                break;
+
+            case 'mp3':
+                return 'audio/mpeg';
+                break;
+
+            case 'wav':
+                return 'audio/wav';
+                break;
+
+            case 'png':
+                return 'image/png';
+                break;
+
+            case 'pdf':
+                return 'application/pdf';
+                break;
+
+            case 'txt':
+                return 'text/plain';
+                break;
+
+            case 'doc':
+                return 'application/msword';
+                break;
+
+            case 'csv':
+                return 'text/csv';
+                break;
+
+            default:
+                return 'image/jpeg';
+                break;
         }
     }
 }
