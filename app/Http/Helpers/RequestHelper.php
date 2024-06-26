@@ -2,6 +2,7 @@
 
 namespace App\Http\Helpers;
 
+use App\Http\Controllers\Rest\BaseController;
 use Encrypt;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -14,7 +15,7 @@ class RequestHelper
 
         $other_images = $categories = [];
 
-        $data                           = $request->only("others", "verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_id", "product_name", "product_image", "product_more_info", "product_promo_image");
+        $data                           = $request->only("verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_id", "product_name", "product_image", "product_more_info", "product_promo_image");
 
         $client_id                      = $request->auth->client_id;
 
@@ -26,6 +27,10 @@ class RequestHelper
         });
         $array["client_id"]             = $client_id;
         $array['uuid']                  = (string) Encrypt::uuid();
+
+        if (!empty($request->others) && BaseController::isJson($request->others)) {
+            $array["others"]            = json_encode($request->others);
+        }
 
         if ($request->has("product_more_image_1") && !empty($request->product_more_image_1) && $request->product_more_image_1 != "null") {
             $other_images[] = ["uuid" => $array['uuid'], "image" => $request->product_more_image_1];
@@ -59,7 +64,7 @@ class RequestHelper
     {
 
         $categories                     = [];
-        $data                           = $request->only("others", "verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_id", "product_name");
+        $data                           = $request->only("verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_id", "product_name");
 
         $client_id                      = $request->auth->client_id;
 
@@ -69,6 +74,10 @@ class RequestHelper
         $array                          = array_filter($data, function ($var) {
             return $var != "" && $var != "null";
         });
+
+        if (!empty($request->others) && BaseController::isJson($request->others)) {
+            $array["others"]            = json_encode($request->others);
+        }
 
         return ["product" => $array, "product_assign_category" => $categories];
     }
