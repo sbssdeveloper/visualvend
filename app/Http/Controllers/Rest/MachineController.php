@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Rest;
 use App\Http\Helpers\MachineHelper;
 use App\Models\Admin;
 use App\Models\Machine;
+use App\Rules\MachineUserRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -132,26 +133,32 @@ class MachineController extends LinkedMachineController
     {
         $machine_id   = $request->machine_id;
 
-        $model      = Machine::select("id", "machine_name")->where("id", $machine_id)->get();
+        $model      = Machine::where("id", $machine_id)->first();
 
         return parent::sendResponse("Success", $model);
     }
 
-    public function create(Request $request, MachineHelper $helper, BaseController $controller)
+    public function create(Request $request, MachineHelper $helper, BaseController $controller, MachineUserRule $rule)
     {
-        $data = $request->only("machine_username", "machine_row", "machine_column", "machine_address", "machine_latitude", "machine_longitude", "machine_is_single_category");
+        $data = $request->only("machine_name", "machine_username", "machine_row", "machine_column", "machine_address", "machine_latitude", "machine_longitude", "machine_is_single_category", "machine_client_id");
+
         $rules = [
-            'machine_username'      => ["required"]
+            "machine_name"                  => "required|string|min:3,max:50",
+            "machine_row"                   => "required|integer|min:1,max:16",
+            "machine_column"                => "required|integer|min:1,max:16",
+            "machine_address"               => "required|string",
+            "machine_latitude"              => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
+            "machine_longitude"             => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
+            "machine_is_single_category"    => "required|in:0,1",
+            'machine_username'              => ["required", $rule],
         ];
 
         if ($request->auth->client_id <= 0) {
-            $rules['client_id'] = "required|integer|min:1";
+            $rules['machine_client_id'] = "required|integer|min:1";
         }
 
         $this->validate($request, $rules);
 
-        $model      = Machine::select("id", "machine_name")->where("id", $machine_id)->get();
-
-        return parent::sendResponse("Success", $model);
+        return $helper->create($request, $controller);
     }
 }

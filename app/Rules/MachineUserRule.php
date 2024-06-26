@@ -9,17 +9,23 @@ use Illuminate\Http\Request;
 class MachineUserRule implements Rule
 {
 
-    public function __construct(Request $request)
+    public function __construct()
     {
-        $this->request = $request;
+        $this->message = null;
     }
 
     public function passes($attribute, $value)
     {
-        if (MachineUser::where("username", $this->request->auth->client_id)->where("product_id", $value)->exists()) {
-            return false;
+        $model = MachineUser::where("username", $value)->first();
+        if ($model) {
+            if (!empty($model->machines)) {
+                $this->message = 'Machine username should always be unique".';
+                return false;
+            }
+            return true;
         }
-        return true;
+        $this->message = 'Machine username not found".';
+        return false;
     }
 
     /**
@@ -29,6 +35,6 @@ class MachineUserRule implements Rule
      */
     public function message()
     {
-        return 'The :attribute already exists for the client.';
+        return $this->message;
     }
 }
