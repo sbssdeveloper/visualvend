@@ -28,7 +28,7 @@ class RequestHelper
         $array["client_id"]             = $client_id;
         $array['uuid']                  = (string) Encrypt::uuid();
 
-        if (!empty($request->others) && BaseController::isJson($request->others)) {
+        if (!empty($request->others)) {
             $array["others"]            = json_encode($request->others);
         }
 
