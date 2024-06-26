@@ -78,7 +78,7 @@ class S3BucketController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/s3/delete/file",
+     *     path="/s3/file/delete",
      *     summary="Wasabi Delete File",
      *     tags={"S3"},
      *     @OA\RequestBody(
@@ -169,6 +169,55 @@ class S3BucketController extends Controller
             if ($e->getStatusCode() == 404) {
                 return response()->json(['exists' => false]);
             }
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/s3/file/url",
+     *     summary="Wasabi file url",
+     *     tags={"S3"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *          @OA\JsonContent(
+     *             @OA\Property(property="type", type="string"),
+     *             @OA\Property(property="filename", type="string")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOjE2MSwiYWRtaW5faWQiOjE1OX0sImlhdCI6MTcxODk2ODA3OSwiZXhwIjoxNzI0MTUyMDc5fQ.LuLaN2o66G1CYxBRa0uheC-ETKD2IiOv3sxEq8QPg7g",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function getFileUrl(Request $request)
+    {
+        $rules = ['filename'      => 'required', 'type'      => 'required|in:image,video,file'];
+        $this->validate($request, $rules);
+        
+        $client_id  = md5($request->auth->client_id);
+        $key        = "$client_id/$request->type/$filename";
+        try {
+            $cmd = $this->s3Client->getCommand('GetObject', [
+                'Bucket' => env('S3_BUCKET'),
+                'Key' => $key,
+            ]);
+
+            $request = $this->s3Client->createPresignedRequest($cmd, '+20 minutes');
+            $presignedUrl = (string) $request->getUri();
+
+            return response()->json(['url' => $presignedUrl]);
+        } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

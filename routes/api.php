@@ -3,7 +3,9 @@
 $router->group(['prefix' => 's3'], function () use ($router) {
     $router->group(['middleware' => 'jwt'], function () use ($router) {
         $router->post('preassigned/url', 'S3BucketController@getPresignedUrl');
-        $router->post('delete/file', 'S3BucketController@deleteFile');
+        $router->post('file/delete', 'S3BucketController@deleteFile');
+        $router->post('file/exists', 'S3BucketController@fileExists');
+        $router->post('file/url', 'S3BucketController@getFileUrl');
     });
 });
 
