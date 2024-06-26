@@ -114,7 +114,7 @@ class CategoryController extends BaseController
     public function create(Request $request, Category $category, UniqueCategoryRule $rule)
     {
         $rules = [
-            'image'                         => 'required|file|max:2048|mimes:jpg,png,jpeg',
+            'image'                         => 'required|string',
             'category_id'                   => ['required', $rule],
             'category_name'                 => 'required|max:50'
         ];
@@ -216,7 +216,7 @@ class CategoryController extends BaseController
     public function upload(Request $request, Category $category)
     {
         $rules = [
-            'image'           => 'required|file|max:2048|mimes:jpg,png,jpeg',
+            'image'           => 'required|string',
             'category_id'     => 'required|exists:category,category_id'
         ];
 
