@@ -58,8 +58,8 @@ class CategoryController extends BaseController
      *         required=false,
      *         @OA\JsonContent(
      *              @OA\Property(property="search", type="string"),
-     *             @OA\Property(property="length", type="integer"),
-     *             @OA\Property(property="sort", type="string"),
+     *              @OA\Property(property="length", type="integer"),
+     *              @OA\Property(property="sort", type="string"),
      *          )
      *      ),
      *     @OA\Parameter(
@@ -86,20 +86,16 @@ class CategoryController extends BaseController
      *     path="/v1/category/create",
      *     summary="Category Create",
      *     tags={"V1"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="multipart/form-data",
-     *             @OA\Schema(
-     *                type="object",
-     *                 required={"image", "category_id", "category_name"},
-     *                 @OA\Property(property="image", type="string", format="binary"),
-     *                 @OA\Property(property="category_id", type="string"),
-     *                 @OA\Property(property="category_name", type="string"),
-     *                 @OA\Property(property="client_id", type="string"),
-     *             )
-     *         )
-     *     ),
+     *       @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              required={"image", "category_id", "category_name"},
+     *              @OA\Property(property="image", type="string"),
+     *              @OA\Property(property="category_id", type="integer"),
+     *              @OA\Property(property="category_name", type="string"),
+     *              @OA\Property(property="client_id", type="string"),
+     *          )
+     *       ),
      *     @OA\Parameter(
      *         name="X-Auth-Token",
      *         in="header",
@@ -195,15 +191,11 @@ class CategoryController extends BaseController
      *     tags={"V1"},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="multipart/form-data",
-     *             @OA\Schema(
-     *                type="object",
-     *                  required={"image", "category_id"},
-     *                 @OA\Property(property="image", type="string", format="binary"),
-     *                 @OA\Property(property="category_id", type="string"),
-     *                 @OA\Property(property="client_id", type="integer"),
-     *             )
+     *         @OA\JsonContent(
+     *             required={"image", "category_id"},
+     *             @OA\Property(property="image", type="string"),
+     *             @OA\Property(property="category_id", type="string"),
+     *             @OA\Property(property="client_id", type="integer")
      *         )
      *     ),
      *     @OA\Parameter(
