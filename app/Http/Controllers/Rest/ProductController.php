@@ -288,7 +288,29 @@ class ProductController extends LinkedMachineController
      *             @OA\Property(property="discount_price", type="float"),
      *             @OA\Property(property="product_description", type="string"),
      *             @OA\Property(property="product_image", type="string"),
-     *             @OA\Property(property="product_more_info_image", type="string")
+     *             @OA\Property(property="product_more_info_image", type="string"),
+     *             @OA\Property(property="client_id", type="integer"),
+     *             @OA\Property(property="product_sku", type="string"),
+     *             @OA\Property(property="product_batch_expiray_date", type="string"),
+     *             @OA\Property(property="product_batch_no", type="string"),
+     *             @OA\Property(property="product_caption", type="string"),
+     *             @OA\Property(property="product_status", type="string"),
+     *             @OA\Property(property="product_discount_code", type="string"),
+     *             @OA\Property(property="promo_text", type="string"),
+     *             @OA\Property(property="product_size_amount", type="integer"),
+     *             @OA\Property(property="product_size_unit", type="string"),
+     *             @OA\Property(property="product_classification_no", type="string"),
+     *             @OA\Property(property="product_grading_no", type="string"),
+     *             @OA\Property(property="vend_quantity", type="integer"),
+     *             @OA\Property(property="more_info_text", type="string"),
+     *             @OA\Property(property="product_category", type="string"),
+     *             @OA\Property(property="product_age_verify_required", type="integer", enum= {0, 1}),
+     *             @OA\Property(property="product_age_verify_minimum", type="integer"),
+     *             @OA\Property(property="product_promo_image", type="string"),
+     *             @OA\Property(property="product_more_image1", type="string"),
+     *             @OA\Property(property="product_more_image2", type="string"),
+     *             @OA\Property(property="product_more_image3", type="string"),
+     *             @OA\Property(property="product_more_image4", type="string")
      *         )
      *     ),
      *     @OA\Parameter(
@@ -350,8 +372,23 @@ class ProductController extends LinkedMachineController
      *             @OA\Property(property="product_price", type="float"),
      *             @OA\Property(property="discount_price", type="float"),
      *             @OA\Property(property="product_description", type="string"),
-     *             @OA\Property(property="product_image", type="string"),
-     *             @OA\Property(property="product_more_info_image", type="string")
+     *             @OA\Property(property="client_id", type="integer"),
+     *             @OA\Property(property="product_sku", type="string"),
+     *             @OA\Property(property="product_batch_expiray_date", type="string"),
+     *             @OA\Property(property="product_batch_no", type="string"),
+     *             @OA\Property(property="product_caption", type="string"),
+     *             @OA\Property(property="product_status", type="string"),
+     *             @OA\Property(property="product_discount_code", type="string"),
+     *             @OA\Property(property="promo_text", type="string"),
+     *             @OA\Property(property="product_size_amount", type="integer"),
+     *             @OA\Property(property="product_size_unit", type="string"),
+     *             @OA\Property(property="product_classification_no", type="string"),
+     *             @OA\Property(property="product_grading_no", type="string"),
+     *             @OA\Property(property="vend_quantity", type="integer"),
+     *             @OA\Property(property="more_info_text", type="string"),
+     *             @OA\Property(property="product_category", type="string"),
+     *             @OA\Property(property="product_age_verify_required", type="integer", enum= {0, 1}),
+     *             @OA\Property(property="product_age_verify_minimum", type="integer")
      *         )
      *     ),
      *     @OA\Parameter(
@@ -376,9 +413,7 @@ class ProductController extends LinkedMachineController
             'product_name'              => 'required|string',
             'product_price'             => 'required|numeric',
             'discount_price'            => 'required|numeric',
-            'product_description'       => 'required|string|max:255',
-            'product_image'             => 'required|string|max:45',
-            'product_more_info_image'   => 'required|string|max:45'
+            'product_description'       => 'required|string|max:255'
         ];
         if ($request->auth->client_id <= 0) {
             $rules["client_id"]   = 'required|exists:client,id';

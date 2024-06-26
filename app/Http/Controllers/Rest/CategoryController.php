@@ -92,7 +92,7 @@ class CategoryController extends BaseController
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                type="object",
-     *                  required={"image", "category_id", "category_name"},
+     *                 required={"image", "category_id", "category_name"},
      *                 @OA\Property(property="image", type="string", format="binary"),
      *                 @OA\Property(property="category_id", type="string"),
      *                 @OA\Property(property="category_name", type="string"),
