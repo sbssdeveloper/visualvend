@@ -274,7 +274,7 @@ class S3BucketController extends Controller
      *         required=true,
      *          @OA\JsonContent(
      *             @OA\Property(property="type", type="image", default="image"),
-     *             @OA\Property(property="extensions", type="object")
+     *             @OA\Property(property="data", type="object", default={"product_image":"png","product_more_info_image":"jpeg"})
      *         )
      *     ),
      *     @OA\Parameter(
