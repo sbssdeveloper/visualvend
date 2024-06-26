@@ -58,7 +58,7 @@ class RequestHelper
     public function productUpdateRequest($request)
     {
 
-        $categories = $other_images = [];
+        $categories                     = [];
         $data                           = $request->only("others", "verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_id", "product_name", "product_image", "product_more_info", "product_promo_image");
 
         $client_id                      = $request->auth->client_id;
@@ -70,32 +70,7 @@ class RequestHelper
             return $var != "" && $var != "null";
         });
 
-        if ($request->has("product_more_image_1") && !empty($request->product_more_image_1) && $request->product_more_image_1 != "null") {
-            $other_images[] = ["uuid" => $array['uuid'], "image" => $request->product_more_image_1];
-        }
-
-        if ($request->has("product_more_image_2") && !empty($request->product_more_image_2) && $request->product_more_image_2 != "null") {
-            $other_images[] = ["uuid" => $array['uuid'], "image" => $request->product_more_image_2];
-        }
-
-        if ($request->has("product_more_image_3") && !empty($request->product_more_image_3) && $request->product_more_image_3 != "null") {
-            $other_images[] = ["uuid" => $array['uuid'], "image" => $request->product_more_image_3];
-        }
-
-        if ($request->has("product_more_image_4") && !empty($request->product_more_image_4) && $request->product_more_image_4 != "null") {
-            $other_images[] = ["uuid" => $array['uuid'], "image" => $request->product_more_image_4];
-        }
-
-        if ($request->has("product_category") && !empty($request->product_category) && $request->product_category != "null") {
-            $request->product_category = explode(",", $request->product_category);
-            foreach ($request->product_category as $value) {
-                $categories[] = [
-                    "product_id" => $request->product_id, "category_id" => $value, "client_id" => $client_id, "uuid" => $request->uuid
-                ];
-            }
-        }
-
-        return ["product" => $array, "product_assign_category" => $categories,  "product_images" => $other_images];
+        return ["product" => $array, "product_assign_category" => $categories];
     }
 
     public function file_extension($request)

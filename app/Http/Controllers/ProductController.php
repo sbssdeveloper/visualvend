@@ -67,11 +67,12 @@ class ProductController extends BaseController
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                type="object",
+     *                required={"product_name","product_id","product_price","discount_price","product_description","product_image","product_more_info_image"},
      *                @OA\Property(property="product_name", type="string"),
-     *             @OA\Property(property="product_id", type="string"),
-     *             @OA\Property(property="product_price", type="float"),
-     *             @OA\Property(property="discount_price", type="float"),
-     *             @OA\Property(property="product_description", type="string"),
+     *                @OA\Property(property="product_id", type="string"),
+     *                @OA\Property(property="product_price", type="float"),
+     *                @OA\Property(property="discount_price", type="float"),
+     *                @OA\Property(property="product_description", type="string"),
      *                @OA\Property(
      *                  property="product_image",
      *                  description="Product Image",
@@ -125,7 +126,7 @@ class ProductController extends BaseController
             Product::insert($product);
             ProductImage::insert($product_images);
             ProductAssignCategory::insert($product_assign_category);
-            DB::commit(); 
+            DB::commit();
             return $this->sendSuccess("Product created successfully.");
         } catch (\Exception $e) {
             DB::rollback();

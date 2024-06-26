@@ -281,6 +281,7 @@ class ProductController extends LinkedMachineController
      *     @OA\RequestBody(
      *         required=true,
      *          @OA\JsonContent(
+     *             required={"product_name","product_id","product_price","discount_price","product_description","product_image","product_more_info_image"},
      *             @OA\Property(property="product_name", type="string"),
      *             @OA\Property(property="product_id", type="string"),
      *             @OA\Property(property="product_price", type="float"),
@@ -348,7 +349,9 @@ class ProductController extends LinkedMachineController
      *             @OA\Property(property="product_name", type="string"),
      *             @OA\Property(property="product_price", type="float"),
      *             @OA\Property(property="discount_price", type="float"),
-     *             @OA\Property(property="product_description", type="string")
+     *             @OA\Property(property="product_description", type="string"),
+     *             @OA\Property(property="product_image", type="string"),
+     *             @OA\Property(property="product_more_info_image", type="string")
      *         )
      *     ),
      *     @OA\Parameter(
@@ -385,8 +388,6 @@ class ProductController extends LinkedMachineController
         try {
             Product::where("uuid", $request->uuid)->update($product);
             ProductAssignCategory::where("uuid", $request->uuid)->delete();
-            ProductImage::where("uuid", $request->uuid)->delete();
-            ProductImage::insert($product_images);
             ProductAssignCategory::insert($product_assign_category);
             return $this->sendSuccess('Product updated successfully');
         } catch (\Throwable $th) {
@@ -438,16 +439,12 @@ class ProductController extends LinkedMachineController
      *     tags={"V1"},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="multipart/form-data",
-     *             @OA\Schema(
-     *                type="object",
-     *                  required={"image", "uuid", "type"},
-     *                 @OA\Property(property="image", type="string", format="binary"),
-     *                 @OA\Property(property="uuid", type="string"),
-     *                 @OA\Property(property="type", type="string"),
-     *                 @OA\Property(property="image_id", type="string"),
-     *             )
+     *          @OA\JsonContent(
+     *             required={"image", "uuid", "type"},
+     *             @OA\Property(property="image", type="string"),
+     *             @OA\Property(property="uuid", type="string"),
+     *             @OA\Property(property="type", type="string"),
+     *             @OA\Property(property="image_id", type="string")
      *         )
      *     ),
      *     @OA\Parameter(
@@ -472,44 +469,29 @@ class ProductController extends LinkedMachineController
             'uuid'                      => 'required|exists:product,uuid',
             'type'                      => 'required|in:product_image,product_more_info_image,product_promo_image,more_product_images',
             'image_id'                  => 'required_if:type,more_product_images',
-            'image'                     => 'required|image|max:2048|mimes:jpg,png,jpeg'
+            'image'                     => 'required|string|max:2048'
         ];
-        $path                           = storage_path("uploads");
+
         $this->validate($request, $rules);
 
         if ($request->type != "more_product_images") {
-            $model = Product::where("uuid", $request->uuid)->first();
-            $type = $request->type;
-            if (file_exists($model->$type)) {
-                unlink($model->$type);
-            }
-            $image              = Encrypt::uuid() . '.' . $helper->file_extension($request->image);
-            $request->image->move($path . "/images", $image);
-            $model->$type  = "uploads/images/" . $image;
+            $model          = Product::where("uuid", $request->uuid)->first();
+            $type           = $request->type;
+            $model->$type   = $request->image;
             $model->save();
             return $this->sendResponse('Image updated successfully', ["path" => $model->$type]);
         } else {
-            $imgPath = null;
             if ($request->image_id > 0) {
                 $model = ProductImage::where("id", $request->image_id)->first();
-                if (file_exists($model->image)) {
-                    unlink($model->image);
-                }
-                $image              = Encrypt::uuid() . '.' . $request->image->extension();
-                $request->image->move($path . "/images", $image);
-                $model->image  = "uploads/images/" . $image;
+                $model->image  = $request->image;
                 $model->save();
-                $imgPath = $model->image;
             } else {
-                $image              = Encrypt::uuid() . '.' . $request->image->extension();
-                $request->image->move($path . "/images", $image);
-                $imgPath = "uploads/images/" . $image;
                 ProductImage::insert([
                     "uuid" => $request->uuid,
-                    "image" => $imgPath
+                    "image" => $request->image
                 ]);
             }
-            return $this->sendResponse('Image updated successfully', ["path" => $imgPath]);
+            return $this->sendResponse('Image updated successfully');
         }
     }
 
