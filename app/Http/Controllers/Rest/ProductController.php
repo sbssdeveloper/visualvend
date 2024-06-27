@@ -302,53 +302,7 @@ class ProductController extends LinkedMachineController
             DB::rollback();
             return $this->sendError($e->getMessage());
         }
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/v1/product/update",
-     *     summary="Products Update",
-     *     tags={"V1"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *          @OA\JsonContent(
-     *             @OA\Property(property="uuid", type="string"),
-     *             @OA\Property(property="product_name", type="string"),
-     *             @OA\Property(property="product_price", type="float"),
-     *             @OA\Property(property="discount_price", type="float"),
-     *             @OA\Property(property="product_description", type="string"),
-     *             @OA\Property(property="client_id", type="integer"),
-     *             @OA\Property(property="product_sku", type="string"),
-     *             @OA\Property(property="product_batch_expiray_date", type="string"),
-     *             @OA\Property(property="product_batch_no", type="string"),
-     *             @OA\Property(property="product_caption", type="string"),
-     *             @OA\Property(property="product_status", type="string"),
-     *             @OA\Property(property="product_discount_code", type="string"),
-     *             @OA\Property(property="promo_text", type="string"),
-     *             @OA\Property(property="product_size_amount", type="integer"),
-     *             @OA\Property(property="product_size_unit", type="string"),
-     *             @OA\Property(property="product_classification_no", type="string"),
-     *             @OA\Property(property="product_grading_no", type="string"),
-     *             @OA\Property(property="vend_quantity", type="integer"),
-     *             @OA\Property(property="more_info_text", type="string"),
-     *             @OA\Property(property="product_category", type="string"),
-     *             @OA\Property(property="product_age_verify_required", type="integer", enum= {0, 1}),
-     *             @OA\Property(property="product_age_verify_minimum", type="integer")
-     *         )
-     *     ),
-     *     @OA\Parameter(
-     *         name="X-Auth-Token",
-     *         in="header",
-     *         required=true,
-     *         description="Authorization token",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Success with api information."
-     *     )
-     * )
-     */
+    }    
 
     public function update(Request $request, RequestHelper $requestHelper)
     {
@@ -368,7 +322,13 @@ class ProductController extends LinkedMachineController
         try {
             Product::where("uuid", $request->uuid)->update($product);
             ProductAssignCategory::where("uuid", $request->uuid)->delete();
-            ProductAssignCategory::insert($product_assign_category);
+            if(isset($product_assign_category) && count($product_assign_category)>0){
+                ProductAssignCategory::insert($product_assign_category);
+            }
+            ProductImage::where("uuid", $request->uuid)->delete();
+            if(isset($product_images) && count($product_images)>0){
+                ProductImage::insert($product_images);
+            }
             return $this->sendSuccess('Product updated successfully');
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
