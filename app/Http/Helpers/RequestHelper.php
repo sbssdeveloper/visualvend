@@ -11,11 +11,9 @@ class RequestHelper
 {
     public function productRequest($request)
     {
-        $product_image = $product_more_info = $product_promo_image = $product_more_image_1 = $product_more_image_2 = $product_more_image_3 = $product_more_image_4 = null;
-
         $other_images = $categories = [];
 
-        $data                           = $request->only("verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_id", "product_name", "product_image", "product_more_info", "product_promo_image");
+        $data                           = $request->only("verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_id", "product_name", "product_image", "product_more_info_image", "product_promo_image");
 
         $client_id                      = $request->auth->client_id;
 
@@ -25,8 +23,10 @@ class RequestHelper
         $array                          = array_filter($data, function ($var) {
             return !empty($var) && $var != "null";
         });
-        $array["client_id"]             = $client_id;
-        $array['uuid']                  = (string) Encrypt::uuid();
+        $array["client_id"]                         = $client_id;
+        $array['uuid']                              = (string) Encrypt::uuid();
+        $array['product_image_thumbnail']           = $array['product_image'];
+        $array['product_more_info_image_thumbnail'] = $array['product_more_info_image'];
 
         if (!empty($request->others)) {
             $array["others"]            = json_encode($request->others);
