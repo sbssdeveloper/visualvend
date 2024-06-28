@@ -9,7 +9,9 @@ class MachineUser extends Model
     protected $table = 'user';
     protected $fillable = ['*'];
     public  $timestamps = false;
+
     protected $appends = ['name'];
+    
     public function getNameAttribute()
     {
         return ucfirst($this->firstname) . ' ' . ucfirst($this->lastname);
@@ -39,7 +41,7 @@ class MachineUser extends Model
     public function newList($request, $controller)
     {
         $client_id = $request->auth->client_id <= 0 ? $request->client_id : $request->auth->client_id;
-        $model = self::select('username')->where("client_id", $client_id)->where("machines", "")->where("status", 1)->where("is_deactivated", 0)->get();
+        $model = self::select('username','firstname','lastname')->where("client_id", $client_id)->where("machines", "")->where("status", 1)->where("is_deactivated", 0)->get();
         return $controller->sendResponse("Success", $model);
     }
 }
