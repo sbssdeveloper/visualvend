@@ -82,7 +82,7 @@ class MachineProductMap extends Model
     public function machineProducts($request)
     {
         $machine_id = $request->machine_id;
-        $model = self::where("machine_id", $machine_id)->where("product_location", "<>", "")->get()->toArray();
+        $model = self::where("machine_id", $machine_id)->where("product_location", "<>", "")->where("product_id", "<>", "")->get()->toArray();
         return $model;
     }
 }
