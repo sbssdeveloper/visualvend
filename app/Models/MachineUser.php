@@ -9,7 +9,12 @@ class MachineUser extends Model
     protected $table = 'user';
     protected $fillable = ['*'];
     public  $timestamps = false;
-    
+    protected $appends = ['name'];
+    public function getNameAttribute()
+    {
+        return ucfirst($this->firstname) . ' ' . ucfirst($this->lastname);
+    }
+
     public static function dashboardInfo($auth, $machines)
     {
         $model = self::select('user.status', 'user.activated_on')->where("is_deactivated", 0);
@@ -29,5 +34,12 @@ class MachineUser extends Model
             }
         }
         return ['machine_users' => $response];
+    }
+
+    public function newList($request, $controller)
+    {
+        $client_id = $request->auth->client_id <= 0 ? $request->client_id : $request->auth->client_id;
+        $model = self::select('username')->where("client_id", $client_id)->where("machines", "")->where("status", 1)->where("is_deactivated", 0)->get();
+        return $controller->sendResponse("Success", $model);
     }
 }
