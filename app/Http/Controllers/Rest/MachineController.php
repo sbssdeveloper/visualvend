@@ -11,6 +11,17 @@ use Illuminate\Support\Facades\Cache;
 
 class MachineController extends LinkedMachineController
 {
+    public $helper = null;
+    public $machine = null;
+    public $rule = null;
+    public $controller = null;
+    public function __construct(MachineHelper $helper, Machine $machine, MachineUserRule $rule, BaseController $controller)
+    {
+        $this->helper = $helper;
+        $this->machine = $machine;
+        $this->rule = $rule;
+        $this->controller = $controller;
+    }
     /**
      * @OA\Get(
      *     path="/v1/machine/list",
@@ -138,7 +149,7 @@ class MachineController extends LinkedMachineController
         return parent::sendResponse("Success", $model);
     }
 
-    public function create(Request $request, MachineHelper $helper, BaseController $controller, MachineUserRule $rule)
+    public function create(Request $request)
     {
         $rules = [
             "machine_name"                  => "required|string|min:3,max:50",
@@ -148,7 +159,7 @@ class MachineController extends LinkedMachineController
             "machine_latitude"              => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
             "machine_longitude"             => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
             "machine_is_single_category"    => "required|in:0,1",
-            'machine_username'              => ["required", $rule],
+            'machine_username'              => ["required", $this->rule],
         ];
 
         if ($request->auth->client_id <= 0) {
@@ -157,10 +168,10 @@ class MachineController extends LinkedMachineController
 
         $this->validate($request, $rules);
 
-        return $helper->create($request, $controller);
+        return $this->helper->create($request, $this->controller);
     }
 
-    public function update(Request $request, MachineHelper $helper, BaseController $controller)
+    public function update(Request $request)
     {
         $rules = [
             "machine_name"                  => "required|string|min:3,max:50",
@@ -174,6 +185,27 @@ class MachineController extends LinkedMachineController
 
         $this->validate($request, $rules);
 
-        return $helper->update($request, $controller);
+        return $this->helper->update($request, $this->controller);
+    }
+
+    public function cloning(Request $request)
+    {
+        $rules = [
+            "machine_id"                    => "required|exists:machine,id", // selected machine id            
+            "machine_name"                  => "required|string|min:4,max:30",
+            "need_clone_planogram"          => "required|in:0,1",
+            "need_clone_media_ad"           => "required|in:0,1",
+            "need_clone_people"             => "required|in:0,1",
+            "need_clone_config_setting"     => "required|in:0,1",
+            "machine_username"              => ["required", $this->rule], // new machine user
+        ];
+
+        if ($request->auth->client_id <= 0) {
+            $rules['client_id']             = "required|exists:client,id";
+        }
+
+        $this->validate($request, $rules);
+        
+        return $this->helper->cloning($request, $this->controller);
     }
 }
