@@ -167,10 +167,10 @@ class MachineHelper
      *              @OA\Property(property="machine_id", type="integer", example=596),
      *              @OA\Property(property="machine_name", type="string", example="Machine Name"),
      *              @OA\Property(property="need_clone_planogram", type="integer", example=1),
-     *              @OA\Property(property="need_clone_media_ad", type="integer", , example=1),
-     *              @OA\Property(property="need_clone_people", type="integer", , example=1),
+     *              @OA\Property(property="need_clone_media_ad", type="integer", example=1),
+     *              @OA\Property(property="need_clone_people", type="integer", example=1),
      *              @OA\Property(property="need_clone_config_setting", type="integer", example=1),
-     *              @OA\Property(property="machine_username", type="string", example="Machine username")
+     *              @OA\Property(property="machine_username", type="string", example="Machine username"),
      *              @OA\Property(property="client_id", type="integer", example=121)
      *         )
      *     ),
