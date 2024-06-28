@@ -31,6 +31,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('machine/list',           'MachineController@list');
         $router->post('machine/info',           'MachineController@info');
         $router->post('machine/create',         'MachineController@create');
+        $router->post('machine/update',         'MachineController@update');
         $router->post('machine/edit',           'MachineController@edit');
         $router->post('machine/delete',         'MachineController@delete');
         $router->post('machine/clone',          'MachineController@clone');

@@ -140,8 +140,6 @@ class MachineController extends LinkedMachineController
 
     public function create(Request $request, MachineHelper $helper, BaseController $controller, MachineUserRule $rule)
     {
-        $data = $request->only("machine_name", "machine_username", "machine_row", "machine_column", "machine_address", "machine_latitude", "machine_longitude", "machine_is_single_category", "machine_client_id");
-
         $rules = [
             "machine_name"                  => "required|string|min:3,max:50",
             "machine_row"                   => "required|integer|min:1,max:16",
@@ -160,5 +158,22 @@ class MachineController extends LinkedMachineController
         $this->validate($request, $rules);
 
         return $helper->create($request, $controller);
+    }
+
+    public function update(Request $request, MachineHelper $helper, BaseController $controller)
+    {
+        $rules = [
+            "machine_name"                  => "required|string|min:3,max:50",
+            "machine_row"                   => "required|integer|min:1,max:16",
+            "machine_column"                => "required|integer|min:1,max:16",
+            "machine_address"               => "required|string",
+            "machine_latitude"              => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
+            "machine_longitude"             => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
+            "machine_is_single_category"    => "required|in:0,1"
+        ];
+
+        $this->validate($request, $rules);
+
+        return $helper->update($request, $controller);
     }
 }

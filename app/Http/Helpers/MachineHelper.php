@@ -76,4 +76,62 @@ class MachineHelper
             return $controller->sendError($e->getMessage());
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/machine/update",
+     *     summary="Machine Update",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"machine_name",
+     *                  "machine_row",
+     *                  "machine_column",
+     *                  "machine_address",
+     *                  "machine_latitude",
+     *                  "machine_longitude",
+     *                  "machine_is_single_category"
+     *              },              
+     *              @OA\Property(property="machine_name", type="string"),
+     *              @OA\Property(property="machine_row", type="integer"),
+     *              @OA\Property(property="machine_column", type="integer"),
+     *              @OA\Property(property="machine_address", type="string"),
+     *              @OA\Property(property="machine_latitude", type="string"),
+     *              @OA\Property(property="machine_longitude", type="string"),
+     *              @OA\Property(property="machine_is_single_category", type="number")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOjE2MSwiYWRtaW5faWQiOjE1OX0sImlhdCI6MTcxODk2ODA3OSwiZXhwIjoxNzI0MTUyMDc5fQ.LuLaN2o66G1CYxBRa0uheC-ETKD2IiOv3sxEq8QPg7g"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function update($request, $controller)
+    {
+        $data = $request->only("machine_name", "machine_row", "machine_column", "machine_address", "machine_latitude", "machine_longitude", "machine_is_single_category");
+
+        DB::beginTransaction();
+        try {
+            $machine_id = $request->machine_id;
+            Machine::where("id", $machine_id)->update($data);
+            MachineInitialSetup::where("id", $machine_id)->update($data);
+            DB::commit();
+            return $controller->sendSuccess("Machine updated successfully.");
+        } catch (\Exception $e) {
+            DB::rollback();
+            return $controller->sendError($e->getMessage());
+        }
+    }
 }
