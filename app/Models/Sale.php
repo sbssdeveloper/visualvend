@@ -9,6 +9,11 @@ class Sale extends Model
     protected $table = 'sale_report';
     protected $fillable = ['*'];
 
+    public function product()
+    {
+        return $this->hasOne(Product::class, "product_id", "product_id")->where('client_id', $this->client_id);
+    }
+
     public static function recentVend($params)
     {
         extract($params);
@@ -88,7 +93,7 @@ class Sale extends Model
         }
 
         if (!empty($search)) {
-            $model =  $model->where(function ($query) use($search) {
+            $model =  $model->where(function ($query) use ($search) {
                 return $query->where("sale_report.machine_name", "LIKE", "$search%")
                     ->orWhere('sale_report.product_name', "LIKE", "$search%");
             });
@@ -139,8 +144,8 @@ class Sale extends Model
         $model          = $model->where("sale_report.timestamp", "<=", "$end_date");
 
         if (!empty($search)) {
-            $model          = $model->where(function ($query) use($search) {
-                $query->where("sale_report.product_name","LIKE", "$search%")->orWhere("sale_report.machine_name", "LIKE", "$search%");
+            $model          = $model->where(function ($query) use ($search) {
+                $query->where("sale_report.product_name", "LIKE", "$search%")->orWhere("sale_report.machine_name", "LIKE", "$search%");
             });
         }
         $model          = $model->groupBy(["sale_report.product_id", "sale_report.machine_id", "sale_report.aisle_no"]);
@@ -155,7 +160,7 @@ class Sale extends Model
         $admin_id           = $request->auth->admin_id;
 
         $model = self::selectRaw("DATE(`timestamp`) as date, FORMAT(SUM(product_price),2) as total_sale")->where('is_deleted', '0')->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 60 DAY) AND NOW()');
-        
+
         if ($client_id > 0) {
             if (count($machines) > 0) {
                 $model =  $model->whereIn("machine_id", $machines);

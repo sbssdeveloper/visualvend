@@ -26,7 +26,7 @@ class BaseController extends Controller
      * @param $message
      * @return JsonResponse
      */
-    public function sendResponse($message="Success",$result): JsonResponse
+    public function sendResponse($message = "Success", $result): JsonResponse
     {
         $response = [
             'success' => true,
@@ -57,6 +57,14 @@ class BaseController extends Controller
         return response()->json($response, 200);
     }
 
+    /**
+     * listing response method.
+     *
+     * @param $result
+     * @param $message
+     * @return JsonResponse
+     */
+
     public function sendResponseWithPagination($result, $message): JsonResponse
     {
         $response = [
@@ -77,6 +85,58 @@ class BaseController extends Controller
         ];
 
         return response()->json($response, 200);
+    }
+
+    /**
+     * listing response method.
+     *
+     * @param $result
+     * @param $message
+     * @return JsonResponse
+     */
+
+    public function sendResponseWithPaginationList($result, $object): JsonResponse
+    {
+        extract($object);
+        $response = [
+            'success' => true,
+            'pagination' => [
+                'total' => $result->total(),
+                'lastPage' => $result->lastPage(),
+                'currentPage' => $result->currentPage(),
+                'message' => "Success",
+                'perPage' => $result->perPage(),
+                'prevPage' => $result->currentPage() > 1 ? ($result->currentPage() - 1) : 1,
+                'nextPage' => $result->hasMorePages() ? ($result->currentPage() + 1) : $result->currentPage(),
+                'from' => $result->firstItem(),
+                'to' => $result->lastItem(),
+                'records' => $result->count()
+            ]
+        ];
+        $model = json_decode(json_encode($result->items()), true);
+        if (in_array($type, $typeArr)) {
+            foreach ($model as $key => $value) {
+                $allIds[] = $value[$selector];
+                $pairs[$value[$keyName]] = $value[$valName];
+                if (isset($formattedData[$value[$keyName]])) {
+                    $pairedIds[$value[$keyName]] = [...$pairedIds[$value[$keyName]], $value[$selector]];
+                    $formattedData[$value[$keyName]] = [...$formattedData[$value[$keyName]], $value];
+                } else {
+                    $pairedIds[$value[$keyName]] = [$value[$selector]];
+                    $formattedData[$value[$keyName]] = [$value];
+                }
+            }
+        } else {
+            $formattedData          = $model;
+            foreach ($formattedData as $value) {
+                $allIds[] = $value[$selector];
+            }
+        }
+        $response["data"]       = $formattedData;
+        $response["allIds"]     = $allIds;
+        $response["pairs"]      = $pairs;
+        $response["pairedIds"]  = $pairedIds;
+        return $response;
     }
 
     /**

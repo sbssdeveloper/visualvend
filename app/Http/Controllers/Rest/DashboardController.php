@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Rest;
 
+use DB;
 use App\Models\Admin;
 use App\Models\Employee;
 use App\Models\Feed;
@@ -19,7 +20,7 @@ class DashboardController extends LinkedMachineController
     public function __construct(Request $request)
     {
         parent::__construct($request);
-        \DB::statement("SET SQL_MODE=''");
+        DB::statement("SET SQL_MODE=''");
     }
 
     /**

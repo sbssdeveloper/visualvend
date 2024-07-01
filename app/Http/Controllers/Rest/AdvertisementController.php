@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Cache;
 
 class AdvertisementController extends LinkedMachineController
 {
+    public $request = null;
+    public function __construct(Request $request)
+    {
+        parent::__construct($request);
+        $this->request = $request;
+    }
     /**
      * @OA\Get(
      *     path="/v1/advertisement/list",
@@ -26,13 +32,14 @@ class AdvertisementController extends LinkedMachineController
      *     )
      * )
      */
-    public function list(Request $request, Advertisement $model)
+    public function list(Advertisement $model)
     {
+        $request            = $this->request;
         $admin              = $request->auth->admin_id ?? "client";
         $linked_machines    = $this->linked_machines;
         $response = Cache::remember("advertisement-info:'$admin'", env('GLOBAL_CACHE_TIME', 600), function () use ($model, $request, $linked_machines) {
             return $model->bundle($request, $linked_machines);
         });
-        return $this->sendResponse("Success",$response);
+        return $this->sendResponse("Success", $response);
     }
 }
