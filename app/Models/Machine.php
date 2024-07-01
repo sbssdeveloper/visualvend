@@ -10,7 +10,8 @@ class Machine extends Model
     use SoftDeletes;
     protected $table = 'machine';
     protected $fillable = ['*'];
-    public $timestamps = ['created_at'];
+
+    public $timestamps = false;
 
     public function heart_beats()
     {

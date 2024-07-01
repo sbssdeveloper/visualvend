@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Rest;
 
 use App\Http\Helpers\MachineHelper;
+use App\Http\Requests\MachineConfigurationRequest;
 use App\Models\Admin;
 use App\Models\Machine;
 use App\Rules\MachineUserRule;
@@ -15,7 +16,7 @@ class MachineController extends LinkedMachineController
     public $machine = null;
     public $rule = null;
     public $controller = null;
-    public function __construct(Request $request,MachineHelper $helper, Machine $machine, MachineUserRule $rule, BaseController $controller)
+    public function __construct(Request $request, MachineHelper $helper, Machine $machine, MachineUserRule $rule, BaseController $controller)
     {
         parent::__construct($request);
         $this->helper = $helper;
@@ -206,7 +207,12 @@ class MachineController extends LinkedMachineController
         }
 
         $this->validate($request, $rules);
-        
+
         return $this->helper->cloning($request, $this->controller);
+    }
+
+    public function configure(MachineConfigurationRequest $request)
+    {
+        return $this->helper->configure($request, $this->controller);
     }
 }

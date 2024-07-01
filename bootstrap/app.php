@@ -102,6 +102,7 @@ $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 $app->register(\KitLoong\MigrationsGenerator\MigrationsGeneratorServiceProvider::class);
 $app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
 $app->register(App\Providers\S3BucketServiceProvider::class);
+$app->register(Illuminate\Validation\ValidationServiceProvider::class);
 
 class_alias(PhpOffice\PhpSpreadsheet\Spreadsheet::class,"Spreadsheet");
 class_alias( PhpOffice\PhpSpreadsheet\Writer\Xlsx::class,"XlsxWriter");

@@ -321,4 +321,103 @@ class MachineHelper
         $arr_data['screen_size'] = $row->screen_size;
         return $arr_data;
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/machine/configuration",
+     *     summary="Machine Configuration",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",              
+     *              @OA\Property(property="machine_id", type="integer"),
+     *              @OA\Property(property="logo", type="string"),
+     *              @OA\Property(property="machine_mode", type="integer", example=1),
+     *              @OA\Property(property="serial_port_number", type="string"),
+     *              @OA\Property(property="serial_port_speed", type="integer", example=1),
+     *              @OA\Property(property="screen_size", type="integer", example=1),
+     *              @OA\Property(property="screen_orientation", type="string"),
+     *              @OA\Property(property="machine_passcode_screen", type="integer", example=1),
+     *              @OA\Property(property="advertisement_type", type="integer", example=1),
+     *              @OA\Property(property="machine_advertisement_mode", type="integer", example=1),
+     *              @OA\Property(property="machine_is_game_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_game", type="integer", example=1),
+     *              @OA\Property(property="machine_info_button_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_screensaver_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_volume_control_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_is_asset_tracking", type="integer", example=1),
+     *              @OA\Property(property="machine_is_advertisement_reporting", type="integer", example=1),
+     *              @OA\Property(property="machine_wheel_chair_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_is_feed_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_helpline", type="string"),
+     *              @OA\Property(property="machine_helpline_enabled", type="integer", example=1),
+     *              @OA\Property(property="receipt_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_customer_care_number", type="string"),
+     *              @OA\Property(property="machine_is_job_number_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_is_cost_center_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_is_gift_enabled", type="integer", example=1),
+     *              @OA\Property(property="newsletter_enabled", type="integer", example=1),
+     *              @OA\Property(property="machine_is_single_category", type="integer", example=1),
+     *              @OA\Property(property="machine_live_mode", type="integer", example=1),
+     *              @OA\Property(property="machine_type", type="integer", example=1),
+     *              @OA\Property(property="locker_box_board", type="string"),
+     *              @OA\Property(property="machine_controller", type="string"),
+     *              @OA\Property(property="screen_position", type="string"),
+     *              @OA\Property(property="nuber_screen", type="integer", example=1),
+     *              @OA\Property(property="category_menu_support", type="integer", example=1),
+     *              @OA\Property(property="product_menu_layout", type="string"),
+     *              @OA\Property(property="display2_screen_size", type="integer", example=1),
+     *              @OA\Property(property="display2_screen_orientation", type="string"),
+     *              @OA\Property(property="display2_screen_position", type="string"),
+     *              @OA\Property(property="product_menu_formatting", type="integer", example=1),
+     *              @OA\Property(property="product_menu_color", type="string"),
+     *              @OA\Property(property="product_menu_bg_color", type="string"),
+     *              @OA\Property(property="vend_comms_port", type="string"),
+     *              @OA\Property(property="vend_comms_baud_rate", type="integer", example=1),
+     *              @OA\Property(property="shopping_cart_support", type="integer", example=1),
+     *              @OA\Property(property="cnc_support", type="integer", example=1),
+     *              @OA\Property(property="screensaver_text", type="string"),
+     *              @OA\Property(property="screensaver_text_position", type="string"),
+     *              @OA\Property(property="screensaver_text_color", type="string"),
+     *              @OA\Property(property="screensaver_text_outline", type="string"),
+     *              @OA\Property(property="keypad", type="integer", example=1),
+     *              @OA\Property(property="online_survey_form", type="integer", example=1),
+     *              @OA\Property(property="click_n_collect_btn", type="integer", example=1),
+     *              @OA\Property(property="free_gift_btn", type="integer", example=1),
+     *              @OA\Property(property="machine_helpline2", type="string"),
+     *              @OA\Property(property="thanks_screen_text", type="string"),
+     *              @OA\Property(property="machine_customer_care_email", type="string"),
+     *              @OA\Property(property="vend_screen_text_line1", type="string"),
+     *              @OA\Property(property="vend_screen_text_line2", type="string"),
+     *              @OA\Property(property="vend_screen_text_line3", type="string"),
+     *              @OA\Property(property="screensaver_text_outline_style", type="string"),
+     *              @OA\Property(property="serial_board_type", type="string"),
+     *              @OA\Property(property="serial_baud_rate", type="integer", example=1),
+     *              @OA\Property(property="banner_text", type="string"),
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOjE2MSwiYWRtaW5faWQiOjE1OX0sImlhdCI6MTcxODk2ODA3OSwiZXhwIjoxNzI0MTUyMDc5fQ.LuLaN2o66G1CYxBRa0uheC-ETKD2IiOv3sxEq8QPg7g"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function configure($request, $controller)
+    {
+        $data = $request->all();
+        $model = Machine::where("id", $data["machine_id"]);
+        unset($data["machine_id"]);
+        $model->update($data);
+        return $controller->sendSuccess("Machine configured successfully.");
+    }
 }
