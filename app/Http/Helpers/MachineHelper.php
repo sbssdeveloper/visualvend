@@ -7,6 +7,8 @@ use App\Models\AssignedAdvertisement;
 use DB;
 use Encrypt;
 use App\Models\Machine;
+use App\Models\Admin;
+use App\Models\EmployeeGroupMachines;
 use App\Models\MachineUser;
 use App\Models\MachineInitialSetup;
 use App\Models\MachineProductMap;
@@ -62,13 +64,12 @@ class MachineHelper
         $data = $request->only("machine_name", "machine_username", "machine_row", "machine_column", "machine_address", "machine_latitude", "machine_longitude", "machine_is_single_category");
         $model = Admin::where("is_activated", 1);
         if ($request->auth->client_id <= 0) {
-            $data["machine_client_id"] = $request->client_id;
-            $model  = $model->where("role", "Full Access")->where("client_id", $request->client_id);
+            $data["machine_client_id"] = $request->machine_client_id;
+            $model  = $model->where("role", "Full Access")->where("client_id", $request->machine_client_id);
         } else {
             $data["machine_client_id"] = $request->auth->client_id;
             $model  = $model->where("id", $request->auth->admin_id);
         }
-
         $model  = $model->get();
 
         DB::beginTransaction();
@@ -261,7 +262,23 @@ class MachineHelper
             }
 
             if ($request->need_clone_people) {
-                if ($request->auth->client_id <= 0 && ($existingMachine->machine_client_id != $request->client_id)) {
+                if (($request->auth->client_id <= 0 && ($existingMachine->machine_client_id != $request->client_id)) || ($request->auth->client_id > 0)) {
+                    $client_id = $request->auth->client_id <= 0 ? $request->client_id : $request->auth->client_id;
+                    $empGrp = EmployeeGroup::with("group")->leftJoin("employee_group_machines", "employee_group_machines.uuid", "=", "employee_group.uuid")->where("machine_id", $request->machine_id)->groupBy("employee_group.id")->get();
+                    foreach ($empGrp as $empGrpValue) {
+                        $uuid = (string) Encrypt::uuid();
+                        EmployeeGroup::insert([
+                            "uuid"              => $uuid,
+                            "client_id"         => $client_id,
+                            "group_name"        => $empGrpValue->group_name,
+                            "created_by"        => $request->auth->client_id <= 0 ? $request->auth->name : "Admin",
+                        ]);
+                        $groupVal = [];
+                        foreach ($empGrpValue->group as $grpValue) {
+                            $groupVal[] = ["uuid" => $uuid, "machine_id" => $machine_id, "machine_name" => $request->machine_name];
+                        }
+                        EmployeeGroupMachines::insert($groupVal);
+                    }
                 }
             }
             DB::commit();
