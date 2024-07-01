@@ -112,8 +112,6 @@ class ReportsRepository
         } else {
             $data["least_selling"] = [];
         }
-        print_r($data);
-        die;
         return $this->controller->sendResponseReport($data);
     }
 

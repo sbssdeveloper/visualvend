@@ -136,10 +136,7 @@ class BaseController extends Controller
 
     public function sendResponseReport($data): JsonResponse
     {
-        $response = [
-            'success' => true,
-            ...$data
-        ];
+        $response = array_merge(['success' => true],$data);
         return response()->json($response, 200);
     }
 
