@@ -91,7 +91,7 @@ class BaseController extends Controller
 
     public function sendResponseWithPaginationList($result, $object)
     {
-        $formattedData = $pairs = $pairedIds = $formattedData = $allIds = [];
+        $formattedData = $pairs = $pairedIds = $formattedData = $allIds = $repeated_products = [];
         extract($object);
         $response = [
             'success' => true,
@@ -112,6 +112,14 @@ class BaseController extends Controller
         if (in_array($type, $typeArr)) {
             foreach ($model as $key => $value) {
                 $allIds[] = $value[$selector];
+                if (isset($extra) && in_array("repeated_products", $extra)) {
+                    $keyPair = (string)($value["machine_id"]) . "_" . $value["product_id"];
+                    if (isset($repeated_products[$keyPair])) {
+                        $repeated_products[$keyPair] += 1;
+                    } else {
+                        $repeated_products[$keyPair] = 1;
+                    }
+                }
                 $pairs[$value[$keyName]] = $value[$valName];
                 if (isset($formattedData[$value[$keyName]])) {
                     $pairedIds[$value[$keyName]] = [...$pairedIds[$value[$keyName]], $value[$selector]];
@@ -125,7 +133,18 @@ class BaseController extends Controller
             $formattedData          = $model;
             foreach ($formattedData as $value) {
                 $allIds[] = $value[$selector];
+                if (isset($extra) && in_array("repeated_products", $extra)) {
+                    $keyPair = (string)($value["machine_id"]) . "_" . $value["product_id"];
+                    if (isset($repeated_products[$keyPair])) {
+                        $repeated_products[$keyPair] += 1;
+                    } else {
+                        $repeated_products[$keyPair] = 1;
+                    }
+                }
             }
+        }
+        if (isset($extra) && in_array("repeated_products", $extra)) {
+            $response["machine_product_map"]   = $repeated_products;
         }
         $response["data"]       = $formattedData;
         $response["allIds"]     = $allIds;
@@ -136,7 +155,7 @@ class BaseController extends Controller
 
     public function sendResponseReport($data): JsonResponse
     {
-        $response = array_merge(['success' => true],$data);
+        $response = array_merge(['success' => true], $data);
         return response()->json($response, 200);
     }
 
