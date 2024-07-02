@@ -473,7 +473,7 @@ class ReportsRepository
             ->whereNotNull("machine_product_map.product_id")
             ->where(function ($query) {
                 $query->whereNull("refill_history.is_deleted");
-                $query->where("refill_history.is_deleted", 0);
+                $query->orWhere("refill_history.is_deleted", 0);
             });
 
         if ($client_id > 0) {
