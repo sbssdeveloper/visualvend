@@ -4,6 +4,7 @@ namespace App\Http\Repositories;
 
 use DB;
 use App\Http\Controllers\Rest\BaseController;
+use App\Models\MachineProductMap;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 
@@ -263,8 +264,7 @@ class ReportsRepository
                     ->on("machine_product_map.product_id", "=", "sale_report.product_id");
             })->whereNotNull("sale_report.product_id");
         } else {
-
-            $model              = "SELECT `machine_product_map`.`machine_id`,`machine_product_map`.`updated_at` as timestamp,`machine`.`machine_name`,`machine_product_map`.`id`,`machine_product_map`.`product_id`,`machine_product_map`.`product_name`,`machine_product_map`.`product_location` as aisle_no, `machine_product_map`.`product_max_quantity`,`machine_product_map`.`product_quantity`, (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`) as refill_qty FROM `machine_product_map` LEFT JOIN `machine` ON `machine`.`id`=`machine_product_map`.`machine_id` WHERE `product_id`<>''";
+            $model          = MachineProductMap::select("machine_product_map.machine_id", "machine_product_map.updated_at as timestamp", "machine.machine_name", "machine_product_map.id", "machine_product_map.product_id", "machine_product_map.product_name", "machine_product_map.product_location as aisle_no", "machine_product_map.product_max_quantity", "machine_product_map.product_quantity", "(machine_product_map.product_max_quantity - machine_product_map.product_quantity) as refill_qty")->leftjoin("machine", "machine.id", "=", "machine_product_map.machine_id")->whereNotNull("product_id");
         }
         if ($this->client_id > 0) {
             $topLow        .= " AND `machine_product_map`.`client_id`=$this->client_id";
@@ -272,9 +272,9 @@ class ReportsRepository
             $refill_qty    .= " AND `machine_product_map`.`client_id`=$this->client_id";
             $vended_qty    .= " AND `sale_report`.`client_id`=$this->client_id";
             if ($refill_type === "sale") {
-                $model         .= " AND `sale_report`.`client_id`=$this->client_id";
+                $model      = $model->where("sale_report.client_id", $this->client_id);
             } else {
-                $model         .= " AND `machine_product_map`.`client_id`=$this->client_id";
+                $model      = $model->where("machine_product_map.client_id", $this->client_id);
             }
         }
         if ($machine_id > 0) {
@@ -283,9 +283,9 @@ class ReportsRepository
             $refill_qty    .= " AND `machine_product_map`.`machine_id`=$machine_id";
             $vended_qty    .= " AND `sale_report`.`machine_id`=$machine_id";
             if ($refill_type === "sale") {
-                $model         .= " AND `sale_report`.`machine_id`=$machine_id";
+                $model      = $model->where("sale_report.machine_id", $machine_id);
             } else {
-                $model         .= " AND `machine_product_map`.`machine_id`=$machine_id";
+                $model      = $model->where("machine_product_map.machine_id", $machine_id);
             }
         }
         if ($type === "empty_aisles") {
@@ -294,9 +294,9 @@ class ReportsRepository
             $refill_qty    .= " AND `machine_product_map`.`product_quantity`=0";
             $vended_qty    .= " AND `sale_report`.`aisle_remain_qty`=0";
             if ($refill_type === "sale") {
-                $model         .= " AND `sale_report`.`aisle_remain_qty`=0";
+                $model      = $model->where("sale_report.aisle_remain_qty", 0);
             } else {
-                $model         .= " AND `machine_product_map`.`product_quantity`=0";
+                $model      = $model->where("machine_product_map.product_quantity", 0);
             }
         } else if ($type === "part_full_aisles") {
             $topLow        .= " AND (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>1";
@@ -304,9 +304,9 @@ class ReportsRepository
             $refill_qty    .= " AND (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>1";
             $vended_qty    .= " AND `sale_report`.`aisle_remain_qty`>0";
             if ($refill_type === "sale") {
-                $model         .= " AND `sale_report`.`aisle_remain_qty`>0";
+                $model      = $model->where("sale_report.aisle_remain_qty", ">", 0);
             } else {
-                $model         .= " AND (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>0";
+                $model      = $model->whereRaw("machine_product_map.product_max_quantity - machine_product_map.product_quantity)>0");
             }
         } else if ($type === "full_aisles") {
             $topLow        .= " AND (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)=0";
@@ -314,9 +314,9 @@ class ReportsRepository
             $refill_qty    .= " AND (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)=0";
             $vended_qty    .= " AND (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)=0";
             if ($refill_type === "sale") {
-                $model         .= " AND (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)=0";
+                $model      = $model->whereRaw("(`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)=0");
             } else {
-                $model         .= " AND (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)=0";
+                $model      = $model->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)=0");
             }
         } else if ($type === "low_stock_aisles") {
             $topLow        .= " AND (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>0";
@@ -324,20 +324,17 @@ class ReportsRepository
             $refill_qty    .= " AND (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>0";
             $vended_qty    .= " AND (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)>0";
             if ($refill_type === "sale") {
-                $model         .= " AND (`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)>0";
+                $model      = $model->whereRaw("(`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)>0");
             } else {
-                $model         .= " AND (`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>0";
+                $model      = $model->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>0");
             }
         }
 
         $vended_qty    .= " AND `sale_report`.`timestamp`>='$start_date' AND `sale_report`.`timestamp`<='$end_date'";
 
         if ($refill_type === "sale") {
-            if (!empty($timestamp)) {
-                $model         .= " AND DATE(`sale_report`.`timestamp`)='$timestamp'";
-            } else {
-                $model         .= " AND `sale_report`.`timestamp`>='$start_date' AND `sale_report`.`timestamp`<='$end_date'";
-            }
+            $model      = $model->whereDate("sale_report.timestamp", ">=", $start_date);
+            $model      = $model->whereDate("sale_report.timestamp", "<=", $end_date);
         }
 
         if (!empty($search)) {
@@ -346,29 +343,37 @@ class ReportsRepository
             $refill_qty    .= " AND (`machine_product_map`.`product_name` LIKE '$search%' OR `machine`.`machine_name` LIKE '$search%')";
             $vended_qty    .= " AND (`sale_report`.`product_name` LIKE '$search%' OR `sale_report`.`machine_name` LIKE '$search%')";
             if ($refill_type === "sale") {
-                $model         .= " AND (`sale_report`.`product_name` LIKE '$search%' OR `sale_report`.`machine_name` LIKE '$search%')";
+                $model      = $model->where(function ($query) {
+                    $query->where("sale_report.product_name", "LIKE", "%$search%");
+                    $query->orWhere("sale_report.machine_name", "LIKE", "%$search%");
+                });
             } else {
-                $model         .= " AND (`machine_product_map`.`product_name` LIKE '$search%' OR `machine`.`machine_name` LIKE '$search%')";
+                $model      = $model->where(function ($query) {
+                    $query->where("machine_product_map.product_name", "LIKE", "%$search%");
+                    $query->orWhere("machine.machine_name", "LIKE", "%$search%");
+                });
             }
         }
 
         if ($this->client_id > 0) {
+            if ($refill_type === "sale") {
+                $model      = $model->whereIn("sale_report.machine_id", $my_machines);
+            } else {
+                $model      = $model->whereIn("machine_product_map.machine_id", $my_machines);
+            }
             $my_machines    = implode(",", $my_machines);
             $topLow        .= " AND `machine_product_map`.`machine_id` IN ($my_machines)";
             $machines      .= " AND `machine_product_map`.`machine_id` IN ($my_machines)";
             $refill_qty    .= " AND `machine_product_map`.`machine_id` IN ($my_machines)";
             $vended_qty    .= " AND `sale_report`.`machine_id` IN ($my_machines)";
-            if ($refill_type === "sale") {
-                $model         .= " AND `sale_report`.`machine_id` IN ($my_machines)";
-            } else {
-                $model         .= " AND `machine_product_map`.`machine_id` IN ($my_machines)";
-            }
         }
         $machines         .= " GROUP BY `machine_product_map`.`machine_id`";
         $vended_qty       .= " ORDER BY `sale_report`.`id` DESC";
         $vended_qty        =  DB::select($vended_qty);
         $vended_data       = [];
         $vended_new_qty    = 0;
+        print_r($vended_qty);
+        die;
         foreach ($vended_qty as $key => $value) {
             $combined_new = $value["machine_id"] . "-" . $value["product_id"] . "-" . ($value["aisle_no"] ?? "empty");
             if (isset($vended_data[$combined_new])) {
@@ -387,11 +392,15 @@ class ReportsRepository
         $machines          = count(DB::select($machines));
         $refill_qty        = DB::select($refill_qty);
         $refill_qty        = $refill_qty ? $refill_qty[0]->refill_qty : 0;
-        $model             .= $refill_type === "sale" ? " ORDER BY `sale_report`.`id` DESC" : " ORDER BY refill_qty DESC";
+        if ($refill_type == "sale") {
+            $model         = $model->orderBy("sale_report.id", "DESC");
+        } else {
+            $model         = $model->orderBy("refill_qty", "DESC");
+        }
 
-        extract($paginate);
-        $model             .= " LIMIT $offset,$length";
-        $model              = $this->db->query($model)->result_array();
+        $paginate          = $model->paginate($this->request->length ?? 10);
+        
+        $model             = json_decode(json_encode($paginate->items()), true);
         $formattedData = $pairs = $allIds = $pairedIds = [];
         if (in_array($type, ["machine", "product"])) {
             $keyName        = $type === "machine" ? "machine_id" :  "product_id";
@@ -417,7 +426,6 @@ class ReportsRepository
             $formattedData = $model;
             foreach ($formattedData as $value) {
                 $combined = (string)($value["machine_id"]) . "_" . $value["product_id"];
-                // $machines[] = $value["machine_id"];
                 if (isset($machine_product_map[$combined])) {
                     $machine_product_map[$combined] += 1;
                 } else {
@@ -426,13 +434,8 @@ class ReportsRepository
                 $allIds[] = $value["id"];
             }
         }
-        $paginate["time_diff"]              = $time_diff;
+
         $paginate["machine_product_map"]    = $machine_product_map;
-        $paginate["showingRecords"]         = count($model);
-        $paginate["data"]                   = $formattedData;
-        $paginate["pairs"]                  = $pairs;
-        $paginate["all"]                    = $allIds;
-        $paginate["paired"]                 = $pairedIds;
         $paginate["total_refills"]          = $refill_qty;
         $paginate["total_machines"]         = $machines;
         $paginate["top_refilling"]          = $topRefill;
