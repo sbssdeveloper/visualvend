@@ -4,6 +4,7 @@ namespace App\Http\Repositories;
 
 use DB;
 use App\Http\Controllers\Rest\BaseController;
+use App\Models\Machine;
 use App\Models\MachineProductMap;
 use App\Models\Sale;
 use Illuminate\Http\Request;
@@ -500,7 +501,7 @@ class ReportsRepository
         } else if (in_array($type, ["empty_items", "empty_aisles"])) {
             $model  = $model->where("machine_product_map.product_quantity", 0);
         }
-        $model  = $model->groupByRaw("IFNULL(C.machine_id, B.id), IFNULL(C.aisle_number, B.id) ORDER BY A.id ASC")->paginate($this->request->length ?? 10);
+        $model  = $model->groupByRaw("IFNULL(refill_history.machine_id, machine_product_map.id), IFNULL(refill_history.aisle_number, machine_product_map.id) ORDER BY machine.id ASC")->paginate($this->request->length ?? 10);
 
         $data =  $this->controller->sendResponseWithPaginationList($model, [
             "type"      => $this->request->type,
