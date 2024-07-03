@@ -679,39 +679,40 @@ class ReportsRepository
 
         $model          = MachineProductMap::selectRaw("machine_product_map.id,machine_product_map.updated_at,machine_product_map.machine_id,  machine.machine_name, machine_product_map.product_id, machine_product_map.product_name, product.product_batch_no, machine_product_map.product_quantity, product.product_batch_expiray_date, GROUP_CONCAT(machine_product_map.product_location) as aisles, product.discount_price, product.product_discount_type, product.product_discount_code, machine_product_map.product_price, IF(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date)>0,CONCAT(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date),' Days'),'EXPIRED') as days_remaining");
 
-        $model->leftJoin("product", function ($join) {
-            $join->on("machine_product_map.product_id", "=", "product.id");
+        $model = $model->leftJoin("product", function ($join) {
+            $join->on("machine_product_map.product_id", "=", "product.product_id");
             $join->on("machine_product_map.client_id", "=", "product.client_id");
         });
 
-        $model->leftJoin("machine", "machine.id", "=", "machine_product_map.machine_id");
+        $model = $model->leftJoin("machine", "machine.id", "=", "machine_product_map.machine_id");
 
-        $model->whereNotNull("product.product_batch_expiray_date");
+        $model = $model->whereNotNull("product.product_batch_expiray_date");
 
         if (!empty($start_date) && !empty($end_date)) {
-            $model->WhereDate("product.created_at", ">=", $start_date);
-            $model->WhereDate("product.created_at", "<=", $end_date);
+            $model = $model->WhereDate("product.created_at", ">=", $start_date);
+            $model = $model->WhereDate("product.created_at", "<=", $end_date);
         }
 
         if (!empty($search)) {
-            $model->where(function ($query) use ($search) {
+            $model = $model->where(function ($query) use ($search) {
                 $query->where('machine_product_map.product_name', 'like', "$search%");
                 $query->orWhere('machine.machine_name', 'like', "$search%");
             });
         }
 
         if ($machine_id > 0) {
-            $model->where("machine_product_map.machine_id", $machine_id);
+            $model = $model->where("machine_product_map.machine_id", $machine_id);
         }
 
         if ($this->client_id > 0) {
-            $model->whereIn("machine_product_map.machine_id", $machines);
+            $model = $model->whereIn("machine_product_map.machine_id", $machines);
         }
 
-        $model->groupBy("machine_product_map.machine_id", "machine_product_map.product_id");
-        $model->orderBy("machine_product_map.id", "DESC");
+        $model = $model->groupBy("machine_product_map.machine_id", "machine_product_map.product_id");
+        $model = $model->orderBy("machine_product_map.id", "DESC");
         $model = $model->paginate($this->request->length ?? 50);
-
+        // print_r($model);
+        // die;
         $data =  $this->controller->sendResponseWithPaginationList($model, [
             "type"      => $this->request->type,
             "selector"  => "id",
