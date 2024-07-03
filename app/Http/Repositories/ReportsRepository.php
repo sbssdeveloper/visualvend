@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 
 class ReportsRepository
 {
+    public const _VEND_ERRORS = ["Motor Error", "Out of Stock", "Vend Drop Error", "not correctly vending", "Price Mismatch", "Invalid Aisle", "Stock Mismatch", "Vend Failed", "Sold out", "Controller Error", "Need Service"];
+
     public $request = null;
     public $controller = null;
     public function __construct(Request $request, BaseController $controller)
@@ -676,7 +678,7 @@ class ReportsRepository
         $search         = $this->request->search;
 
         $model          = MachineProductMap::selectRaw("machine_product_map.id,machine_product_map.updated_at,machine_product_map.machine_id,  machine.machine_name, machine_product_map.product_id, machine_product_map.product_name, product.product_batch_no, machine_product_map.product_quantity, product.product_batch_expiray_date, GROUP_CONCAT(machine_product_map.product_location) as aisles, product.discount_price, product.product_discount_type, product.product_discount_code, machine_product_map.product_price, IF(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date)>0,CONCAT(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date),' Days'),'EXPIRED') as days_remaining");
-        
+
         $model->leftJoin("product", function ($join) {
             $join->on("machine_product_map.product_id", "=", "product.id");
             $join->on("machine_product_map.client_id", "=", "product.client_id");
@@ -708,7 +710,7 @@ class ReportsRepository
 
         $model->groupBy("machine_product_map.machine_id", "machine_product_map.product_id");
         $model->orderBy("machine_product_map.id", "DESC");
-        $model->paginate($this->request->length ?? 50);
+        $model = $model->paginate($this->request->length ?? 50);
 
         $data =  $this->controller->sendResponseWithPaginationList($model, [
             "type"      => $this->request->type,
@@ -776,26 +778,26 @@ class ReportsRepository
 
         if (in_array($type, ["all_errors", "machine"]) && $search != "") {
             if ($type === "all_errors") {
-                $model                  = $model->like("location_non_functional.error_code", $search, "after");
+                $model->where("location_non_functional.error_code", "LIKE", "$search%");
             } else {
-                $model                  = $model->like("machine.machine_name", $search, "after");
+                $model->where("machine.machine_name", "LIKE", "$search%");
             }
         }
 
-        if ($start_date && $end_date) {
-            $model                  = $model->where('location_non_functional.timestamp>=', $start_date);
-            $model                  = $model->where('location_non_functional.timestamp<=', $end_date);
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereDate("location_non_functional.timestamp", ">=", $start_date);
+            $model->whereDate("location_non_functional.timestamp", "<=", $end_date);
         }
 
         if ($type) {
             if (in_array($type, self::_VEND_ERRORS)) {
-                $model          = $model->where("location_non_functional.error_code", $type);
+                $model->where("location_non_functional.error_code", $type);
             } else if ($type === "all_errors") {
-                $model          = $model->where("location_non_functional.error_code <>", "");
+                $model->whereNotNull("location_non_functional.error_code");
             } else if ($type === "product_faults") {
-                $model          = $model->like("location_non_functional.error_code", "fault", "both");
+                $model->where("location_non_functional.error_code", "LIKE", "%fault%");
             } else if ($type === "payment_faults") {
-                $model          = $model->like("location_non_functional.error_code", "payment", "both");
+                $model->where("location_non_functional.error_code", "LIKE", "%payment%");
             }
         }
         if ($this->admin_id > 0 && $this->client_id > 0) {
