@@ -1054,7 +1054,7 @@ class ReportsRepository
         $type           = $this->request->type;
         $search         = $this->request->search;
 
-        $model          = EmployeeTransaction::select("employee_transaction.id", "employee_transaction.transaction_id", "employee_transaction.job_number", "employee_transaction.cost_center", "employee_transaction.employee_id", "employee_transaction.employee_full_name", "employee_transaction.product_id", "employee_transaction.product_name", "client.client_name as client_name", "product.product_sku as product_sku", "employee_transaction.machine_name", "employee_transaction.pickup_or_return");
+        $model          = EmployeeTransaction::select("employee_transaction.machine_id","employee_transaction.id", "employee_transaction.transaction_id", "employee_transaction.job_number", "employee_transaction.cost_center", "employee_transaction.employee_id", "employee_transaction.employee_full_name", "employee_transaction.product_id", "employee_transaction.product_name", "client.client_name as client_name", "product.product_sku as product_sku", "employee_transaction.machine_name", "employee_transaction.pickup_or_return");
 
         $model->leftJoin("client", "client.id", "=", "employee_transaction.client_id");
 
