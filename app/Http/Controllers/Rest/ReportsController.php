@@ -91,4 +91,13 @@ class ReportsController extends LinkedMachineController
         ]);
         return $this->repo->getEmail();
     }
+    
+    public function staff()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->staff($this->linked_machines);
+    }
 }

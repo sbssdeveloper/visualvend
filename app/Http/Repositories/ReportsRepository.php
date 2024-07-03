@@ -4,6 +4,7 @@ namespace App\Http\Repositories;
 
 use DB;
 use App\Http\Controllers\Rest\BaseController;
+use App\Models\EmployeeTransaction;
 use App\Models\Feedback;
 use App\Models\LocationNonFunctional;
 use App\Models\Machine;
@@ -1003,6 +1004,106 @@ class ReportsRepository
             "typeArr"   => ["type", "frequency"],
             "keyName"   => $this->request->type,
             "valName"   => $this->request->type
+        ]);
+
+        return $this->controller->sendResponseReport($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/staff",
+     *     summary="Reports Staff",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function staff($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        $model          = EmployeeTransaction::select("employee_transaction.id", "employee_transaction.transaction_id", "employee_transaction.job_number", "employee_transaction.cost_center", "employee_transaction.employee_id", "employee_transaction.employee_full_name", "employee_transaction.product_id", "employee_transaction.product_name", "client.client_name as client_name", "product.product_sku as product_sku", "employee_transaction.machine_name", "employee_transaction.pickup_or_return");
+
+        $model->leftJoin("client", "client.id", "=", "employee_transaction.client_id");
+
+        $model->leftJoin("product", function ($join) {
+            $join->on("product.id", "=", "employee_transaction.product_id");
+            $join->on("product.client_id", "=", "employee_transaction.client_id");
+        });
+
+        $model->where("employee_transaction.is_deleted", 0);
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("employee_transaction.transaction_id", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.employee_id", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.employee_full_name", "LIKE", "%$search%");
+                $query->orWhere("employee_transaction.product_id", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.product_name", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.machine_name", "LIKE", "$search%");
+            });
+        }
+
+        if ($client_id > 0) {
+            $model->whereIn("employee_transaction.machine_id", $machines);
+        }
+
+        if ($machine_id > 0) {
+            $model->where("employee_transaction.machine_id", $machine_id);
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereDate("employee_transaction.timestamp", ">=", $start_date);
+            $model->whereDate("employee_transaction.timestamp", "<=", $end_date);
+        }
+
+        $model->groupBy("employee_transaction.id");
+
+        if ($type === "machine") {
+            $model->orderBy("machine_name", "DESC");
+        } else if ($type === "product") {
+            $model->orderBy("product_name", "DESC");
+        } else if ($type === "employee") {
+            $model->orderBy("employee_full_name", "DESC");
+        } else {
+            $model->orderBy("timestamp", "DESC");
+        }
+        $model = $model->paginate($this->request->length ?? 50);
+
+        $data = $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $this->request->type,
+            "selector"  => "id",
+            "typeArr"   => ["machine", "product", "employee"],
+            "keyName"   => $this->request->type === "machine" ? "machine_id" : ($this->request->type == "product" ? "product_id" : "employee_id"),
+            "valName"   => $this->request->type === "machine" ? "machine_name" : ($this->request->type == "product" ? "product_name" : "employee_full_name")
         ]);
 
         return $this->controller->sendResponseReport($data);
