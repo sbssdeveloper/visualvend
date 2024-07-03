@@ -4,6 +4,7 @@ namespace App\Http\Repositories;
 
 use DB;
 use App\Http\Controllers\Rest\BaseController;
+use App\Models\Feedback;
 use App\Models\LocationNonFunctional;
 use App\Models\Machine;
 use App\Models\MachineProductMap;
@@ -818,6 +819,123 @@ class ReportsRepository
             "typeArr"   => ["machine", "all_errors"],
             "keyName"   => $this->request->type === "machine" ? "machine_id" : "error_code",
             "valName"   => $this->request->type === "machine" ? "machine_name" : "error_code",
+        ]);
+
+        return $this->controller->sendResponseReport($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/feedback",
+     *     summary="Reports Feedback",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function feedback()
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+
+        $model              = Feedback::select("feedback.*", "product.product_name as product_name", "machine.machine_name as machine_name", "client.client_name as client_name");
+        $model->leftJoin("product", "product.id", "=", "feedback.product_id");
+        $model->leftJoin("machine", "machine.id", "=", "feedback.machine_id");
+        $model->leftJoin("client", "client.id", "=", "feedback.client_id");
+        $model->where("feedback.is_deleted", 0);
+        $model->whereNotNull("feedback.transaction_id");
+
+        if ($client_id > 0) {
+            $model->where("feedback.client_id", $client_id);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where('feedback.machine_name', 'like', $search . '%');
+                $query->orWhere('feedback.product_name', 'like', $search . '%');
+                $query->orWhere('feedback.complaint', 'like', $search . '%');
+                $query->orWhere('feedback.customer_name', 'like', $search . '%');
+            });
+        }
+
+        if ($machine_id && $machine_id > 0) {
+            $model->where("feedback.machine_id", $machine_id);
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereDate('feedback.timestamp', ">=", $start_date);
+            $model->whereDate('feedback.timestamp', "<=", $end_date);
+        }
+        if ($this->client_id > 0) {
+            $model->whereIn("feedback.machine_id", $machines);
+        }
+
+        if ($type === "location") {
+            $model->orderBy('machine.machine_address', "DESC");
+        } else if ($type === "most_recent") {
+            $model->orderBy('feedback.feedback_id', "DESC");
+        } else if ($type === "time_past") {
+            $model->orderBy('feedback.feedback_id', "ASC");
+        } else if ($type === "customer") {
+            $model->orderBy('feedback.customer_name', "DESC");
+        } else if ($type === "feedback_type") {
+            $model->orderBy('feedback.feedback', "DESC");
+        } else if ($type === "machine") {
+            $model->orderBy('feedback.machine_name', "DESC");
+        } else if ($type === "product") {
+            $model->orderBy('feedback.product_name', "DESC");
+        }
+        $model = $model->paginate($this->request->length ?? 50);
+        $keyName = $valName = "";
+        if ($type === "machine") {
+            $keyName = "machine_id";
+            $valName = "machine_name";
+        } else if ($type === "product") {
+            $keyName = "product_id";
+            $valName = "product_name";
+        } else if ($type === "feedback_type") {
+            $keyName = "complaint";
+            $valName = "complaint";
+        } else if ($type === "location") {
+            $keyName = "address";
+            $valName = "address";
+        } else if ($type === "customer") {
+            $keyName = "customer_name";
+            $valName = "customer_name";
+        }
+        $data =  $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $this->request->type,
+            "selector"  => "feedback_id",
+            "typeArr"   => ["machine", "product", "feedback_type", "location", "customer"],
+            "keyName"   => $keyName,
+            "valName"   => $valName
         ]);
 
         return $this->controller->sendResponseReport($data);
