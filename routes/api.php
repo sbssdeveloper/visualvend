@@ -78,5 +78,6 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('reports/expiry/products','ReportsController@expiryProducts');
         $router->post('reports/vend/error',     'ReportsController@vend_error');
         $router->post('reports/feedback',       'ReportsController@feedback');
+        $router->post('reports/email',          'ReportsController@getEmail');
     });
 });

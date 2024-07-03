@@ -82,4 +82,13 @@ class ReportsController extends LinkedMachineController
         ]);
         return $this->repo->feedback($this->linked_machines);
     }
+
+    public function getEmail()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->getEmail();
+    }
 }
