@@ -9,6 +9,7 @@ use App\Models\Feedback;
 use App\Models\LocationNonFunctional;
 use App\Models\Machine;
 use App\Models\MachineProductMap;
+use App\Models\Receipts;
 use App\Models\ReportEmail;
 use App\Models\Sale;
 use App\Models\ServiceReport;
@@ -1176,6 +1177,77 @@ class ReportsRepository
             "typeArr"   => ["machine", "product"],
             "keyName"   => $this->request->type === "machine" ? "machine_id" : "product_id",
             "valName"   => $this->request->type === "machine" ? "machine_name" : "product_name"
+        ]);
+
+        return $this->controller->sendResponseReport($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/receipts",
+     *     summary="Reports Customer",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function receipts($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        $model          = Receipts::select("receipts.*", "machine.machine_name")->leftJoin("machine", "machine.id", "=", "receipts.machine_id")->whereDate("receipts.created_at", ">=", $start_date)->whereDate("receipts.created_at", "<=", $end_date);
+
+        if (!empty($machine_id)) {
+            $model = $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model = $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where("machine.machine_name", "like", "$search%");
+            $model->where("receipts.product", "like", "$search%");
+        }
+
+        $model->orderBy("receipts.created_at", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        $data = $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $this->request->type,
+            "selector"  => "id",
+            "typeArr"   => ["machine", "product"],
+            "keyName"   => $this->request->type === "machine" ? "machine_id" : "product",
+            "valName"   => $this->request->type === "machine" ? "machine_name" : "product"
         ]);
 
         return $this->controller->sendResponseReport($data);
