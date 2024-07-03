@@ -871,7 +871,7 @@ class ReportsRepository
         $type               = $this->request->type;
         $search             = $this->request->search;
 
-        $model              = Feedback::select("feedback.*", "product.product_name as product_name", "machine.machine_name as machine_name", "client.client_name as client_name");
+        $model              = Feedback::select("feedback.*","machine.machine_address", "product.product_name as product_name", "machine.machine_name as machine_name", "client.client_name as client_name");
         $model->leftJoin("product", "product.id", "=", "feedback.product_id");
         $model->leftJoin("machine", "machine.id", "=", "feedback.machine_id");
         $model->leftJoin("client", "client.id", "=", "feedback.client_id");
@@ -930,8 +930,8 @@ class ReportsRepository
             $keyName = "complaint";
             $valName = "complaint";
         } else if ($type === "location") {
-            $keyName = "address";
-            $valName = "address";
+            $keyName = "machine_address";
+            $valName = "machine_address";
         } else if ($type === "customer") {
             $keyName = "customer_name";
             $valName = "customer_name";
