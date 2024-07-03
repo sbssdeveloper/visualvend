@@ -634,4 +634,84 @@ class ReportsRepository
 
         return $this->controller->sendResponseReport($data);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/expiry/products",
+     *     summary="Reports Expiry Products",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function expiryProducts($request)
+    {
+        $type           = $this->request->type;
+        $machine_id     = $this->request->machine_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $search         = $this->request->search;
+
+        $model          = MachineProductMap::selectRaw("machine_product_map.id,machine_product_map.updated_at,machine_product_map.machine_id,  machine.machine_name, machine_product_map.product_id, machine_product_map.product_name, product.product_batch_no, machine_product_map.product_quantity, product.product_batch_expiray_date, GROUP_CONCAT(machine_product_map.product_location) as aisles, product.discount_price, product.product_discount_type, product.product_discount_code, machine_product_map.product_price, IF(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date)>0,CONCAT(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date),' Days'),'EXPIRED') as days_remaining")->leftJoin("product", function ($join) {
+            $join->on("machine_product_map.product_id", "=", "product.id");
+            $join->on("machine_product_map.client_id", "=", "product.client_id");
+        })->whereNotNull("product.product_batch_expiray_date");
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->WhereDate("product.created_at", ">=", $start_date);
+            $model->WhereDate("product.created_at", "<=", $end_date);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where('machine_product_map.product_name', 'like', "$search%");
+                $query->orWhere('machine.machine_name', 'like', "$search%");
+            });
+        }
+
+        if ($machine_id > 0) {
+            $model->where("machine_product_map.machine_id", $machine_id);
+        }
+
+        if ($this->client_id > 0) {
+            $model->whereIn("machine_product_map.machine_id", $machines);
+        }
+
+        $model->groupBy("machine_product_map.machine_id", "machine_product_map.product_id");
+        $model->orderBy("machine_product_map.id", "DESC");
+        $model->paginate($this->request->length ?? 50);
+
+        $data =  $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $this->request->type,
+            "selector"  => "id",
+            "typeArr"   => ["machine", "product", 'expiry'],
+            "keyName"   => $this->request->type === "machine" ? "machine_id" : ($this->request->type === "expiry" ? "product_batch_expiray_date" : "product_id"),
+            "valName"   => $this->request->type === "machine" ? "machine_name" : ($this->request->type === "expiry" ? "product_batch_expiray_date" : "product_name"),
+        ]);
+
+        return $this->controller->sendResponseReport($data);
+    }
 }
