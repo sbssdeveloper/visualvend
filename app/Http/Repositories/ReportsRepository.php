@@ -555,7 +555,7 @@ class ReportsRepository
         $type               = $this->request->type;
         $search             = $this->request->search;
 
-        $model              = Sale::select("sale_report.employee_id","sale_report.employee_name","sale_report.id", "sale_report.timestamp", "sale_report.transaction_id", "sale_report.product_id", "sale_report.machine_id", "sale_report.product_name", "sale_report.machine_name", DB::raw("IF(sale_report.pickup_or_return=-1,'Pickup','Return') as vend_state"), DB::raw("IF(sale_report.transaction_status=2,'Vended Ok','Error') as errror_code"), DB::raw("IF(sale_report.transaction_status=2,'Paid - Vended','Error') as status"), DB::raw("IF(sale_report.aisle_no IS NULL,'NA',sale_report.aisle_no) as aisle_no"), DB::raw("FORMAT(sale_report.product_price,2) as price"), "machine_product_map.product_max_quantity", "machine_product_map.product_quantity")->leftJoin("machine_product_map", function ($join) {
+        $model              = Sale::select("sale_report.employee_id", "sale_report.employee_name", "sale_report.id", "sale_report.timestamp", "sale_report.transaction_id", "sale_report.product_id", "sale_report.machine_id", "sale_report.product_name", "sale_report.machine_name", DB::raw("IF(sale_report.pickup_or_return=-1,'Pickup','Return') as vend_state"), DB::raw("IF(sale_report.transaction_status=2,'Vended Ok','Error') as errror_code"), DB::raw("IF(sale_report.transaction_status=2,'Paid - Vended','Error') as status"), DB::raw("IF(sale_report.aisle_no IS NULL,'NA',sale_report.aisle_no) as aisle_no"), DB::raw("FORMAT(sale_report.product_price,2) as price"), "machine_product_map.product_max_quantity", "machine_product_map.product_quantity")->leftJoin("machine_product_map", function ($join) {
             $join->on("sale_report.product_id", "=", "machine_product_map.product_id");
             $join->on("sale_report.machine_id", "=", "machine_product_map.machine_id");
             $join->on("sale_report.aisle_no", "=", "machine_product_map.product_location");
@@ -667,7 +667,7 @@ class ReportsRepository
      * )
      */
 
-    public function expiryProducts($request)
+    public function expiryProducts($machines)
     {
         $type           = $this->request->type;
         $machine_id     = $this->request->machine_id;
@@ -675,10 +675,16 @@ class ReportsRepository
         $end_date       = $this->request->end_date;
         $search         = $this->request->search;
 
-        $model          = MachineProductMap::selectRaw("machine_product_map.id,machine_product_map.updated_at,machine_product_map.machine_id,  machine.machine_name, machine_product_map.product_id, machine_product_map.product_name, product.product_batch_no, machine_product_map.product_quantity, product.product_batch_expiray_date, GROUP_CONCAT(machine_product_map.product_location) as aisles, product.discount_price, product.product_discount_type, product.product_discount_code, machine_product_map.product_price, IF(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date)>0,CONCAT(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date),' Days'),'EXPIRED') as days_remaining")->leftJoin("product", function ($join) {
+        $model          = MachineProductMap::selectRaw("machine_product_map.id,machine_product_map.updated_at,machine_product_map.machine_id,  machine.machine_name, machine_product_map.product_id, machine_product_map.product_name, product.product_batch_no, machine_product_map.product_quantity, product.product_batch_expiray_date, GROUP_CONCAT(machine_product_map.product_location) as aisles, product.discount_price, product.product_discount_type, product.product_discount_code, machine_product_map.product_price, IF(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date)>0,CONCAT(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date),' Days'),'EXPIRED') as days_remaining");
+        
+        $model->leftJoin("product", function ($join) {
             $join->on("machine_product_map.product_id", "=", "product.id");
             $join->on("machine_product_map.client_id", "=", "product.client_id");
-        })->whereNotNull("product.product_batch_expiray_date");
+        });
+
+        $model->leftJoin("machine", "machine.id", "=", "machine_product_map.machine_id");
+
+        $model->whereNotNull("product.product_batch_expiray_date");
 
         if (!empty($start_date) && !empty($end_date)) {
             $model->WhereDate("product.created_at", ">=", $start_date);
@@ -713,5 +719,124 @@ class ReportsRepository
         ]);
 
         return $this->controller->sendResponseReport($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/vend/error",
+     *     summary="Reports Vend Error",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function vend_error($machines)
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+
+        $model              = LocationNonFunctional::select("location_non_functional.*", "machine.machine_name");
+        $model->leftJoin("machine", "machine.id", "=", "location_non_functional.machine_id");
+        $model->where("location_non_functional.is_deleted", 0);
+
+        if ($client_id > 0) {
+            $model->whereIn("location_non_functional.machine_id", $machines);
+        }
+
+        if ($machine_id && $machine_id > 0) {
+            $model->where("location_non_functional.id", $machine_id);
+        }
+
+        if (in_array($type, ["all_errors", "machine"]) && $search != "") {
+            if ($type === "all_errors") {
+                $model                  = $model->like("location_non_functional.error_code", $search, "after");
+            } else {
+                $model                  = $model->like("machine.machine_name", $search, "after");
+            }
+        }
+
+        if ($start_date && $end_date) {
+            $model                  = $model->where('location_non_functional.timestamp>=', $start_date);
+            $model                  = $model->where('location_non_functional.timestamp<=', $end_date);
+        }
+
+        if ($type) {
+            if (in_array($type, self::_VEND_ERRORS)) {
+                $model          = $model->where("location_non_functional.error_code", $type);
+            } else if ($type === "all_errors") {
+                $model          = $model->where("location_non_functional.error_code <>", "");
+            } else if ($type === "product_faults") {
+                $model          = $model->like("location_non_functional.error_code", "fault", "both");
+            } else if ($type === "payment_faults") {
+                $model          = $model->like("location_non_functional.error_code", "payment", "both");
+            }
+        }
+        if ($this->admin_id > 0 && $this->client_id > 0) {
+            $model          = $model->where_in('location_non_functional.machine_id', count($this->machines) ? $this->machines : ["no_machine"]);
+        }
+        if ($type === "machine") {
+            $model              = $model->order_by("machine.machine_name", "ASC");
+        } else {
+            $model              = $model->order_by("location_non_functional.error_code", "ASC");
+        }
+        $model              = $model->limit($paginate["length"], $paginate["offset"])->get("location_non_functional")->result_array();
+
+        $formattedData = $pairs = $allIds = $pairedIds = [];
+        if (in_array($type, ["machine", "all_errors"])) {
+            $keyName        = $type === "machine" ? "machine_id" : "error_code";
+            $valName        = $type === "machine" ? "machine_name" : "error_code";
+            foreach ($model as $key => $value) {
+                $allIds[] = $value["id"];
+                $pairs[$value[$keyName]] = $value[$valName];
+                if (isset($formattedData[$value[$keyName]])) {
+                    $pairedIds[$value[$keyName]] = [...$pairedIds[$value[$keyName]], $value["id"]];
+                    $formattedData[$value[$keyName]] = [...$formattedData[$value[$keyName]], $value];
+                } else {
+                    $pairedIds[$value[$keyName]] = [$value["id"]];
+                    $formattedData[$value[$keyName]] = [$value];
+                }
+            }
+        } else {
+            $formattedData = $model;
+            foreach ($formattedData as $value) {
+                $allIds[] = $value["id"];
+            }
+        }
+        $paginate["showingRecords"] = count($model);
+        $paginate["data"]           = $formattedData;
+        $paginate["pairs"]          = $pairs;
+        $paginate["all"]            = $allIds;
+        $paginate["paired"]         = $pairedIds;
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode($paginate));
     }
 }
