@@ -136,4 +136,13 @@ class ReportsController extends LinkedMachineController
         ]);
         return $this->repo->payment($this->linked_machines);
     }
+
+    public function vend_queue()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->vend_queue($this->linked_machines);
+    }
 }

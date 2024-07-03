@@ -11,6 +11,7 @@ use App\Models\LocationNonFunctional;
 use App\Models\Machine;
 use App\Models\MachineProductMap;
 use App\Models\Receipts;
+use App\Models\RemoteVend;
 use App\Models\ReportEmail;
 use App\Models\Sale;
 use App\Models\ServiceReport;
@@ -871,7 +872,7 @@ class ReportsRepository
         $type               = $this->request->type;
         $search             = $this->request->search;
 
-        $model              = Feedback::select("feedback.*","machine.machine_address", "product.product_name as product_name", "machine.machine_name as machine_name", "client.client_name as client_name");
+        $model              = Feedback::select("feedback.*", "machine.machine_address", "product.product_name as product_name", "machine.machine_name as machine_name", "client.client_name as client_name");
         $model->leftJoin("product", "product.id", "=", "feedback.product_id");
         $model->leftJoin("machine", "machine.id", "=", "feedback.machine_id");
         $model->leftJoin("client", "client.id", "=", "feedback.client_id");
@@ -1054,7 +1055,7 @@ class ReportsRepository
         $type           = $this->request->type;
         $search         = $this->request->search;
 
-        $model          = EmployeeTransaction::select("employee_transaction.machine_id","employee_transaction.id", "employee_transaction.transaction_id", "employee_transaction.job_number", "employee_transaction.cost_center", "employee_transaction.employee_id", "employee_transaction.employee_full_name", "employee_transaction.product_id", "employee_transaction.product_name", "client.client_name as client_name", "product.product_sku as product_sku", "employee_transaction.machine_name", "employee_transaction.pickup_or_return");
+        $model          = EmployeeTransaction::select("employee_transaction.machine_id", "employee_transaction.id", "employee_transaction.transaction_id", "employee_transaction.job_number", "employee_transaction.cost_center", "employee_transaction.employee_id", "employee_transaction.employee_full_name", "employee_transaction.product_id", "employee_transaction.product_name", "client.client_name as client_name", "product.product_sku as product_sku", "employee_transaction.machine_name", "employee_transaction.pickup_or_return");
 
         $model->leftJoin("client", "client.id", "=", "employee_transaction.client_id");
 
@@ -1432,6 +1433,82 @@ class ReportsRepository
         $data["summary"]            = $summary;
         $data["failedSummary"]      = $failedSummary;
 
+        return $this->controller->sendResponseReport($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/vend/queue",
+     *     summary="Reports Vend Queue",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function vend_queue($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        $model          = RemoteVend::select("*", DB::raw("TIMESTAMPDIFF(MINUTE,created_at,updated_at) as time_diff"))->where("is_deleted", 0);
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereBetween("created_at", [$start_date, $end_date]);
+        }
+
+        if (!empty($machine_id)) {
+            $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("customer_name", "LIKE", "$search%");
+                $query->orWhere("product_name", "LIKE", "$search%");
+                $query->orWhere("machine_name", "LIKE", "$search%");
+            });
+        }
+
+        $model->orderBy("id", "DESC");
+        $model = $model->paginate($this->request->length ?? 50);
+
+        $data = $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $type,
+            "selector"  => "id",
+            "typeArr"   => ["machine", "name", "product", "pay_type", "queue_status", "client_id"],
+            "keyName"   => $type === "machine" ? "machine_id" : ($type === "name" ? "customer_name" : ($type === "product" ? "product_id" : ($type === "pay_type" ? "pay_method" : ($type === "queue_status" ? "status" : "client_id")))),
+            "valName"   => $type === "machine" ? "machine_name" : ($type === "name" ? "customer_name" : ($type === "product" ? "product_name" : ($type === "pay_type" ? "pay_method" : ($type === "queue_status" ? "status" : "client_name"))))
+        ]);
         return $this->controller->sendResponseReport($data);
     }
 }
