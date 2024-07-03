@@ -6,6 +6,7 @@ use DB;
 use App\Http\Controllers\Rest\BaseController;
 use App\Models\EmployeeTransaction;
 use App\Models\Feedback;
+use App\Models\GiftReport;
 use App\Models\LocationNonFunctional;
 use App\Models\Machine;
 use App\Models\MachineProductMap;
@@ -1248,6 +1249,77 @@ class ReportsRepository
             "typeArr"   => ["machine", "product"],
             "keyName"   => $this->request->type === "machine" ? "machine_id" : "product",
             "valName"   => $this->request->type === "machine" ? "machine_name" : "product"
+        ]);
+
+        return $this->controller->sendResponseReport($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/gift",
+     *     summary="Reports Gift",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function gift($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        $model          = GiftReport::select("gift_report.*", "machine.machine_name")->leftJoin("machine", "machine.id", "=", "gift_report.machine_id")->whereDate("gift_report.timestamp", ">=", $start_date)->whereDate("gift_report.timestamp", "<=", $end_date);
+
+        if (!empty($machine_id)) {
+            $model = $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model = $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where("machine.machine_name", "like", "$search%");
+            $model->where("gift_report.product", "like", "$search%");
+        }
+
+        $model->orderBy("gift_report.timestamp", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        $data = $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $this->request->type,
+            "selector"  => "id",
+            "typeArr"   => ["machine", "product"],
+            "keyName"   => $this->request->type === "machine" ? "machine_id" : "product_id",
+            "valName"   => $this->request->type === "machine" ? "machine_name" : "product_name"
         ]);
 
         return $this->controller->sendResponseReport($data);
