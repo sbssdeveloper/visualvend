@@ -100,4 +100,13 @@ class ReportsController extends LinkedMachineController
         ]);
         return $this->repo->staff($this->linked_machines);
     }
+
+    public function service()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->service($this->linked_machines);
+    }
 }
