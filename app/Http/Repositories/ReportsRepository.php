@@ -709,10 +709,11 @@ class ReportsRepository
         }
 
         $model = $model->groupBy("machine_product_map.machine_id", "machine_product_map.product_id");
+
         $model = $model->orderBy("machine_product_map.id", "DESC");
+
         $model = $model->paginate($this->request->length ?? 50);
-        // print_r($model);
-        // die;
+
         $data =  $this->controller->sendResponseWithPaginationList($model, [
             "type"      => $this->request->type,
             "selector"  => "id",
@@ -801,45 +802,25 @@ class ReportsRepository
                 $model->where("location_non_functional.error_code", "LIKE", "%payment%");
             }
         }
-        if ($this->admin_id > 0 && $this->client_id > 0) {
-            $model          = $model->where_in('location_non_functional.machine_id', count($this->machines) ? $this->machines : ["no_machine"]);
+        if ($client_id > 0) {
+            $model          = $model->whereIn('location_non_functional.machine_id', $machines);
         }
         if ($type === "machine") {
-            $model              = $model->order_by("machine.machine_name", "ASC");
+            $model              = $model->orderBy("machine.machine_name", "ASC");
         } else {
-            $model              = $model->order_by("location_non_functional.error_code", "ASC");
+            $model              = $model->orderBy("location_non_functional.error_code", "ASC");
         }
-        $model              = $model->limit($paginate["length"], $paginate["offset"])->get("location_non_functional")->result_array();
 
-        $formattedData = $pairs = $allIds = $pairedIds = [];
-        if (in_array($type, ["machine", "all_errors"])) {
-            $keyName        = $type === "machine" ? "machine_id" : "error_code";
-            $valName        = $type === "machine" ? "machine_name" : "error_code";
-            foreach ($model as $key => $value) {
-                $allIds[] = $value["id"];
-                $pairs[$value[$keyName]] = $value[$valName];
-                if (isset($formattedData[$value[$keyName]])) {
-                    $pairedIds[$value[$keyName]] = [...$pairedIds[$value[$keyName]], $value["id"]];
-                    $formattedData[$value[$keyName]] = [...$formattedData[$value[$keyName]], $value];
-                } else {
-                    $pairedIds[$value[$keyName]] = [$value["id"]];
-                    $formattedData[$value[$keyName]] = [$value];
-                }
-            }
-        } else {
-            $formattedData = $model;
-            foreach ($formattedData as $value) {
-                $allIds[] = $value["id"];
-            }
-        }
-        $paginate["showingRecords"] = count($model);
-        $paginate["data"]           = $formattedData;
-        $paginate["pairs"]          = $pairs;
-        $paginate["all"]            = $allIds;
-        $paginate["paired"]         = $pairedIds;
-        return $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(200)
-            ->set_output(json_encode($paginate));
+        $model              = $model->paginate($this->request->length ?? 50);
+
+        $data =  $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $this->request->type,
+            "selector"  => "id",
+            "typeArr"   => ["machine", "all_errors"],
+            "keyName"   => $this->request->type === "machine" ? "machine_id" : "error_code",
+            "valName"   => $this->request->type === "machine" ? "machine_name" : "error_code",
+        ]);
+        
+        return $this->controller->sendResponseReport($data);
     }
 }
