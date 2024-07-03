@@ -999,7 +999,7 @@ class ReportsRepository
 
         $data =  $this->controller->sendResponseWithPaginationList($model, [
             "type"      => $this->request->type,
-            "selector"  => "feedback_id",
+            "selector"  => "id",
             "typeArr"   => ["type", "frequency"],
             "keyName"   => $this->request->type,
             "valName"   => $this->request->type
