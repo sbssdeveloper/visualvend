@@ -14,6 +14,7 @@ use App\Models\Receipts;
 use App\Models\ReportEmail;
 use App\Models\Sale;
 use App\Models\ServiceReport;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 
 class ReportsRepository
@@ -1321,6 +1322,115 @@ class ReportsRepository
             "keyName"   => $this->request->type === "machine" ? "machine_id" : "product_id",
             "valName"   => $this->request->type === "machine" ? "machine_name" : "product_name"
         ]);
+
+        return $this->controller->sendResponseReport($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/payment",
+     *     summary="Reports Payment",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function payment()
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        $summary        = Transaction::selectRaw("remote_vend_log.pay_method, COUNT(*) as total_qty, FORMAT(SUM(transactions.amount),2) as total_amount, SUM(IF(transactions.payment_status='SUCCESS',transactions.amount,0)) as ok_amount, SUM(IF(transactions.payment_status='SUCCESS',1,0)) as ok_qty, SUM(IF(transactions.payment_status='FAILED',transactions.amount,0)) as failed_amount, SUM(IF(transactions.payment_status='FAILED',1,0)) as failed_qty");
+        $summary->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
+        $summary->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
+
+        $failedSummary  = Transaction::selectRaw("remote_vend_log.pay_method, FORMAT(SUM(transactions.amount),2) as total_amount, COUNT(*) as qty");
+        $failedSummary->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
+        $failedSummary->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
+
+        $badges        = Transaction::selectRaw("SUM(IF(remote_vend_log.status='2',1,0)) as successfull_vends, SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11'),1,0)) as failed_vends, FORMAT(SUM(transactions.amount),2) as total_payments, FORMAT(SUM(IF(transactions.payment_status='SUCCESS',transactions.amount,0)),2) as successfull_payments, FORMAT(SUM(IF(transactions.payment_status='FAILED',transactions.amount,0)),2) as failed_payments");
+        $badges->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
+        $badges->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
+
+        $model         = Transaction::selectRaw("transactions.id, transactions.vend_uuid,transactions.created_at,transactions.amount,transactions.transaction_id,transactions.status,transactions.payment_status,transactions.type,transactions.response,remote_vend_log.machine_id,remote_vend_log.machine_name,remote_vend_log.client_id,remote_vend_log.client_name,remote_vend_log.product_id,remote_vend_log.product_name,remote_vend_log.pay_method,REPLACE(CONCAT(UPPER(LEFT(remote_vend_log.pay_method, 1)), SUBSTRING(remote_vend_log.pay_method, 2)), '_', ' ') as pay_method_name");
+        $model->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
+        $model->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
+
+        if ($client_id > 0) {
+            $model->whereIn("remote_vend_log.machine_id", $machines);
+            $badges->whereIn("remote_vend_log.machine_id", $machines);
+            $summary->whereIn("remote_vend_log.machine_id", $machines);
+            $failedSummary->whereIn("remote_vend_log.machine_id", $machines);
+        }
+
+        if ($machine_id > 0) {
+            $model->where("remote_vend_log.machine_id", $machine_id);
+            $badges->where("remote_vend_log.machine_id", $machine_id);
+            $summary->where("remote_vend_log.machine_id", $machine_id);
+            $failedSummary->where("remote_vend_log.machine_id", $machine_id);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("remote_vend_log.machine_name", "LIKE", "$search%");
+                $query->orWhere("remote_vend_log.product_name", "LIKE", "$search%");
+            });
+            $badges->where(function ($query) use ($search) {
+                $query->where("remote_vend_log.machine_name", "LIKE", "$search%");
+                $query->orWhere("remote_vend_log.product_name", "LIKE", "$search%");
+            });
+            $summary->where(function ($query) use ($search) {
+                $query->where("remote_vend_log.machine_name", "LIKE", "$search%");
+                $query->orWhere("remote_vend_log.product_name", "LIKE", "$search%");
+            });
+            $failedSummary->where(function ($query) use ($search) {
+                $query->where("remote_vend_log.machine_name", "LIKE", "$search%");
+                $query->orWhere("remote_vend_log.product_name", "LIKE", "$search%");
+            });
+        }
+        $badges         = $badges->first();
+        $summary        = $summary->groupBy("remote_vend_log.pay_method")->get();
+        $failedSummary  = $failedSummary->groupBy("remote_vend_log.pay_method")->get();
+        $model          = $model->orderBy("transactions.id", "DESC")->paginate($this->request->length ?? 50);
+
+        $data = $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $type,
+            "selector"  => "id",
+            "typeArr"   => ["machine", "product", "pay_method"],
+            "keyName"   => $type === "machine" ? "machine_id" : ($type === "product" ? "product_id" : "pay_method"),
+            "valName"   => $type === "machine" ? "machine_name" : ($type === "product" ? "product_name" : "pay_method_name")
+        ]);
+
+        $data["badges"]             = $badges;
+        $data["summary"]            = $summary;
+        $data["failedSummary"]      = $failedSummary;
 
         return $this->controller->sendResponseReport($data);
     }
