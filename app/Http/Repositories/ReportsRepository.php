@@ -558,7 +558,7 @@ class ReportsRepository
         $model              = Sale::select("sale_report.*", DB::raw("IF(sale_report.aisle_no IS NULL,'NA',sale_report.aisle_no) as aisle_no"), DB::raw("FORMAT(sale_report.product_price,2) as price"), "machine_product_map.product_max_quantity", "machine_product_map.product_quantity")->leftJoin("machine_product_map", function ($join) {
             $join->on("sale_report.product_id", "=", "machine_product_map.product_id");
             $join->on("sale_report.machine_id", "=", "machine_product_map.machine_id");
-            $join->on("sale_report.aisle_no", "=", "machine_product_map.aisle_no");
+            $join->on("sale_report.aisle_no", "=", "machine_product_map.product_location");
         })->where("sale_report.is_deleted", 0);
 
         $errors = LocationNonFunctional::selectRaw("COUNT(location_non_functional.id) as count, SUM(CASE WHEN LOCATE('Cancel', error_code) THEN 1 ELSE 0 END) AS cancelled")->leftJoin("machine", "machine.id", "=", "location_non_functional.machine_id");
