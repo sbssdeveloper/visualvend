@@ -4,6 +4,7 @@ namespace App\Http\Repositories;
 
 use DB;
 use App\Http\Controllers\Rest\BaseController;
+use App\Models\LocationNonFunctional;
 use App\Models\Machine;
 use App\Models\MachineProductMap;
 use App\Models\Sale;
@@ -510,6 +511,114 @@ class ReportsRepository
             "keyName"   => $this->request->type === "machine" ? "machine_id" : ($this->request->type === "category" ? "category_id" : "product_id"),
             "valName"   => $this->request->type === "machine" ? "machine_name" : ($this->request->type === "category" ? "category_id" : "product_name"),
         ]);
+        return $this->controller->sendResponseReport($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/vend/activity",
+     *     summary="Reports Vend Activity",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function vend_activity($machines)
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+
+        $model              = Sale::select("sale_report.*", DB::raw("IF(sale_report.aisle_no IS NULL,'NA',sale_report.aisle_no) as aisle_no"), DB::raw("FORMAT(sale_report.product_price,2) as price"), "machine_product_map.product_max_quantity", "machine_product_map.product_quantity")->leftJoin("machine_product_map", function ($join) {
+            $join->on("sale_report.product_id", "=", "machine_product_map.product_id");
+            $join->on("sale_report.machine_id", "=", "machine_product_map.machine_id");
+            $join->on("sale_report.aisle_no", "=", "machine_product_map.aisle_no");
+        })->where("sale_report.is_deleted", 0);
+
+        $errors = LocationNonFunctional::selectRaw("COUNT(location_non_functional.id) as count, SUM(CASE WHEN LOCATE('Cancel', error_code) THEN 1 ELSE 0 END) AS cancelled")->leftJoin("machine", "machine.id", "=", "location_non_functional.machine_id");
+
+        if ($client_id > 0) {
+            $model          = $model->whereIn("sale_report.machine_id", $machines);
+            $errors         = $errors->whereIn("machine.id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model  = $model->where(function ($query) use ($search) {
+                $query->where("sale_report.machine_name", "LIKE", "$search%");
+                $query->orWhere("sale_report.employee_name", "LIKE", "%$search%");
+                $query->orWhere("sale_report.product_name", "LIKE", "$search%");
+            });
+
+            $errors  = $errors->where(function ($query) use ($search) {
+                $query->where("location_non_functional.machine_name", "LIKE", "$search%");
+                $query->orWhere("location_non_functional.product_name", "LIKE", "$search%");
+            });
+        }
+
+        if (!empty($machine_id)) {
+            $model  = $model->where("sale_report.machine_id", $machine_id);
+            $errors = $errors->where("location_non_functional.machine_id", $machine_id);
+        }
+
+        if ($start_date && !empty($start_date) && $end_date && !empty($end_date)) {
+            $model  = $model->whereDate("sale_report.timestamp", ">=", $start_date);
+            $model  = $model->whereDate("sale_report.timestamp", "<=", $end_date);
+            $errors = $errors->whereDate("location_non_functional.timestamp", ">=", $start_date);
+            $errors = $errors->whereDate("location_non_functional.timestamp", "<=", $end_date);
+        }
+        $errors     = $errors->first();
+        if ($type === "machine") {
+            $model          = $model->orderBy('sale_report.machine_name', "ASC");
+        } else if ($type === "employee") {
+            $model          = $model->orderBy("sale_report.employee_name", "DESC");
+        } else if ($type === "product") {
+            $model          = $model->orderBy("sale_report.product_name", "ASC");
+        } else if ($type === "pickup") {
+            $model          = $model->orderBy('sale_report.pickup_or_return', "ASC");
+        } else if ($type === "return") {
+            $model          = $model->orderBy('sale_report.pickup_or_return', "DESC");
+        } else {
+            $model          = $model->orderBy('sale_report.machine_name', "ASC");
+        }
+        $model              = $model->groupBy("sale_report.id")->paginate($this->request->length ?? 50);
+
+        $data =  $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $this->request->type,
+            "selector"  => "id",
+            "typeArr"   => ["machine", "product", 'employee'],
+            "keyName"   => $this->request->type === "machine" ? "machine_id" : ($this->request->type === "employee" ? "employee_id" : "product_id"),
+            "valName"   => $this->request->type === "machine" ? "machine_name" : ($this->request->type === "employee" ? "employee_name" : "product_name"),
+        ]);
+
+        $data["failed"]     = $errors->count;
+        $data["cancelled"]  = $errors->cancelled;
+
         return $this->controller->sendResponseReport($data);
     }
 }
