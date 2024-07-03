@@ -8,7 +8,6 @@ class LocationNonFunctional extends Model
 {
     protected $table = 'location_non_functional';
     protected $fillable = ['*'];
-    protected $hidden = ['id'];
 
     public static function dashboardInfo($request, $machines)
     {

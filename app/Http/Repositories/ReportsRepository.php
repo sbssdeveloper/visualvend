@@ -731,7 +731,7 @@ class ReportsRepository
      *     summary="Reports Vend Error",
      *     tags={"V1"},
      *     @OA\RequestBody(
-     *         required=true,
+     *         required=false,
      *         @OA\JsonContent(
      *              type="object",
      *              required={"start_date","end_date"},              
@@ -766,7 +766,7 @@ class ReportsRepository
         $type               = $this->request->type;
         $search             = $this->request->search;
 
-        $model              = LocationNonFunctional::select("location_non_functional.*", "machine.machine_name");
+        $model              = LocationNonFunctional::select(DB::raw("location_non_functional.*"), "machine.machine_name");
         $model->leftJoin("machine", "machine.id", "=", "location_non_functional.machine_id");
         $model->where("location_non_functional.is_deleted", 0);
 
@@ -812,7 +812,6 @@ class ReportsRepository
         }
 
         $model              = $model->paginate($this->request->length ?? 50);
-
         $data =  $this->controller->sendResponseWithPaginationList($model, [
             "type"      => $this->request->type,
             "selector"  => "id",
@@ -820,7 +819,7 @@ class ReportsRepository
             "keyName"   => $this->request->type === "machine" ? "machine_id" : "error_code",
             "valName"   => $this->request->type === "machine" ? "machine_name" : "error_code",
         ]);
-        
+
         return $this->controller->sendResponseReport($data);
     }
 }

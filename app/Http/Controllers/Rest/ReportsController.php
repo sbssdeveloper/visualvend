@@ -64,4 +64,13 @@ class ReportsController extends LinkedMachineController
         ]);
         return $this->repo->expiryProducts($this->linked_machines);
     }
+
+    public function vend_error()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->vend_error($this->linked_machines);
+    }
 }
