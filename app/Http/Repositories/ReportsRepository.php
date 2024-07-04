@@ -73,7 +73,7 @@ class ReportsRepository
 
         $total              = Sale::where("is_deleted", 0);
         $model              = Sale::select("*", DB::raw("IF(aisle_no IS NULL,'NA',aisle_no) as aisles"), DB::raw("FORMAT(product_price,2) as price"))->with("product")->where("is_deleted", 0);
-
+        
         if ($this->client_id > 0) {
             $model          = $model->where("client_id", $this->client_id);
             $total          = $total->where("client_id", $this->client_id);
