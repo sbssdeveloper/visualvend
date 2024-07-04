@@ -13,6 +13,16 @@ class Machine extends Model
 
     public $timestamps = false;
 
+    public function category()
+    {
+        return $this->hasOne(MachineAssignCategory::class, "machine_id", "id");
+    }
+
+    public function product_map()
+    {
+        return $this->hasMany(MachineProductMap::class, "machine_id", "id");
+    }
+
     public function heart_beats()
     {
         return $this->hasOne(MachineHeartBeat::class, 'machine_id', "id");
