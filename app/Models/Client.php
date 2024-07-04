@@ -8,6 +8,7 @@ class Client extends Model
 {
     protected $table = 'client';
     protected $fillable = ['*'];
+    protected  $primaryKey = "id";
 
     public function dropdownList()
     {
