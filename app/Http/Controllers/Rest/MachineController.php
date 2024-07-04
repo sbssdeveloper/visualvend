@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Rest;
 
 use App\Http\Helpers\MachineHelper;
+use App\Http\Repositories\MachineRepository;
 use App\Http\Requests\MachineConfigurationRequest;
 use App\Models\Admin;
 use App\Models\Machine;
@@ -16,13 +17,15 @@ class MachineController extends LinkedMachineController
     public $machine = null;
     public $rule = null;
     public $controller = null;
-    public function __construct(Request $request, MachineHelper $helper, Machine $machine, MachineUserRule $rule, BaseController $controller)
+    public $repo = null;
+    public function __construct(Request $request, MachineHelper $helper, Machine $machine, MachineUserRule $rule, BaseController $controller, MachineRepository $repo)
     {
         parent::__construct($request);
         $this->helper = $helper;
         $this->machine = $machine;
         $this->rule = $rule;
         $this->controller = $controller;
+        $this->repo = $repo;
     }
     /**
      * @OA\Get(
@@ -214,5 +217,14 @@ class MachineController extends LinkedMachineController
     public function configure(MachineConfigurationRequest $request)
     {
         return $this->helper->configure($request, $this->controller);
+    }
+
+    public function refillInfo(Request $request)
+    {
+        $rules = [
+            "machine_id"                    => "required|exists:machine,id"
+        ];
+        $this->validate($request, $rules);
+        return $this->repo->refillInfo($request);
     }
 }
