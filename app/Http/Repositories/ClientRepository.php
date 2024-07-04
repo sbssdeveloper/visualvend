@@ -52,7 +52,7 @@ class ClientRepository
         }
 
         if (!empty($request->search)) {
-            $model->where(function ($query) {
+            $model->where(function ($query) use ($request) {
                 $query->where("client_code", "like", $request->search . "%");
                 $query->orWhere("client_name", "like", $request->search . "%");
                 $query->orWhere("client_username", "like", $request->search . "%");
@@ -95,7 +95,7 @@ class ClientRepository
 
     public function info($request)
     {
-        $model = Client::where("id",$request->client_id)->first();
+        $model = Client::where("id", $request->client_id)->first();
         return $this->controller->sendResponse("Success", $model);
     }
 
@@ -137,5 +137,4 @@ class ClientRepository
             return $this->controller->sendError($th->getMessage());
         }
     }
-    
 }
