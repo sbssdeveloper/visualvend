@@ -13,4 +13,14 @@ class Client extends Model
     {
         return self::select("id", "client_name")->where("status", "A")->get();
     }
+
+    public function portal_users()
+    {
+        return $this->hasMany(Admin::class, "client_id", "id");
+    }
+
+    public function machine_users()
+    {
+        return $this->hasMany(User::class, "client_id", "id");
+    }
 }

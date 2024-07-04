@@ -59,7 +59,7 @@ class BaseController extends Controller
         return response()->json($response, 200);
     }
 
-    public function sendResponseWithPagination($result, $message): JsonResponse
+    public function sendResponseWithPagination($result, $message="Success"): JsonResponse
     {
         $response = [
             'success' => true,

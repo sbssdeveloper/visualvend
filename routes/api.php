@@ -66,6 +66,8 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
         /****************************CLIENT******************************/
         $router->get('client/list',             'ClientController@dropdownList');
+        $router->post('client/list',            'ClientController@listing');
+        $router->post('client/info',            'ClientController@info');
 
         /****************************USER******************************/
         $router->post('user/list',              'UserController@list');

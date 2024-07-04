@@ -31,6 +31,6 @@ class ProductClientRule implements Rule
      */
     public function message()
     {
-        return 'The :attribute already exists for the client.';
+        return 'The :attribute already exists.';
     }
 }
