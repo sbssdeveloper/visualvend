@@ -62,4 +62,20 @@ class ClientController extends BaseController
         
         return $this->repo->info($request);
     }
+
+    public function update(Request $request)
+    {
+        if ($request->auth->client_id > 0) abort(401);
+        $rules = [
+            "client_id"                     => "required|exists:client,id",
+            "client_name"                   => "required|string|min:4|max:20",
+            "business_registration_number"  => "required|string|min:4|max:20",
+            // "client_email"                  => "required|email",
+            "client_address"                => "required|string|min:10|max:50",
+        ];
+
+        $this->validate($request, $rules);
+        
+        return $this->repo->update($request);
+    }
 }

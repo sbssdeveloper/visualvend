@@ -95,8 +95,47 @@ class ClientRepository
 
     public function info($request)
     {
-        $model = Client::find($request->client_id)->first();
+        $model = Client::find($request->client_id)->with("portal_users", "machine_users")->first();
 
         return $this->controller->sendResponse("Success", $model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/client/update",
+     *     summary="Clients Update",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="client_id", type="integer", example=""),
+     *             @OA\Property(property="client_name", type="string", example=""),
+     *             @OA\Property(property="business_registration_number", type="string", example=""),
+     *             @OA\Property(property="client_address", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function update($request)
+    {
+        $fields = $request->except("client_id");
+        try {
+            Client::find($request->client_id)->update($fields);
+            return $this->controller->sendSuccess("Client updated successfully.");
+        } catch (\Throwable $th) {
+            return $this->controller->sendError($th->getMessage());
+        }
     }
 }
