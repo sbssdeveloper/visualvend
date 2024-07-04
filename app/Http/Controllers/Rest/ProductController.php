@@ -314,9 +314,7 @@ class ProductController extends LinkedMachineController
             'discount_price'            => 'required|numeric',
             'product_description'       => 'required|string|max:255'
         ];
-        if ($request->auth->client_id <= 0) {
-            $rules["client_id"]   = 'required|exists:client,id';
-        }
+        
         $this->validate($request, $rules);
         extract($requestHelper->productUpdateRequest($request));
         try {

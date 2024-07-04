@@ -14,5 +14,6 @@ class MachineRepository
 
     public function refillInfo($request)
     {
+            
     }
 }
