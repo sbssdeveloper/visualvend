@@ -160,6 +160,12 @@ class Product extends Model
     {
         $model = self::with('images','assigned_categories')->where("is_deleted", 0);
 
+        if($request->category_id){
+            $model = $model->whereHas('assigned_categories', function ($query) use ($request){
+                $query->where('category_id', $request->category_id);
+            });
+        }
+        
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
         }

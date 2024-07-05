@@ -441,10 +441,11 @@ class ProductController extends LinkedMachineController
      *     @OA\RequestBody(
      *         required=false,
      *         @OA\JsonContent(
-     *             @OA\Property(property="search", type="date", example="PEPSI"),
+     *             @OA\Property(property="search", type="date", example=""),
      *             @OA\Property(property="length", type="integer", example=100),
      *             @OA\Property(property="page", type="integer", example="1"),
-     *             @OA\Property(property="sort", type="STRING", example="product"),
+     *             @OA\Property(property="sort", type="string", example="product"),
+     *             @OA\Property(property="category_id", type="string", example=""),
      *         )
      *     ),
      *     @OA\Parameter(
