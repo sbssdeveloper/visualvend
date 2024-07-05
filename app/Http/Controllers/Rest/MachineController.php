@@ -33,6 +33,15 @@ class MachineController extends LinkedMachineController
      *     summary="Machine Dropdown list",
      *     tags={"V1"},
      *     @OA\Parameter(
+     *         name="cid",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer"
+     *         ),
+     *         description="Client ID"
+     *     ),
+     *     @OA\Parameter(
      *         name="X-Auth-Token",
      *         in="header",
      *         required=true,
@@ -48,21 +57,21 @@ class MachineController extends LinkedMachineController
 
     public function dropdownList(Request $request)
     {
-        $response = Cache::remember("machine-listing:$this->admin_logged_in", env('LISTING_TIME_LIMIT', 300), function () use ($request) {
-            $admin_id   = $request->auth->admin_id;
-            $client_id  = $request->auth->client_id;
-            $machines   = $this->linked_machines;
+        $admin_id   = $request->auth->admin_id;
+        $client_id  = $request->auth->client_id;
+        $machines   = $this->linked_machines;
 
-            $model      = Machine::select("id", "machine_name")->where("is_deleted", "0");
+        $model      = Machine::select("id", "machine_name")->where("is_deleted", "0");
 
-            if ($client_id > 0) {
-                $model  = $model->where("machine_client_id", $client_id)->whereIn("id", $machines);
-            }
+        if ($client_id > 0) {
+            $model  = $model->where("machine_client_id", $client_id)->whereIn("id", $machines);
+        } else if ($request->cid > 0) {
+            $model  = $model->where("machine_client_id", $request->cid);
+        }
 
-            return ($model  = $model->orderBy('machine_name', "ASC")->get());
-        });
+        $model  = $model->orderBy('machine_name', "ASC")->get();
 
-        return parent::sendResponse("Success", $response);
+        return parent::sendResponse("Success", $model);
     }
 
     /**

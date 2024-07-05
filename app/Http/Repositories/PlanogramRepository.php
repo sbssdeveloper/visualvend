@@ -14,17 +14,44 @@ class PlanogramRepository
     {
         $this->request      = $request;
         $this->controller   = $controller;
-        $this->role         = $request->auth->role;
         $this->client_id    = $request->auth->client_id;
-        $this->admin_id     = $request->auth->admin_id;
     }
-    public function list()
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/list",
+     *     summary="Planogram List",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              @OA\Property(property="machine_id", type="integer", default=""),
+     *              @OA\Property(property="search", type="string", default=""),
+     *          )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function list($request)
     {
         $machine_id = $this->request->machine_id;
         $search     = $this->request->search;
         $type       = $this->request->type;
-        
-        $planogram = Planogram::select("planogram.*", "machine_name", "0 as duration", "1 as is_default", "'live' as planogram_type");
+
+        $planogram = Planogram::select("planogram.*", "machine_name", "0 as duration", "1 as is_default", "'live' as planogram_type")->with("machine")->paginate(10)->items();
+        print_r($planogram);
+        die;
 
         //"TIMESTAMPDIFF(HOUR,planogram.start_date,planogram.end_date) as duration"
         $m1 = $this->db->select(["planogram.*", "machine_name", "0 as duration", "1 as is_default", "'live' as planogram_type"])->join("machine", "machine.id=planogram.machine_id", "left");

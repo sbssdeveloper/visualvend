@@ -27,7 +27,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('info',                   'DashboardController@info');
 
         /****************************MACHINE******************************/
-        $router->get('machine/list',            'MachineController@dropdownList');
+        $router->get('machine/list[/{cid}]',    'MachineController@dropdownList');
         $router->post('machine/list',           'MachineController@list');
         $router->post('machine/info',           'MachineController@info');
         $router->post('machine/create',         'MachineController@create');
@@ -89,5 +89,8 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('reports/gift',           'ReportsController@gift');
         $router->post('reports/payment',        'ReportsController@payment');
         $router->post('reports/vend/queue',     'ReportsController@vend_queue');
+        
+        /****************************Planogram******************************/
+        $router->post('planogram/list',         'PlanogramController@list');
     });
 });
