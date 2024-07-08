@@ -640,7 +640,7 @@ class PlanogramHelper
                 return ["code" => 422, "message" => $e->getMessage()];
             }
         } else {
-            $response = ["code" => 200, "msg" => "Errors occured in planogram."];
+            $response = ["code" => 200, "message" => "Errors occured in planogram."];
             $response["error_message"] = $error_text;
             $response["no_of_error"] = $errors;
             if ($warnings > 0) {
