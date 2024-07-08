@@ -221,4 +221,78 @@ class PlanogramRepository
             return $this->controller->sendError($formatAuth["error"]);
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/update",
+     *     summary="New Planogram Update",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                required={"machine_id","file", "uuid", "type"},
+     *                @OA\Property(property="uuid", type="string", example=""),
+     *                @OA\Property(property="name", type="string", example=""),
+     *                @OA\Property(property="type", type="string", example="live", enum={"live","happy_hours"}),
+     *                @OA\Property(property="start_date", type="string", example=""),
+     *                @OA\Property(property="end_date", type="string", example=""),
+     *                @OA\Property(
+     *                  property="file",
+     *                  description="File",
+     *                  type="string",
+     *                  format="binary"
+     *                )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function update()
+    {
+        $uuid       = $this->request->uuid;
+        $name       = $this->request->name;
+        $type       = $this->request->type;
+        $start_date = $this->request->start_date;
+        $end_date   = $this->request->end_date;
+        $model      = null;
+        if ($type == "live") {
+            $model = Planogram::where('uuid', $uuid)->first();
+        } else {
+            $model = HappyHours::where('uuid', $uuid)->first();
+        }
+        $sheetData      = $this->planogram->uploadFile($this->request);
+        $shiftedData    = array_shift($sheetData);
+        $formatCheck    = $this->helper->check_format_type($shiftedData);
+        extract($this->helper->formatPairs($formatCheck));
+        $formatAuth     = $this->helper->formatAuthenticate($shiftedData, $formatValues);
+        if ($formatAuth["success"] === true) {
+            $arrayObj = ["sheet_data" => $sheetData, 'formatKeys' => $formatKeys, 'formatValues' => $formatValues, "category" => $formatCheck["category"], "uuid" => $uuid, "start_date" => $start_date, "end_date" => $end_date, 'machine_id' => $model->machine_id, "client_id" => $model->client_id, "type" => $type, "name" => $name];
+
+            $response = $this->helper->updateUploadNow($this->helper->planoProductMapForUpdate($arrayObj));
+
+            ["code" => $code, "message" => $message] = $response;
+            unset($response["code"], $response["message"]);
+            if ($code == 200) {
+                return $this->controller->sendResponse($message, $response);
+            }
+            return $this->controller->sendError($message, $response);
+        } else {
+            return $this->controller->sendError($formatAuth["error"]);
+        }
+    }
 }

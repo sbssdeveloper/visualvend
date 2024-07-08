@@ -2,6 +2,8 @@
 
 namespace App\Http\Helpers;
 
+use App\Models\HappyHours;
+use App\Models\HappyHoursData;
 use DB;
 use App\Models\MachineAssignCategory;
 use App\Models\MachineAssignProduct;
@@ -383,6 +385,268 @@ class PlanogramHelper
             $response["no_of_error"] = $errors;
             $response["warning_message"] = $warning_text;
             $response["no_of_warnings"] = $warnings;
+            $response["legit_rows"] = 0;
+        }
+        return $response;
+    }
+
+    function planoProductMapForUpdate($params)
+    {
+        extract($params);
+        $errors = $count = $warnings = 0;
+        $error_text = $warning_text = "";
+        $mapped_aisle_based = $mapped_aisle_included_based = [];
+        $mapped = $categories = $productIds = $aislesCovered = $unexistedProducts = $deletedProducts = $productsListed = $catListed = $catUnique = $bundleErrorCovered = $duplicateAislesCovered =   [];
+        foreach ($sheet_data as $key => $value) {
+            foreach ($value as $subKey => $subValue) {
+                if ($formatKeys[$subKey] === "category_id") {
+                    if (!in_array($subValue, $catUnique)) {
+                        $catListed[] = ["category_id" => $subValue, "machine_id" => $machine_id];
+                        $catUnique[] = $subValue;
+                    }
+                }
+                if ($formatKeys[$subKey] === "product_id") {
+                    $productsListed[] = $subValue;
+                    $productsListed     = array_unique($productsListed);
+                }
+            }
+        }
+        foreach ($sheet_data as $key => $value) {
+            $productID = $categoryID = $categoryName = $product_quantity = $product_max_quantity = $s2s = null;
+            $aislesHere = $product_locations = [];
+            if (!$value[0]) continue;
+            $product_image = $image_thumb = $more_info = $vend_quantity = $bundle_includes = null;
+            $product_price = $bundle_price = null;
+            foreach ($value as $subKey => $subValue) {
+                if ($formatKeys[$subKey] === "category_id") {
+                    $categoryID = $subValue;
+                }
+                if ($formatKeys[$subKey] === "product_id") {
+                    $productID = $subValue;
+                }
+                if ($formatKeys[$subKey] === "product_price") {
+                    if ((float)$subValue >= 0) {
+                        $product_price = (float) $subValue;
+                    }
+                }
+                if ($formatKeys[$subKey] === "product_location") {
+                    $exploded = explode(",", $subValue);
+                    $product_locations = explode(",", $subValue);
+                    $aislesHere = array_unique([...$exploded, ...$aislesHere]);
+                }
+                if ($formatKeys[$subKey] === "aisles_included") {
+                    $exploded = explode(",", $subValue);
+                    $aislesHere = array_unique([...$exploded, ...$aislesHere]);
+                }
+                if ($formatKeys[$subKey] === "product_image") {
+                    $product_image = $subValue;
+                }
+                if ($formatKeys[$subKey] === "product_image_thumbnail") {
+                    $image_thumb = $subValue;
+                }
+                if ($formatKeys[$subKey] === "product_more_info_image") {
+                    $more_info = $subValue;
+                }
+                if ($formatKeys[$subKey] === "product_quantity") {
+                    $product_quantity = $subValue;
+                }
+                if ($formatKeys[$subKey] === "product_max_quantity") {
+                    $product_max_quantity = $subValue;
+                }
+                if ($formatKeys[$subKey] === "s2s") {
+                    $s2s = $subValue;
+                }
+                if ($formatKeys[$subKey] === "vend_quantity") {
+                    $vend_quantity = $subValue;
+                }
+                if ($formatKeys[$subKey] === "bundle_includes") {
+                    $bundle_includes = $subValue;
+                }
+                if ($formatKeys[$subKey] === "bundle_price") {
+                    $bundle_price = (float) $subValue;
+                }
+            }
+            $product = Product::where("product_id", $product_id)->where("client_id", $client_id)->first();
+
+            if (!$product) {
+                $product                = new \stdClass();
+                $product->product_name  = $productID;
+                $product->product_price = $product_price ?? "0.00";
+                $unexistedProducts[$productID] = [
+                    'uuid'                      => uuid(),
+                    'product_id'                => $productID,
+                    'client_id'                 => $client_id,
+                    'product_price'             => $product_price ?? "0.00",
+                    'product_name'              => $productID,
+                    'product_image'             => $product_image ?? DEFAULT_IMAGE,
+                    'product_image_thumbnail'   => $image_thumb ?? $product_image ?? DEFAULT_IMAGE,
+                    'product_more_info_image'   => $more_info ?? DEFAULT_IMAGE
+                ];
+            } else if ($product->is_deleted === 1) {
+                $deletedProducts[] = $productID;
+            }
+            $currentKey = $key + 2;
+            if (count($aislesHere) === 0) {
+                $error_text = "$error_text Row : $currentKey, The Aisle Numbers are invalid. " . PHP_EOL;
+                $errors++;
+            } else {
+                foreach ($aislesHere as $aisleValue) {
+                    if (in_array($aisleValue, $aislesCovered)) {
+                        $warning_text = "$warning_text Row : $currentKey, Aisle Number : $aisleValue, The Aisle is duplicate. " . PHP_EOL;
+                        if (!in_array($aisleValue, $duplicateAislesCovered)) {
+                            $warnings++;
+                        }
+                        $duplicateAislesCovered[] = $aisleValue;
+                    } else {
+                        if ($vend_quantity > 1) {
+                            if (!$bundle_includes) {
+                                if (in_array($currentKey, $bundleErrorCovered)) {
+                                    continue;
+                                }
+                                $error_text = "$error_text Row : $currentKey, Bundle Includes can't be empty. " . PHP_EOL;
+                                $errors++;
+                                $bundleErrorCovered[] = $currentKey;
+                                continue;
+                            } else {
+                                $expoleBundle =  explode(",", $bundle_includes);
+                                $issue = false;
+                                $unExisting = [];
+                                foreach ($expoleBundle as $valueBundle) {
+                                    if (!in_array($valueBundle, $productsListed)) {
+                                        $issue = true;
+                                        $unExisting[] = $valueBundle;
+                                    }
+                                }
+                                if ($issue === true) {
+                                    if (in_array($currentKey, $bundleErrorCovered)) {
+                                        continue;
+                                    }
+                                    $length = count($unExisting);
+                                    $codes = $length > 1 ? implode(", ", $unExisting) : $unExisting;
+                                    $bundleErrMsg = $length > 1 ? "Products : $codes don't" : "Product : $codes doesn't";
+                                    $error_text = "$error_text Row : $currentKey, Bundle $bundleErrMsg include in the product list. " . PHP_EOL;
+                                    $errors++;
+                                    $bundleErrorCovered[] = $currentKey;
+                                    continue;
+                                }
+                            }
+                        }
+                        $mapped[$count]["client_id"]            =   $client_id;
+                        $mapped[$count]["machine_id"]           =   $machine_id;
+                        if ($category === "single") {
+                            $mapped[$count]["category_id"]      =   'no_category';
+                        } else {
+                            $mapped[$count]["category_id"]      =   $categoryID;
+                        }
+                        $mapped[$count]["product_id"]           = $productID;
+                        $mapped[$count]["product_name"]         = $product->product_name;
+                        $mapped[$count]["product_price"]        = $product_price ?? $product->product_price ?? "0.00";
+                        $mapped[$count]["product_location"]     = $aisleValue;
+                        $mapped[$count]["product_quantity"]     = $product_quantity;
+                        $mapped[$count]["product_max_quantity"] = $product_max_quantity;
+                        $mapped[$count]["s2s"]                  = $s2s ?? "";
+
+                        $mapped[$count]["product_image"]        = $product_image ?? $product->product_image ?? DEFAULT_IMAGE;
+                        $mapped[$count]["product_image_thumbnail"]  = $image_thumb ?? $product->product_image_thumbnail ?? DEFAULT_IMAGE;
+                        $mapped[$count]["product_more_info_image"]  = $more_info ?? $product->product_more_info_image ?? DEFAULT_IMAGE;
+
+                        $mapped[$count]["vend_quantity"]            = is_numeric($vend_quantity) && $vend_quantity > 0 ? (int)$vend_quantity : 1;
+                        if ($mapped[$count]["vend_quantity"] > 1) {
+                            $mapped[$count]["bundle_includes"]  = $bundle_includes;
+                            $mapped[$count]["bundle_price"]     = $bundle_price ?? $mapped[$count]["product_price"];
+                        } else {
+                            $mapped[$count]["bundle_price"]     = $mapped[$count]["product_price"];
+                        }
+                        if (in_array($aisleValue, $product_locations)) {
+                            array_push($mapped_aisle_based, $mapped[$count]);
+                        } else {
+                            array_push($mapped_aisle_included_based, $mapped[$count]);
+                        }
+                    }
+                    $aislesCovered[] = $aisleValue;
+                    $count++;
+                }
+            }
+        }
+
+        $data = compact("mapped_aisle_based", "mapped_aisle_included_based", "errors", 'error_text', 'warnings', 'warning_text', 'unexistedProducts', 'machine_id', 'client_id', 'catListed', 'planoMap', 'uuid', 'type', 'name', 'start_date', 'end_date');
+        return $data;
+    }
+
+    function updateUploadNow($params)
+    {
+        extract($params);
+        $uuid = uuid();
+        $code = 200;
+        $response = [];
+        $mapped = $product_org_aisles = $planoMap = [];
+        foreach ($mapped_aisle_based as $value) {
+            array_push($product_org_aisles, $value["product_location"]);
+            $mapped[$count]                         = $value;
+            $planoMap[$count]                       = $mapped[$count];
+            $planoMap[$count]["plano_uuid"]         = $uuid;
+            $count++;
+        }
+        foreach ($mapped_aisle_included_based as $value) {
+            if (!in_array($value["product_location"], $product_org_aisles)) {
+                $mapped[$count]                         = $value;
+                $planoMap[$count]                       = $mapped[$count];
+                $planoMap[$count]["plano_uuid"]         = $uuid;
+                $count++;
+            }
+        }
+        if (count($mapped) > 0) {
+            DB::beginTransaction();
+            try {
+                $array = ["name" => $name];
+                if ($type === "live") {
+                    //DELETE DATA
+                    PlanogramData::where('plano_uuid', $uuid)->delete();
+                    MachineProductMap::where('machine_id', $machine_id)->delete();
+                    MachineAssignProduct::where('machine_id', $machine_id)->delete();
+                    MachineAssignCategory::where('machine_id', $machine_id)->delete();
+                    // INSERT DATA
+                    if (!count($catListed)) {
+                        $catListed = ["machine_id" => $machine_id, "category_id" => "no_category"];
+                    }
+                    MachineAssignCategory::insert($catListed);
+                    Planogram::where("uuid", $uuid)->update($array);
+                    PlanogramData::insert($planoMap);
+                    MachineProductMap::insert($mapped);
+                    MachineAssignProduct::insert(MachineProductMap::select(DB::raw("id as product_map_id"), "machine_id", "category_id", "product_id", "product_price", "product_location", "product_quantity", "product_max_quantity", "show_order", "s2s", "aisles_included", "vend_quantity", "bundle_includes", "bundle_price", "currency")->where("machine_id", $machine_id)->get()->toArray());
+                } else {
+                    HappyHoursData::where('plano_uuid', $uuid)->delete();
+                    $array["start_date"] = $start_date;
+                    $array["end_date"] = $end_date;
+                    HappyHours::where("uuid", $uuid)->update($array);
+                    HappyHoursData::insert($planoMap);
+                }
+                if (count($unexistedProducts)) {
+                    Product::insert($unexistedProducts);
+                }
+                DB::commit();
+                $response = ["code" => 200, "message" => "Planogram updated sucessfully."];
+                if ($errors > 0) {
+                    $response["error_message"] = $error_text;
+                    $response["no_of_error"] = $errors;
+                }
+                if ($warnings > 0) {
+                    $response["warning_message"] = $warning_text;
+                    $response["no_of_warnings"] = $warnings;
+                }
+                $response["no_of_product_updated"] = count($mapped);
+            } catch (\Exception $e) {
+                DB::rollback();
+                return ["code" => 422, "message" => $e->getMessage()];
+            }
+        } else {
+            $response = ["code" => 200, "msg" => "Errors occured in planogram."];
+            $response["error_message"] = $error_text;
+            $response["no_of_error"] = $errors;
+            if ($warnings > 0) {
+                $response["warning_message"] = $warning_text;
+                $response["no_of_warnings"] = $warnings;
+            }
             $response["legit_rows"] = 0;
         }
         return $response;
