@@ -103,7 +103,7 @@ class PlanogramRepository
             "valName"   => $this->request->type === "machine" ? "machine_name" : "status",
             "withObj"   => ["withVal" => "machine_name","with"=>"machine"]
         ]);
-        return $this->controller->sendResponse("Success", $data);
+        return $this->controller->sendResponseReport($data);
     }
 
     /**
