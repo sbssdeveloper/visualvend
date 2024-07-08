@@ -101,6 +101,7 @@ class PlanogramRepository
             "typeArr"   => ["machine", "status"],
             "keyName"   => $this->request->type === "machine" ? "machine_id" : "status",
             "valName"   => $this->request->type === "machine" ? "machine_name" : "status",
+            "withObj"   => ["withVal" => "machine_name","with"=>"machine"]
         ]);
         return $this->controller->sendResponse("Success", $data);
     }
@@ -146,7 +147,7 @@ class PlanogramRepository
         } else {
             $model = HappyHours::with("happy_hours_data")->where("uuid", $this->request->uuid)->first();
         }
-        
+
         return $this->controller->sendResponse("Success", $model);
     }
 }

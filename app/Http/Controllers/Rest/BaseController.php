@@ -59,7 +59,7 @@ class BaseController extends Controller
         return response()->json($response, 200);
     }
 
-    public function sendResponseWithPagination($result, $message="Success"): JsonResponse
+    public function sendResponseWithPagination($result, $message = "Success"): JsonResponse
     {
         $response = [
             'success' => true,
@@ -120,13 +120,25 @@ class BaseController extends Controller
                         $repeated_products[$keyPair] = 1;
                     }
                 }
-                $pairs[$value[$keyName]] = $value[$valName];
-                if (isset($formattedData[$value[$keyName]])) {
-                    $pairedIds[$value[$keyName]] = [...$pairedIds[$value[$keyName]], $value[$selector]];
-                    $formattedData[$value[$keyName]] = [...$formattedData[$value[$keyName]], $value];
+                $valKeyName = $exactValue = null;
+                if (isset($withObj["withKey"]) && $withObj["withKey"] === $keyName) {
+                    $valKeyName     = $value[$withObj["with"]][$keyName];
                 } else {
-                    $pairedIds[$value[$keyName]] = [$value[$selector]];
-                    $formattedData[$value[$keyName]] = [$value];
+                    $valKeyName     = $value[$keyName];
+                }
+                if (isset($withObj["withVal"]) && $withObj["withVal"] === $valName) {
+                    $exactValue     = $value[$withObj["with"]][$valName];
+                }else{
+                    $exactValue     = $value[$valName];
+                }
+
+                $pairs[$valKeyName] = $exactValue;
+                if (isset($formattedData[$valKeyName])) {
+                    $pairedIds[$valKeyName] = [...$pairedIds[$valKeyName], $value[$selector]];
+                    $formattedData[$valKeyName] = [...$formattedData[$valKeyName], $value];
+                } else {
+                    $pairedIds[$valKeyName] = [$value[$selector]];
+                    $formattedData[$valKeyName] = [$value];
                 }
             }
         } else {
