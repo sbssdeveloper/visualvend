@@ -2,9 +2,12 @@
 
 namespace App\Http\Repositories;
 
+use DB;
 use App\Http\Controllers\Rest\BaseController;
+use App\Models\HappyHours;
 use App\Models\Planogram;
 use Illuminate\Http\Request;
+use OpenApi\Annotations as OA;
 
 class PlanogramRepository
 {
@@ -32,6 +35,7 @@ class PlanogramRepository
      *     @OA\Parameter(
      *         name="X-Auth-Token",
      *         in="header",
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8",
      *         required=true,
      *         description="Authorization token",
      *         @OA\Schema(type="string")
@@ -43,71 +47,106 @@ class PlanogramRepository
      * )
      */
 
-    public function list($request)
+    public function list($machines)
     {
+        $client_id  = $this->request->auth->client_id;
         $machine_id = $this->request->machine_id;
         $search     = $this->request->search;
         $type       = $this->request->type;
 
-        $planogram = Planogram::select("planogram.*", "machine_name", "0 as duration", "1 as is_default", "'live' as planogram_type")->with("machine")->paginate(10)->items();
-        print_r($planogram);
-        die;
+        $planogram  = Planogram::select("created_at", "uuid", "parent_uuid", "machine_id", "name", "status", "age_verify", DB::raw("0 as duration"),  DB::raw("1 as is_default"),  DB::raw("'live' as planogram_type"))->with(["machine" => function ($select) {
+            $select->select("machine_name", "id");
+        }]);
 
-        //"TIMESTAMPDIFF(HOUR,planogram.start_date,planogram.end_date) as duration"
-        $m1 = $this->db->select(["planogram.*", "machine_name", "0 as duration", "1 as is_default", "'live' as planogram_type"])->join("machine", "machine.id=planogram.machine_id", "left");
+        $happy_hours = HappyHours::select("created_at", "uuid", "parent_uuid", "machine_id", "name", "status", "age_verify", DB::raw("TIMESTAMPDIFF(HOUR,happy_hours.start_date,happy_hours.end_date) as duration"), DB::raw("0 as is_default"), DB::raw("'happy_hours' as planogram_type"))->with(["machine" => function ($select) {
+            $select->select("machine_name", "id");
+        }]);
+
         if ($machine_id > 0) {
-            $m1 = $m1->where("machine_id", $machine_id);
-        }
-        if ($this->clientID > 0) {
-            $m1 = $m1->where_in("machine_id", $this->machines);
-        }
-        if (!empty($search)) {
-            $m1 =  $m1->group_start()->like("name", $search, "after")->or_like("machine.machine_name", $search, "after")->group_end();
+            $planogram->where("machine_id", $machine_id);
+            $happy_hours->where("machine_id", $machine_id);
         }
 
-        $m1 = $m1->where("machine.is_deleted", 0)->order_by("planogram.id", "DESC")->limit($length, $offset)->get("planogram")->result_array();
+        if ($client_id > 0) {
+            $planogram->whereIn("machine_id", $machines);
+            $happy_hours->whereIn("machine_id", $machines);
+        }
 
-        $m2 = $this->db->select(["happy_hours.*", "machine_name", "TIMESTAMPDIFF(HOUR,happy_hours.start_date,happy_hours.end_date) as duration", "0 as is_default", "'happy_hours' as planogram_type"])->join("machine", "machine.id=happy_hours.machine_id", "left");
-        if ($machine_id > 0) {
-            $m2 = $m2->where("machine_id", $machine_id);
-        }
-        if ($this->clientID > 0) {
-            $m2 = $m2->where_in("machine_id", $this->machines);
-        }
         if (!empty($search)) {
-            $m2 =  $m2->group_start()->like("name", $search, "after")->or_like("machine.machine_name", $search, "after")->group_end();
-        }
-        $m2 = $m2->where("machine.is_deleted", 0)->order_by("happy_hours.id", "DESC")->limit($length, $offset)->get("happy_hours")->result_array();
-        $model = array_merge($m1, $m2);
-        $formattedData = $pairs = $allIds = $pairedIds = [];
-        if (in_array($type, ["machine", "status"])) {
-            $keyName        = $type === "machine" ? "machine_id" : "status";
-            $valName        = $type === "machine" ? "machine_name" : "status";
-            foreach ($model as $key => $value) {
-                $allIds[] = $value["id"];
-                $pairs[$value[$keyName]] = $value[$valName];
-                if (isset($formattedData[$value[$keyName]])) {
-                    $pairedIds[$value[$keyName]] = [...$pairedIds[$value[$keyName]], $value["id"]];
-                    $formattedData[$value[$keyName]] = [...$formattedData[$value[$keyName]], $value];
-                } else {
-                    $pairedIds[$value[$keyName]] = [$value["id"]];
-                    $formattedData[$value[$keyName]] = [$value];
-                }
-            }
+            $planogram->where(function ($query) use ($search) {
+                $query->where("name", "like", "$search%")->orWhereHas("machine", function ($hasQuery) use ($search) {
+                    $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+                });
+            });
+            $happy_hours->where(function ($query) use ($search) {
+                $query->where("name", "like", "$search%")->orWhereHas("machine", function ($hasQuery) use ($search) {
+                    $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+                });
+            });
         } else {
-            $formattedData = $model;
-            foreach ($formattedData as $value) {
-                $allIds[] = $value["id"];
-            }
+            $planogram->whereHas("machine", function ($query) {
+                $query->where("is_deleted", 0);
+            });
+
+            $happy_hours->whereHas("machine", function ($query) {
+                $query->where("is_deleted", 0);
+            });
         }
-        $paginate["showingRecords"]         = count($model);
-        $paginate["data"]                   = $formattedData;
-        $paginate["pairs"]                  = $pairs;
-        $paginate["all"]                    = $allIds;
-        $paginate["paired"]                 = $pairedIds;
-        return $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(200)
-            ->set_output(json_encode($paginate));
+        $planogram->orderBy("id", "DESC");
+        $happy_hours->orderBy("id", "DESC");
+        $model = $planogram->union($happy_hours)->paginate($this->request->length ?? 50);
+        $data =  $this->controller->sendResponseWithPaginationList($model, [
+            "type"      => $this->request->type,
+            "selector"  => "uuid",
+            "typeArr"   => ["machine", "status"],
+            "keyName"   => $this->request->type === "machine" ? "machine_id" : "status",
+            "valName"   => $this->request->type === "machine" ? "machine_name" : "status",
+        ]);
+        return $this->controller->sendResponse("Success", $data);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/planogram/info",
+     *     summary="Planoram Info",
+     *     tags={"V1"},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="string"),
+     *         description="UUID"
+     *     ),
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="string",  enum={"planogram", "happy_hours"}),
+     *         description="Planogram Type: 'planogram' (Planogram), 'happy_hours' (Happy Hours)"
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function info()
+    {
+        $model = null;
+        if ($this->request->type === "planogram") {
+            $model = Planogram::with("planogram_data")->where("uuid", $this->request->uuid)->first();
+        } else {
+            $model = HappyHours::with("happy_hours_data")->where("uuid", $this->request->uuid)->first();
+        }
+        
+        return $this->controller->sendResponse("Success", $model);
     }
 }

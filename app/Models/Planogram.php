@@ -8,10 +8,14 @@ class Planogram extends Model
 {
     protected $table = "planogram";
     protected $fillable = ['*'];
-    protected $hidden = ['id'];
 
     public function machine()
     {
-        return $this->belongsTo(Machine::class, "id", "machine_id");
+        return $this->belongsTo(Machine::class, "machine_id", "id");
+    }
+
+    public function planogram_data()
+    {
+        return $this->hasMany(PlanogramData::class, "plano_uuid", "uuid");
     }
 }

@@ -3,11 +3,11 @@
 $router->group(['prefix' => 's3'], function () use ($router) {
     $router->get('media/{type}/{filename}', 'S3BucketController@fetchUrl');
     $router->group(['middleware' => 'jwt'], function () use ($router) {
-        $router->post('preassigned/url', 'S3BucketController@getPresignedUrl');
-        $router->post('preassigned/multiple/url', 'S3BucketController@getPresignedMultipleUrls');
-        $router->post('file/delete', 'S3BucketController@deleteFile');
-        $router->post('file/exists', 'S3BucketController@fileExists');
-        $router->post('file/url', 'S3BucketController@getFileUrl');
+        $router->post('preassigned/url',            'S3BucketController@getPresignedUrl');
+        $router->post('preassigned/multiple/url',   'S3BucketController@getPresignedMultipleUrls');
+        $router->post('file/delete',                'S3BucketController@deleteFile');
+        $router->post('file/exists',                'S3BucketController@fileExists');
+        $router->post('file/url',                   'S3BucketController@getFileUrl');
     });
 });
 
@@ -79,7 +79,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('reports/refill',         'ReportsController@refill');
         $router->post('reports/stock',          'ReportsController@stock');
         $router->post('reports/vend/activity',  'ReportsController@vend_activity');
-        $router->post('reports/expiry/products','ReportsController@expiryProducts');
+        $router->post('reports/expiry/products', 'ReportsController@expiryProducts');
         $router->post('reports/vend/error',     'ReportsController@vend_error');
         $router->post('reports/feedback',       'ReportsController@feedback');
         $router->post('reports/email',          'ReportsController@getEmail');
@@ -89,8 +89,11 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('reports/gift',           'ReportsController@gift');
         $router->post('reports/payment',        'ReportsController@payment');
         $router->post('reports/vend/queue',     'ReportsController@vend_queue');
-        
+
         /****************************Planogram******************************/
-        $router->post('planogram/list',         'PlanogramController@list');
+        $router->group(['prefix' => 'planogram'], function () use ($router) {
+            $router->post('list',               'PlanogramController@list');
+            $router->get('info[/{uuid}/{type}]','PlanogramController@info');
+        });
     });
 });

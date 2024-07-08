@@ -19,4 +19,9 @@ class PlanogramController extends Controller
     {
         return $this->repo->list($request);
     }
+
+    public function info(Request $request)
+    {
+        return $this->repo->info($request);
+    }
 }
