@@ -54,11 +54,11 @@ class PlanogramRepository
         $search     = $this->request->search;
         $type       = $this->request->type;
 
-        $planogram  = Planogram::select("created_at", "uuid",  DB::raw("NULL as start_date"), DB::raw("NULL as end_date"), "parent_uuid", "machine_id", "name", "status", "age_verify", DB::raw("0 as duration"),  DB::raw("1 as is_default"),  DB::raw("'live' as planogram_type"))->with(["machine" => function ($select) {
+        $planogram  = Planogram::select("created_at", "uuid",  DB::raw("'Indefinite' as start_date"), DB::raw("'Indefinite' as end_date"), "parent_uuid", "machine_id", "name", "status", "age_verify", DB::raw("0 as duration"),  DB::raw("1 as is_default"),  DB::raw("'live' as planogram_type"))->with(["machine" => function ($select) {
             $select->select("machine_name", "id");
         }]);
 
-        $happy_hours = HappyHours::select("created_at", "uuid","start_date", "end_date", "parent_uuid", "machine_id", "name", "status", "age_verify", DB::raw("TIMESTAMPDIFF(HOUR,happy_hours.start_date,happy_hours.end_date) as duration"), DB::raw("0 as is_default"), DB::raw("'happy_hours' as planogram_type"))->with(["machine" => function ($select) {
+        $happy_hours = HappyHours::select("created_at", "uuid", "start_date", "end_date", "parent_uuid", "machine_id", "name", "status", "age_verify", DB::raw("TIMESTAMPDIFF(HOUR,happy_hours.start_date,happy_hours.end_date) as duration"), DB::raw("0 as is_default"), DB::raw("'happy_hours' as planogram_type"))->with(["machine" => function ($select) {
             $select->select("machine_name", "id");
         }]);
 
@@ -101,7 +101,7 @@ class PlanogramRepository
             "typeArr"   => ["machine", "status"],
             "keyName"   => $this->request->type === "machine" ? "machine_id" : "status",
             "valName"   => $this->request->type === "machine" ? "machine_name" : "status",
-            "withObj"   => ["withVal" => "machine_name","with"=>"machine"]
+            "withObj"   => ["withVal" => "machine_name", "with" => "machine"]
         ]);
         return $this->controller->sendResponseReport($data);
     }
