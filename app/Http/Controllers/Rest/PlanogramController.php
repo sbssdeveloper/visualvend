@@ -46,12 +46,12 @@ class PlanogramController extends Controller
     public function update(Request $request)
     {
         ["type" => $type]                 = $request->only("type");
-
+        $table = $type=='live'?'planogram':'happy_hours';
         $rules = [
             'type'                      => 'required|in:live,happy_hours',
             'name'                      => 'required|string|min:4|max:20',
             'file'                      => 'required|file|max:10240|mimes:xlsx',
-            'uuid'                      => "required|exists:$type=='live'?'planogram':'happy_hours',uuid",
+            'uuid'                      => "required|exists:$table,uuid",
         ];
         if($type==="happy_hours"){
             $rules["start_date"]        = "required|date";

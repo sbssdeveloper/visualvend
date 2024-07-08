@@ -233,10 +233,10 @@ class PlanogramRepository
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                type="object",
-     *                required={"machine_id","file", "uuid", "type"},
+     *                required={"uuid","type","name", "file"},
      *                @OA\Property(property="uuid", type="string", example=""),
+     *                @OA\Property(property="type", type="string", example="live"),
      *                @OA\Property(property="name", type="string", example=""),
-     *                @OA\Property(property="type", type="string", example="live", enum={"live","happy_hours"}),
      *                @OA\Property(property="start_date", type="string", example=""),
      *                @OA\Property(property="end_date", type="string", example=""),
      *                @OA\Property(

@@ -466,14 +466,14 @@ class PlanogramHelper
                     $bundle_price = (float) $subValue;
                 }
             }
-            $product = Product::where("product_id", $product_id)->where("client_id", $client_id)->first();
+            $product = Product::where("product_id", $productID)->where("client_id", $client_id)->first();
 
             if (!$product) {
                 $product                = new \stdClass();
                 $product->product_name  = $productID;
                 $product->product_price = $product_price ?? "0.00";
                 $unexistedProducts[$productID] = [
-                    'uuid'                      => uuid(),
+                    'uuid'                      => (string) Encrypt::uuid(),
                     'product_id'                => $productID,
                     'client_id'                 => $client_id,
                     'product_price'             => $product_price ?? "0.00",
@@ -569,14 +569,14 @@ class PlanogramHelper
             }
         }
 
-        $data = compact("mapped_aisle_based", "mapped_aisle_included_based", "errors", 'error_text', 'warnings', 'warning_text', 'unexistedProducts', 'machine_id', 'client_id', 'catListed', 'planoMap', 'uuid', 'type', 'name', 'start_date', 'end_date');
+        $data = compact("mapped_aisle_based", "mapped_aisle_included_based", "errors", 'error_text', 'warnings', 'warning_text', 'unexistedProducts', 'machine_id', 'client_id', 'catListed', 'uuid', 'type', 'name', 'start_date', 'end_date');
         return $data;
     }
 
     function updateUploadNow($params)
     {
+        $count = 0;
         extract($params);
-        $uuid = uuid();
         $code = 200;
         $response = [];
         $mapped = $product_org_aisles = $planoMap = [];
