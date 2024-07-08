@@ -5,21 +5,21 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
-class MakeRepositoryCommand extends Command
+class makeHelperCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'make:repository {name}';
+    protected $signature = 'make:helper {name}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new repository class';
+    protected $description = 'Create a new helper class';
 
     /**
      * The filesystem instance.
@@ -52,7 +52,7 @@ class MakeRepositoryCommand extends Command
         $path = $this->getPath($name);
 
         if ($this->files->exists($path)) {
-            $this->error('Repository already exists!');
+            $this->error('Helper already exists!');
             return false;
         }
 
@@ -62,7 +62,7 @@ class MakeRepositoryCommand extends Command
 
         $this->files->put($path, $this->replaceNamespace($stub, $name));
 
-        $this->info('Repository created successfully.');
+        $this->info('Helper created successfully.');
     }
 
     /**
@@ -83,7 +83,7 @@ class MakeRepositoryCommand extends Command
      */
     protected function getPath($name)
     {
-        return base_path('app/Http/Repositories/') . $name . '.php';
+        return base_path('app/Http/Helpers/') . $name . '.php';
     }
 
     /**
@@ -110,7 +110,7 @@ class MakeRepositoryCommand extends Command
      */
     protected function replaceNamespace(&$stub, $name)
     {
-        $stub = str_replace('{{ namespace }}', 'App\Http\Repositories', $stub);
+        $stub = str_replace('{{ namespace }}', 'App\Http\Helpers', $stub);
         $stub = str_replace('{{ class }}', $name, $stub);
 
         return $stub;

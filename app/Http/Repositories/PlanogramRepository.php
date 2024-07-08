@@ -3,20 +3,29 @@
 namespace App\Http\Repositories;
 
 use DB;
+use Encrypt;
 use App\Http\Controllers\Rest\BaseController;
+use App\Http\Helpers\PlanogramHelper;
 use App\Models\HappyHours;
+use App\Models\Machine;
 use App\Models\Planogram;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
+use function PHPSTORM_META\type;
+
 class PlanogramRepository
 {
+    public $helper = null;
     public $request = null;
     public $controller = null;
-    public function __construct(Request $request, BaseController $controller)
+    public $planogram = null;
+    public function __construct(Request $request, BaseController $controller, Planogram $planogram, PlanogramHelper $helper)
     {
         $this->request      = $request;
+        $this->helper       = $helper;
         $this->controller   = $controller;
+        $this->planogram    = $planogram;
         $this->client_id    = $request->auth->client_id;
     }
 
@@ -150,5 +159,66 @@ class PlanogramRepository
         }
 
         return $this->controller->sendResponse("Success", $model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/upload",
+     *     summary="New Planogram Upload",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                required={"machine_id","file"},
+     *                @OA\Property(property="machine_id", type="integer", example=""),
+     *                @OA\Property(
+     *                  property="file",
+     *                  description="File",
+     *                  type="string",
+     *                  format="binary"
+     *                )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function upload()
+    {
+        $response = null;
+        $uuid           = (string) Encrypt::uuid();
+        $model          = Machine::where("id", $this->request->machine_id)->first();
+        $client_id      = $model->machine_client_id;
+        $sheetData      = $this->planogram->uploadFile($this->request);
+        $shiftedData    = array_shift($sheetData);
+        $formatCheck    = $this->helper->check_format_type($shiftedData);
+        extract($this->helper->formatPairs($formatCheck));
+        $formatAuth = $this->helper->formatAuthenticate($shiftedData, $formatValues);
+        if ($formatAuth["success"] === true) {
+            $arrayObj = ["sheet_data" => $sheetData, 'machine_id' => $this->request->machine_id, "client_id" => $client_id, 'formatKeys' => $formatKeys, 'formatValues' => $formatValues, "category" => $formatCheck["category"], 'model' => $model];
+            $response = $this->helper->uploadNow($this->helper->planoProductMap($arrayObj));
+            ["code" => $code, "message" => $message] = $response;
+            unset($response["code"], $response["message"]);
+            if ($code == 200) {
+                return $this->controller->sendResponse($message, $response);
+            }
+            return $this->controller->sendError($message, $response);
+        } else {
+            return $this->controller->sendError($formatAuth["error"]);
+        }
     }
 }

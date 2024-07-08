@@ -4,5 +4,5 @@ namespace {{ namespace }};
 
 class {{ class }}
 {
-    // Add your repository methods here
+    // Add your methods here
 }

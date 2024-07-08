@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\MakeRepositoryCommand::class,
+        \App\Console\Commands\makeHelperCommand::class,
     ];
 
     /**

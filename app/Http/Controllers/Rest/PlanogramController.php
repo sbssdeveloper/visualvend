@@ -33,6 +33,13 @@ class PlanogramController extends Controller
 
     public function upload(Request $request)
     {
-        return $this->repo->upload($request);
+        $rules = [
+            'machine_id'                => 'required|exists:machine,id',
+            'file'                      => 'required|file|max:10240|mimes:xlsx',
+        ];
+
+        $this->validate($request, $rules);
+        
+        return $this->repo->upload();
     }
 }
