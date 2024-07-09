@@ -315,7 +315,7 @@ class PlanogramRepository
         $authen->whereIn("id", $machines);
         $authen->where("is_deleted", 0);
         $count = $authen->count();
-        if ($count === $machines) {
+        if ($count === count($machines)) {
             $sheetData      = $this->planogram->uploadFile($this->request);
             $shiftedData    = array_shift($sheetData);
             $formatCheck    = $this->helper->check_format_type($shiftedData);
