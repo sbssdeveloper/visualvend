@@ -37,13 +37,13 @@ class PlanogramController extends Controller
             'machine_id'                => 'required|exists:machine,id',
             'file'                      => 'required|file|max:10240|mimes:xlsx',
             'type'                      => 'required|in:live,happy_hours',
-            'start_date'                => 'required_if|type,happy_hours',
-            'end_data'                  => 'required_if|type,happy_hours',
-            'machine_id'                => 'required_if|multi_plano,true'
+            'start_date'                => 'required_if:type,happy_hours',
+            'end_data'                  => 'required_if:type,happy_hours',
+            'machine_id'                => 'required_if:multi_plano,true'
         ];
 
         $this->validate($request, $rules);
-        
+
         $multi_plano   = $request->input("multi_plano");
         if ($multi_plano == TRUE) {
             return $this->repo->multi_upload();
