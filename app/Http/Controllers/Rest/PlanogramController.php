@@ -65,8 +65,8 @@ class PlanogramController extends Controller
             'name'                      => 'required|string|min:4|max:20',
             'file'                      => 'required|file|max:10240|mimes:xlsx',
             'uuid'                      => "required|exists:$table,uuid",
-            'start_date'                => 'required_if|type,happy_hours',
-            'end_date'                  => 'required_if|type,happy_hours'
+            'start_date'                => 'required_if:type,happy_hours',
+            'end_date'                  => 'required_if:type,happy_hours'
         ];
 
         $this->validate($request, $rules);
