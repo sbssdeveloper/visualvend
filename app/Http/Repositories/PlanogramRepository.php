@@ -211,21 +211,24 @@ class PlanogramRepository
         $client_id      = $model->machine_client_id;
         $sheetData      = $this->planogram->uploadFile($this->request);
         $shiftedData    = array_shift($sheetData);
-        $formatCheck    = $this->helper->check_format_type($shiftedData);
-        extract($this->helper->formatPairs($formatCheck));
-        $formatAuth = $this->helper->formatAuthenticate($shiftedData, $formatValues);
-        if ($formatAuth["success"] === true) {
-            $arrayObj = ["sheet_data" => $sheetData, 'machine_id' => $this->request->machine_id, "client_id" => $client_id, 'formatKeys' => $formatKeys, 'formatValues' => $formatValues, "category" => $formatCheck["category"], 'model' => $model];
-            $response = $this->helper->uploadNow($this->helper->planoProductMap($arrayObj));
-            ["code" => $code, "message" => $message] = $response;
-            unset($response["code"], $response["message"]);
-            if ($code == 200) {
-                return $this->controller->sendResponse($message, $response);
+        if (count($sheetData) > 0) {
+            $formatCheck    = $this->helper->check_format_type($shiftedData);
+            extract($this->helper->formatPairs($formatCheck));
+            $formatAuth = $this->helper->formatAuthenticate($shiftedData, $formatValues);
+            if ($formatAuth["success"] === true) {
+                $arrayObj = ["sheet_data" => $sheetData, 'machine_id' => $this->request->machine_id, "client_id" => $client_id, 'formatKeys' => $formatKeys, 'formatValues' => $formatValues, "category" => $formatCheck["category"], 'model' => $model];
+                $response = $this->helper->uploadNow($this->helper->planoProductMap($arrayObj));
+                ["code" => $code, "message" => $message] = $response;
+                unset($response["code"], $response["message"]);
+                if ($code == 200) {
+                    return $this->controller->sendResponse($message, $response);
+                }
+                return $this->controller->sendError($message, $response);
+            } else {
+                return $this->controller->sendError($formatAuth["error"]);
             }
-            return $this->controller->sendError($message, $response);
-        } else {
-            return $this->controller->sendError($formatAuth["error"]);
         }
+        return $this->controller->sendError("Uploaded sheet is empty.");
     }
 
     /**
@@ -283,23 +286,26 @@ class PlanogramRepository
         }
         $sheetData      = $this->planogram->uploadFile($this->request);
         $shiftedData    = array_shift($sheetData);
-        $formatCheck    = $this->helper->check_format_type($shiftedData);
-        extract($this->helper->formatPairs($formatCheck));
-        $formatAuth     = $this->helper->formatAuthenticate($shiftedData, $formatValues);
-        if ($formatAuth["success"] === true) {
-            $arrayObj = ["sheet_data" => $sheetData, 'formatKeys' => $formatKeys, 'formatValues' => $formatValues, "category" => $formatCheck["category"], "uuid" => $uuid, "start_date" => $start_date, "end_date" => $end_date, 'machine_id' => $model->machine_id, "client_id" => $model->client_id, "type" => $type, "name" => $name];
+        if (count($sheetData) > 0) {
+            $formatCheck    = $this->helper->check_format_type($shiftedData);
+            extract($this->helper->formatPairs($formatCheck));
+            $formatAuth     = $this->helper->formatAuthenticate($shiftedData, $formatValues);
+            if ($formatAuth["success"] === true) {
+                $arrayObj = ["sheet_data" => $sheetData, 'formatKeys' => $formatKeys, 'formatValues' => $formatValues, "category" => $formatCheck["category"], "uuid" => $uuid, "start_date" => $start_date, "end_date" => $end_date, 'machine_id' => $model->machine_id, "client_id" => $model->client_id, "type" => $type, "name" => $name];
 
-            $response = $this->helper->updateUploadNow($this->helper->planoProductMapForUpdate($arrayObj));
+                $response = $this->helper->updateUploadNow($this->helper->planoProductMapForUpdate($arrayObj));
 
-            ["code" => $code, "message" => $message] = $response;
-            unset($response["code"], $response["message"]);
-            if ($code == 200) {
-                return $this->controller->sendResponse($message, $response);
+                ["code" => $code, "message" => $message] = $response;
+                unset($response["code"], $response["message"]);
+                if ($code == 200) {
+                    return $this->controller->sendResponse($message, $response);
+                }
+                return $this->controller->sendError($message, $response);
+            } else {
+                return $this->controller->sendError($formatAuth["error"]);
             }
-            return $this->controller->sendError($message, $response);
-        } else {
-            return $this->controller->sendError($formatAuth["error"]);
         }
+        return $this->controller->sendError("Uploaded sheet is empty.");
     }
 
     public function multi_upload()
