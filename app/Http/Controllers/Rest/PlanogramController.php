@@ -45,6 +45,7 @@ class PlanogramController extends Controller
             $rules['machine_id']    = 'required';
         } else {
             $rules['machine_id']    = 'required|exists:machine,id';
+            $rules['name']          = 'required|string|min:4|max:50';
         }
 
         $this->validate($request, $rules);
@@ -62,7 +63,7 @@ class PlanogramController extends Controller
         $table = $type == 'live' ? 'planogram' : 'happy_hours';
         $rules = [
             'type'                      => 'required|in:live,happy_hours',
-            'name'                      => 'required|string|min:4|max:20',
+            'name'                      => 'required|string|min:4|max:50',
             'file'                      => 'required|file|max:10240|mimes:xlsx',
             'uuid'                      => "required|exists:$table,uuid",
             'start_date'                => 'required_if:type,happy_hours',
