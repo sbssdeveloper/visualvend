@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Rest;
 use App\Http\Controllers\Controller;
 use App\Http\Repositories\PlanogramRepository;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Calculation\Logical\Boolean;
 
 class PlanogramController extends Controller
 {
@@ -34,18 +35,21 @@ class PlanogramController extends Controller
     public function upload(Request $request)
     {
         $rules = [
-            'machine_id'                => 'required|exists:machine,id',
             'file'                      => 'required|file|max:10240|mimes:xlsx',
             'type'                      => 'required|in:live,happy_hours',
             'start_date'                => 'required_if:type,happy_hours',
-            'end_date'                  => 'required_if:type,happy_hours',
-            'machine_id'                => 'required_if:multi_plano,true'
+            'end_date'                  => 'required_if:type,happy_hours'
         ];
+        $multi_plano   = $request->multi_plano;
+        if ((bool) $multi_plano == TRUE) {
+            $rules['machine_id']    = 'required';
+        } else {
+            $rules['machine_id']    = 'required|exists:machine,id';
+        }
 
         $this->validate($request, $rules);
 
-        $multi_plano   = $request->input("multi_plano");
-        if ($multi_plano == TRUE) {
+        if ((bool) $multi_plano == TRUE) {
             return $this->repo->multi_upload();
         }
 

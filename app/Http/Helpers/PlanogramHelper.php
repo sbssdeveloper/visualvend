@@ -855,7 +855,7 @@ class PlanogramHelper
                 $planograms[] = [
                     "uuid" => (string) Encrypt::uuid(),
                     "client_id" => $formatter["client_id"],
-                    "machine_id" => $value["id"],
+                    "machine_id" => $value,
                     "name" => $name,
                     "status" => "In Progress",
                     "parent_uuid" => $formatter["uuid"]
@@ -901,7 +901,7 @@ class PlanogramHelper
                 $planograms[] = [
                     "uuid" => (string) Encrypt::uuid(),
                     "client_id" => $formatter["client_id"],
-                    "machine_id" => $value["id"],
+                    "machine_id" => $value,
                     "name" => $name,
                     "start_date" => $start_date,
                     "end_date" => $end_date,

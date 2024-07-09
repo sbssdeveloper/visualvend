@@ -179,7 +179,7 @@ class PlanogramRepository
      *                @OA\Property(property="type", type="string", enum={"live","happy_hours"}),
      *                @OA\Property(property="start_date", type="string", example=""),
      *                @OA\Property(property="end_date", type="string", example=""),
-     *                @OA\Property(property="multi_planogram", type="integer", example=1),
+     *                @OA\Property(property="multi_plano", type="integer", example=1),
      *                @OA\Property(
      *                  property="file",
      *                  description="File",
