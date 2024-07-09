@@ -174,6 +174,9 @@ class PlanogramRepository
      *                type="object",
      *                required={"machine_id","file"},
      *                @OA\Property(property="machine_id", type="integer", example=""),
+     *                @OA\Property(property="type", type="string", enum={"live","happy_hours"}),
+     *                @OA\Property(property="start_date", type="string", example=""),
+     *                @OA\Property(property="end_date", type="string", example=""),
      *                @OA\Property(
      *                  property="file",
      *                  description="File",
@@ -294,5 +297,61 @@ class PlanogramRepository
         } else {
             return $this->controller->sendError($formatAuth["error"]);
         }
+    }
+
+    public function multi_upload()
+    {
+        $response       = [];
+        $client_id      = $this->client_id > 0 ? $this->request->client_id : $this->client_id;
+        $name           = $this->request->name;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machines       = explode(",", $this->request->machine_id);
+        $type           = $this->request->type;
+        $authen         = Machine::where("machine_client_id", $client_id);
+        $authen->whereIn("id", $machines);
+        $authen->where("is_deleted", 0);
+        $count = $authen->count();
+        if ($count === $machines) {
+            $sheetData      = $this->planogram->uploadFile($this->request);
+            $shiftedData    = array_shift($sheetData);
+            $formatCheck    = $this->helper->check_format_type($shiftedData);
+            extract($this->helper->formatPairs($formatCheck));
+            $formatAuth = $this->helper->formatAuthenticate($shiftedData, $formatValues);
+            if ($formatAuth["success"] === true) {
+                $arrayObj = [
+                    "sheet_data"    => $sheetData,
+                    'machines'      => $machines,
+                    "client_id"     => $client_id,
+                    'formatKeys'    => $formatKeys,
+                    'formatValues'  => $formatValues,
+                    "category"      => $formatCheck["category"]
+                ];
+                $formatter = $this->helper->multiPlanoProductMap($arrayObj);
+                $crud = [];
+                if ($type === "happy_hours") {
+                    $crud   = $this->helper->subPlanogramInsert(compact('machines', 'name', 'formatter', 'start_date', 'end_date'));
+                } else {
+                    $crud   = $this->helper->livePlanogramInsert(compact('machines', 'name', 'formatter'));
+                }
+                if ($crud["success"] === true) {
+                    if ($formatter["errors"] > 0) {
+                        $response["error_message"] = $formatter["error_text"];
+                        $response["no_of_error"] = $formatter["errors"];
+                    }
+                    if ($formatter["warnings"] > 0) {
+                        $response["warning_message"] = $formatter["warning_text"];
+                        $response["no_of_warnings"] = $formatter["warnings"];
+                    }
+                    $response["no_of_product_updated"] = count($crud["mapped"]);
+                    return $this->controller->sendResponse($crud["message"], $response);
+                } else {
+                    return $this->controller->sendError($crud["message"]);
+                }
+            } else {
+                return $this->controller->sendError($formatAuth["error"]);
+            }
+        }
+        return $this->controller->sendError("Machines list should be active.");
     }
 }

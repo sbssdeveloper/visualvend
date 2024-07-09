@@ -36,9 +36,18 @@ class PlanogramController extends Controller
         $rules = [
             'machine_id'                => 'required|exists:machine,id',
             'file'                      => 'required|file|max:10240|mimes:xlsx',
+            'type'                      => 'required|in:live,happy_hours',
+            'start_date'                => 'required_if|type,happy_hours',
+            'end_data'                  => 'required_if|type,happy_hours',
+            'machine_id'                => 'required_if|multi_plano,true'
         ];
 
         $this->validate($request, $rules);
+        
+        $multi_plano   = $request->input("multi_plano");
+        if ($multi_plano == TRUE) {
+            return $this->repo->multi_upload();
+        }
 
         return $this->repo->upload();
     }
@@ -46,17 +55,15 @@ class PlanogramController extends Controller
     public function update(Request $request)
     {
         ["type" => $type]                 = $request->only("type");
-        $table = $type=='live'?'planogram':'happy_hours';
+        $table = $type == 'live' ? 'planogram' : 'happy_hours';
         $rules = [
             'type'                      => 'required|in:live,happy_hours',
             'name'                      => 'required|string|min:4|max:20',
             'file'                      => 'required|file|max:10240|mimes:xlsx',
             'uuid'                      => "required|exists:$table,uuid",
+            'start_date'                => 'required_if|type,happy_hours',
+            'end_data'                  => 'required_if|type,happy_hours'
         ];
-        if($type==="happy_hours"){
-            $rules["start_date"]        = "required|date";
-            $rules["end_date"]          = "required|date";
-        }
 
         $this->validate($request, $rules);
 
