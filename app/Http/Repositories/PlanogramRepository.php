@@ -331,6 +331,8 @@ class PlanogramRepository
                     "category"      => $formatCheck["category"]
                 ];
                 $formatter = $this->helper->multiPlanoProductMap($arrayObj);
+                print_r( $formatter);
+                die;
                 $crud = [];
                 if ($type === "happy_hours") {
                     $crud   = $this->helper->subPlanogramInsert(compact('machines', 'name', 'formatter', 'start_date', 'end_date'));
