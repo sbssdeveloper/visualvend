@@ -305,7 +305,7 @@ class PlanogramRepository
     public function multi_upload()
     {
         $response       = [];
-        $client_id      = $this->client_id > 0 ? $this->request->client_id : $this->client_id;
+        $client_id      = $this->client_id > 0 ? $this->client_id : $this->request->client_id;
         $name           = $this->request->name;
         $start_date     = $this->request->start_date;
         $end_date       = $this->request->end_date;
@@ -315,8 +315,6 @@ class PlanogramRepository
         $authen->whereIn("id", $machines);
         $authen->where("is_deleted", 0);
         $count = $authen->count();
-        echo "COUNT==>$count";
-        die;
         if ($count === $machines) {
             $sheetData      = $this->planogram->uploadFile($this->request);
             $shiftedData    = array_shift($sheetData);
