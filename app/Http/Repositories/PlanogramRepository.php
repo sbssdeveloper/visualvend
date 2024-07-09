@@ -346,7 +346,7 @@ class PlanogramRepository
                         $response["warning_message"] = $formatter["warning_text"];
                         $response["no_of_warnings"] = $formatter["warnings"];
                     }
-                    $response["no_of_product_updated"] = count($crud["mapped"]);
+                    $response["no_of_product_updated"] = isset($crud["mapped"]) ? count($crud["mapped"]) : 0;
                     return $this->controller->sendResponse($crud["message"], $response);
                 } else {
                     return $this->controller->sendError($crud["message"]);
