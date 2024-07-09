@@ -43,9 +43,9 @@ class PlanogramController extends Controller
         $multi_plano   = $request->multi_plano;
         if ((bool) $multi_plano == TRUE) {
             $rules['machine_id']    = 'required';
+            $rules['name']          = 'required|string|min:4|max:50';
         } else {
             $rules['machine_id']    = 'required|exists:machine,id';
-            $rules['name']          = 'required|string|min:4|max:50';
         }
 
         $this->validate($request, $rules);
