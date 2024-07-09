@@ -875,7 +875,7 @@ class PlanogramHelper
                 return ["success" => false, "message" => $e->getMessage()];
             }
         } else {
-            return ["success" => false, "message" => "Errors occured in planogram."];
+            return ["success" => true, "message" => "Errors occured in planogram."];
         }
     }
 
@@ -923,7 +923,7 @@ class PlanogramHelper
                 return ["success" => false, "message" => $e->getMessage()];
             }
         } else {
-            return ["success" => false, "message" => "Errors occured in happy hours."];
+            return ["success" => true, "message" => "Errors occured in happy hours."];
         }
     }
 }
