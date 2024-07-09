@@ -324,42 +324,45 @@ class PlanogramRepository
         if ($count === count($machines)) {
             $sheetData      = $this->planogram->uploadFile($this->request);
             $shiftedData    = array_shift($sheetData);
-            $formatCheck    = $this->helper->check_format_type($shiftedData);
-            extract($this->helper->formatPairs($formatCheck));
-            $formatAuth = $this->helper->formatAuthenticate($shiftedData, $formatValues);
-            if ($formatAuth["success"] === true) {
-                $arrayObj = [
-                    "sheet_data"    => $sheetData,
-                    'machines'      => $machines,
-                    "client_id"     => $client_id,
-                    'formatKeys'    => $formatKeys,
-                    'formatValues'  => $formatValues,
-                    "category"      => $formatCheck["category"]
-                ];
-                $formatter = $this->helper->multiPlanoProductMap($arrayObj);
-                $crud = [];
-                if ($type === "happy_hours") {
-                    $crud   = $this->helper->subPlanogramInsert(compact('machines', 'name', 'formatter', 'start_date', 'end_date'));
-                } else {
-                    $crud   = $this->helper->livePlanogramInsert(compact('machines', 'name', 'formatter'));
-                }
-                if ($crud["success"] === true) {
-                    if ($formatter["errors"] > 0) {
-                        $response["error_message"] = $formatter["error_text"];
-                        $response["no_of_error"] = $formatter["errors"];
+            if(count($sheetData)>0){
+                $formatCheck    = $this->helper->check_format_type($shiftedData);
+                extract($this->helper->formatPairs($formatCheck));
+                $formatAuth = $this->helper->formatAuthenticate($shiftedData, $formatValues);
+                if ($formatAuth["success"] === true) {
+                    $arrayObj = [
+                        "sheet_data"    => $sheetData,
+                        'machines'      => $machines,
+                        "client_id"     => $client_id,
+                        'formatKeys'    => $formatKeys,
+                        'formatValues'  => $formatValues,
+                        "category"      => $formatCheck["category"]
+                    ];
+                    $formatter = $this->helper->multiPlanoProductMap($arrayObj);
+                    $crud = [];
+                    if ($type === "happy_hours") {
+                        $crud   = $this->helper->subPlanogramInsert(compact('machines', 'name', 'formatter', 'start_date', 'end_date'));
+                    } else {
+                        $crud   = $this->helper->livePlanogramInsert(compact('machines', 'name', 'formatter'));
                     }
-                    if ($formatter["warnings"] > 0) {
-                        $response["warning_message"] = $formatter["warning_text"];
-                        $response["no_of_warnings"] = $formatter["warnings"];
+                    if ($crud["success"] === true) {
+                        if ($formatter["errors"] > 0) {
+                            $response["error_message"] = $formatter["error_text"];
+                            $response["no_of_error"] = $formatter["errors"];
+                        }
+                        if ($formatter["warnings"] > 0) {
+                            $response["warning_message"] = $formatter["warning_text"];
+                            $response["no_of_warnings"] = $formatter["warnings"];
+                        }
+                        $response["no_of_product_updated"] = isset($crud["mapped"]) ? count($crud["mapped"]) : 0;
+                        return $this->controller->sendResponse($crud["message"], $response);
+                    } else {
+                        return $this->controller->sendError($crud["message"]);
                     }
-                    $response["no_of_product_updated"] = isset($crud["mapped"]) ? count($crud["mapped"]) : 0;
-                    return $this->controller->sendResponse($crud["message"], $response);
                 } else {
-                    return $this->controller->sendError($crud["message"]);
+                    return $this->controller->sendError($formatAuth["error"]);
                 }
-            } else {
-                return $this->controller->sendError($formatAuth["error"]);
             }
+            return $this->controller->sendError("Uploaded sheet is empty.");
         }
         return $this->controller->sendError("Machines list should be active.");
     }
