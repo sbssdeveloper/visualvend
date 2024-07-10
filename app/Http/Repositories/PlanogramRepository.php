@@ -448,9 +448,9 @@ class PlanogramRepository
 
     public function view()
     {
-        $model = $this->request->type == "planogram" ? PlanogramData : HappyHoursData;
+        $model = $this->request->type == "planogram" ? PlanogramData::class : HappyHoursData::class;
 
-        $data = $model::where("parent_uuid", $this->request->uuid)->get();
+        $data = $model::where("plano_uuid", $this->request->uuid)->get();
 
         return $this->controller->sendSuccess($data);
     }
