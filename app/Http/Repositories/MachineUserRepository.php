@@ -21,6 +21,61 @@ class MachineUserRepository
 
     /**
      * @OA\Post(
+     *     path="/v1/user/list",
+     *     summary="Machine List",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                @OA\Property(property="length", type="integer", example=""),
+     *                @OA\Property(property="search", type="string", example=""),
+     *                @OA\Property(property="status", type="string", example="")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function list()
+    {
+        $search = $this->request->search;
+        $status = $this->request->status;
+        $model  = MachineUser::class;
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where('firstname', 'like', "$search%");
+                $query->orWhere('lastname', 'like', "$search%");
+                $query->orWhere('mobilenumber', 'like', "$search%");
+                $query->orWhere('emailid', 'like', "$search%");
+            });
+        }
+
+        if (!empty($status)) {
+            $model->where('status', $search);
+        }
+        $model->orderBy('last_updated', "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
      *     path="/v1/user/available/list",
      *     summary="Machine User list",
      *     tags={"V1"},

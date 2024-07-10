@@ -15,6 +15,13 @@ class UserController extends LinkedMachineController
         $this->repo = $repo;
     }
 
+    public function list(Request $request){
+        if ($request->auth->client_id <= 0) {
+            $this->validate($request, ["client_id" => "required|exists:client,id"]);
+        }
+        return $this->repo->list();
+    }
+
     public function availableList(Request $request)
     {
         if ($request->auth->client_id <= 0) {
