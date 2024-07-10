@@ -95,7 +95,7 @@ class ClientRepository
 
     public function info($request)
     {
-        $model = Client::with(['portal_users','machine_users'])->where("id", $request->client_id)->first();
+        $model = Client::where("id", $request->client_id)->first();
         return $this->controller->sendResponse("Success", $model);
     }
 
