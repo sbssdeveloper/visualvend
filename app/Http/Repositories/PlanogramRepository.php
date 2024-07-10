@@ -450,7 +450,7 @@ class PlanogramRepository
     {
         $model = $this->request->type == "live" ? PlanogramData::class : HappyHoursData::class;
 
-        $data = $model::where("plano_uuid", $this->request->uuid)->first();
+        $data = $model::where("plano_uuid", $this->request->uuid)->get();
 
         return $this->controller->sendResponse("Success", $data);
     }
