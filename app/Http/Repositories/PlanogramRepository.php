@@ -427,7 +427,7 @@ class PlanogramRepository
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                type="object",
-     *                @OA\Property(property="uuid", type="string", example="")
+     *                @OA\Property(property="uuid", type="string", example=""),
      *                @OA\Property(property="type", type="string", enum={"planogram","happy_hours"})
      *             )
      *         )
