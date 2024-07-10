@@ -97,9 +97,10 @@ class PlanogramController extends Controller
     public function view(Request $request)
     {
         ['type' => $type] = $request->only("type");
+        $table = $type == 'live' ? 'planogram' : 'happy_hours';
         $rules = [
             'type'  => 'required|in:live,happy_hours',
-            'uuid'  => "required|exists:$type,uuid",
+            'uuid'  => "required|exists:$table,uuid",
         ];
 
         $this->validate($request, $rules);
@@ -110,9 +111,10 @@ class PlanogramController extends Controller
     public function delete(Request $request)
     {
         ['type' => $type] = $request->only("type");
+        $table = $type == 'live' ? 'planogram' : 'happy_hours';
         $rules = [
             'type'  => 'required|in:live,happy_hours',
-            'uuid'  => "required|exists:$type,uuid",
+            'uuid'  => "required|exists:$table,uuid",
         ];
 
         $this->validate($request, $rules);
@@ -123,9 +125,10 @@ class PlanogramController extends Controller
     public function status(Request $request)
     {
         ['type' => $type] = $request->only("type");
+        $table = $type == 'live' ? 'planogram' : 'happy_hours';
         $rules = [
             'type'   => 'required|in:live,happy_hours',
-            'uuid'   => "required|exists:$type,uuid",
+            'uuid'   => "required|exists:$table,uuid",
             'status' => "required|in:Active",
         ];
 
