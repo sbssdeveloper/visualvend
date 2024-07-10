@@ -8,6 +8,8 @@ use App\Http\Controllers\Rest\BaseController;
 use App\Http\Helpers\PlanogramHelper;
 use App\Models\HappyHours;
 use App\Models\Machine;
+use App\Models\MachineAssignProduct;
+use App\Models\MachineProductMap;
 use App\Models\Planogram;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
@@ -324,7 +326,7 @@ class PlanogramRepository
         if ($count === count($machines)) {
             $sheetData      = $this->planogram->uploadFile($this->request);
             $shiftedData    = array_shift($sheetData);
-            if(count($sheetData)>0){
+            if (count($sheetData) > 0) {
                 $formatCheck    = $this->helper->check_format_type($shiftedData);
                 extract($this->helper->formatPairs($formatCheck));
                 $formatAuth = $this->helper->formatAuthenticate($shiftedData, $formatValues);
@@ -365,5 +367,51 @@ class PlanogramRepository
             return $this->controller->sendError("Uploaded sheet is empty.");
         }
         return $this->controller->sendError("Machines list should be active.");
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/reset",
+     *     summary="Planogram Reset",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                required={"machine_id"},
+     *                @OA\Property(property="machine_id", type="integer", example="")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function reset()
+    {
+        $machine_id = $this->request->machine_id;
+        DB::beginTransaction();
+        try {
+            MachineProductMap::where("machine_id", $machine_id)->delete();
+            MachineAssignProduct::where("machine_id", $machine_id)->delete();
+            Planogram::where("machine_id", $machine_id)->where("status", "Active")->update(["status" => "Backup"]);
+            DB::commit();
+            return $this->controller->sendSuccess("Planogram reset successfully.");
+        } catch (\Exception $e) {
+            DB::rollback();
+            return $this->controller->sendError($e->getMessage());
+        }
     }
 }

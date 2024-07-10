@@ -96,6 +96,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
             $router->get('info[/{uuid}/{type}]','PlanogramController@info');
             $router->post('upload',             'PlanogramController@upload');
             $router->post('update',             'PlanogramController@update');
+            $router->post('reset',              'PlanogramController@reset');
         });
     });
 });
