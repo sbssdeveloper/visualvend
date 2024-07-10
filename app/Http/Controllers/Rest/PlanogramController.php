@@ -31,7 +31,7 @@ class PlanogramController extends Controller
         }
 
         $rules = [
-            'type'                      => 'required|in:planogram,happy_hours',
+            'type'                      => 'required|in:live,happy_hours',
             'uuid'                      => 'required',
         ];
 
@@ -98,7 +98,7 @@ class PlanogramController extends Controller
     {
         ['type' => $type] = $request->only("type");
         $rules = [
-            'type'  => 'required|in:planogram,happy_hours',
+            'type'  => 'required|in:live,happy_hours',
             'uuid'  => "required|exists:$type,uuid",
         ];
 
@@ -111,12 +111,26 @@ class PlanogramController extends Controller
     {
         ['type' => $type] = $request->only("type");
         $rules = [
-            'type'  => 'required|in:planogram,happy_hours',
+            'type'  => 'required|in:live,happy_hours',
             'uuid'  => "required|exists:$type,uuid",
         ];
 
         $this->validate($request, $rules);
 
         return $this->repo->delete();
+    }
+
+    public function status(Request $request)
+    {
+        ['type' => $type] = $request->only("type");
+        $rules = [
+            'type'   => 'required|in:live,happy_hours',
+            'uuid'   => "required|exists:$type,uuid",
+            'status' => "required|in:Active",
+        ];
+
+        $this->validate($request, $rules);
+
+        return $this->repo->status();
     }
 }

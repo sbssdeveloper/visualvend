@@ -155,7 +155,7 @@ class PlanogramRepository
     public function info()
     {
         $model = null;
-        if ($this->request->type === "planogram") {
+        if ($this->request->type === "live") {
             $model = Planogram::with("planogram_data")->where("uuid", $this->request->uuid)->first();
         } else {
             $model = HappyHours::with("happy_hours_data")->where("uuid", $this->request->uuid)->first();
@@ -428,7 +428,7 @@ class PlanogramRepository
      *             @OA\Schema(
      *                type="object",
      *                @OA\Property(property="uuid", type="string", example=""),
-     *                @OA\Property(property="type", type="string", enum={"planogram","happy_hours"})
+     *                @OA\Property(property="type", type="string", enum={"live","happy_hours"})
      *             )
      *         )
      *     ),
@@ -448,7 +448,7 @@ class PlanogramRepository
 
     public function view()
     {
-        $model = $this->request->type == "planogram" ? PlanogramData::class : HappyHoursData::class;
+        $model = $this->request->type == "live" ? PlanogramData::class : HappyHoursData::class;
 
         $data = $model::where("plano_uuid", $this->request->uuid)->first();
 
@@ -467,7 +467,7 @@ class PlanogramRepository
      *             @OA\Schema(
      *                type="object",
      *                @OA\Property(property="uuid", type="string", example=""),
-     *                @OA\Property(property="type", type="string", enum={"planogram","happy_hours"})
+     *                @OA\Property(property="type", type="string", enum={"live","happy_hours"})
      *             )
      *         )
      *     ),
@@ -487,8 +487,8 @@ class PlanogramRepository
 
     public function delete()
     {
-        $plano = $this->request->type == "planogram" ? Planogram::class : HappyHours::class;
-        $model = $this->request->type == "planogram" ? PlanogramData::class : HappyHoursData::class;
+        $plano = $this->request->type == "live" ? Planogram::class : HappyHours::class;
+        $model = $this->request->type == "live" ? PlanogramData::class : HappyHoursData::class;
 
         $data = $plano::where("uuid", $this->request->uuid)->first();
 
@@ -502,6 +502,65 @@ class PlanogramRepository
             $model::where("plano_uuid", $this->request->uuid)->delete();
             DB::commit();
             return $this->controller->sendSuccess("Planogram deleted successfully.");
+        } catch (\Exception $e) {
+            DB::rollback();
+            return $this->controller->sendError($e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/status/update",
+     *     summary="Planogram Status Update",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                @OA\Property(property="uuid", type="string", example=""),
+     *                @OA\Property(property="type", type="string", enum={"live","happy_hours"})
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function status()
+    {
+        $plano = $this->request->type == "live" ? Planogram::class : HappyHours::class;
+        $model = $this->request->type == "live" ? PlanogramData::class : HappyHoursData::class;
+
+        $data = $plano::where("uuid", $this->request->uuid)->first();
+
+        DB::beginTransaction();
+        try {
+            if ($this->request->type == "live" && $data->status === "Backup") {
+                MachineProductMap::where("machine_id", $data->machine_id)->delete();
+                MachineAssignProduct::where("machine_id", $data->machine_id)->delete();
+                MachineProductMap::insert(
+                    PlanogramData::where("plano_uuid", $this->request->uuid)->get()->makeHidden(['id', 'plano_uuid'])->toArray()
+                );
+                MachineAssignProduct::insert(
+                    MachineProductMap::select(DB::raw("id as product_map_id"), "machine_id", "category_id", "product_id", "product_price", "product_location", "product_quantity", "product_max_quantity", "show_order", "s2s", "aisles_included", "vend_quantity", "bundle_includes", "bundle_price", "currency")->where("machine_id", $machine_id)->get()->toArray()
+                );
+            }
+            $data->status = "Active";
+            $data->save();
+            DB::commit();
+            return $this->controller->sendSuccess("Planogram status updated successfully.");
         } catch (\Exception $e) {
             DB::rollback();
             return $this->controller->sendError($e->getMessage());
