@@ -11,6 +11,7 @@ use App\Models\Machine;
 use App\Models\MachineAssignProduct;
 use App\Models\MachineProductMap;
 use App\Models\Planogram;
+use App\Models\PlanogramData;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
@@ -413,5 +414,44 @@ class PlanogramRepository
             DB::rollback();
             return $this->controller->sendError($e->getMessage());
         }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/view",
+     *     summary="Planogram View",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                @OA\Property(property="uuid", type="string", example="")
+     *                @OA\Property(property="type", type="string", enum={"planogram","happy_hours"})
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function view()
+    {
+        $model = $this->request->type == "planogram" ? PlanogramData : HappyHoursData;
+
+        $data = $model::where("uuid", $this->request->uuid)->get();
+
+        return $this->controller->sendSuccess($data);
     }
 }

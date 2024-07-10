@@ -40,7 +40,7 @@ class PlanogramController extends Controller
             'start_date'                => 'required_if:type,happy_hours',
             'end_date'                  => 'required_if:type,happy_hours'
         ];
-        
+
         $multi_plano   = $request->multi_plano;
         if ((bool) $multi_plano == TRUE) {
             $rules['machine_id']    = 'required';
@@ -85,5 +85,18 @@ class PlanogramController extends Controller
         $this->validate($request, $rules);
 
         return $this->repo->reset();
+    }
+
+    public function view(Request $request)
+    {
+        ['type' => $type] = $request->only("type");
+        $rules = [
+            'type'  => 'required|in:planogram,happy_hours',
+            'uuid'  => "required|exists:$type,uuid",
+        ];
+
+        $this->validate($request, $rules);
+
+        return $this->repo->view();
     }
 }
