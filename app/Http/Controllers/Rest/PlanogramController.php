@@ -129,7 +129,7 @@ class PlanogramController extends Controller
         $rules = [
             'type'   => 'required|in:live,happy_hours',
             'uuid'   => "required|exists:$table,uuid",
-            'status' => "required|in:Active",
+            'status' => $type == 'live'?"required|in:Active":"required|in:Active,Inactive"
         ];
 
         $this->validate($request, $rules);

@@ -37,11 +37,5 @@ class MachineUser extends Model
         }
         return ['machine_users' => $response];
     }
-
-    public function newList($request, $controller)
-    {
-        $client_id = $request->auth->client_id <= 0 ? $request->client_id : $request->auth->client_id;
-        $model = self::select('username','firstname','lastname')->where("client_id", $client_id)->where("machines", "")->where("status", 1)->where("is_deactivated", 0)->get();
-        return $controller->sendResponse("Success", $model);
-    }
+    
 }

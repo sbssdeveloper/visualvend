@@ -71,7 +71,8 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('client/update',          'ClientController@update');
 
         /****************************USER******************************/
-        $router->post('user/list',              'UserController@list');
+        $router->post('user/available/list',    'UserController@availableList');
+        $router->post('user/request/login',     'UserController@requestLogin');
 
         /****************************REPORTS******************************/
         $router->post('reports/sales',          'ReportsController@sales');
