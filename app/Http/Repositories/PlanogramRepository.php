@@ -557,6 +557,7 @@ class PlanogramRepository
                     MachineProductMap::select(DB::raw("id as product_map_id"), "machine_id", "category_id", "product_id", "product_price", "product_location", "product_quantity", "product_max_quantity", "show_order", "s2s", "aisles_included", "vend_quantity", "bundle_includes", "bundle_price", "currency")->where("machine_id", $machine_id)->get()->toArray()
                 );
             }
+            $plano::where("status", "Active")->update(["status" => $this->request->type == "live" ? "Backup" : "Inactive"]);
             $data->status = "Active";
             $data->save();
             DB::commit();
