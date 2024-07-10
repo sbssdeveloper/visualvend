@@ -21,8 +21,15 @@ class PlanogramController extends Controller
         return $this->repo->list($request);
     }
 
-    public function info(Request $request)
+    public function info($uuid = null, $type = null, Request $request)
     {
+        if ($uuid && $type) {
+            $request->merge([
+                'uuid' => $uuid,
+                'type' => $type,
+            ]);
+        }
+
         $rules = [
             'type'                      => 'required|in:planogram,happy_hours',
             'uuid'                      => 'required',
