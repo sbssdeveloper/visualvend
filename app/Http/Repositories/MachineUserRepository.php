@@ -2,11 +2,15 @@
 
 namespace App\Http\Repositories;
 
-use DB;
+use Illuminate\Support\Facades\DB;
 use Encrypt;
 use App\Http\Controllers\Rest\BaseController;
+use App\Mail\MachineRequestMail;
+use App\Models\Cabinet;
+use App\Models\Client;
 use App\Models\MachineUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class MachineUserRepository
 {
@@ -123,13 +127,14 @@ class MachineUserRepository
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                type="object",
+     *                @OA\Property(property="client_id", type="integer", example=""),
      *                @OA\Property(property="firstname", type="string", example=""),
      *                @OA\Property(property="lastname", type="string", example=""),
      *                @OA\Property(property="mobilenumber", type="string", example=""),
      *                @OA\Property(property="emailid", type="string", example=""),
      *                @OA\Property(property="username", type="string", example=""),
      *                @OA\Property(property="password", type="string", example=""),
-     *                @OA\Property(property="confirm_password", type="string"),
+     *                @OA\Property(property="password_confirmation", type="string"),
      *                @OA\Property(property="cabinet_style", type="string"),
      *                @OA\Property(property="machine_name", type="string"),
      *                @OA\Property(property="cabinet_rows", type="integer"),
@@ -154,21 +159,65 @@ class MachineUserRepository
 
     public function requestLogin()
     {
-        $login  = $this->request->only("firstname", "lastname", "mobilenumber", "emailid", "username");
-        $cabinet = $this->request->only("cabinet_style", "machine_name", "cabinet_rows", "cabinet_columns", "start_end_aisle");
-        $login['password'] = Hash::make($this->request->password);
-        $login['uuid'] = (string) Encrypt::uuid();
-        $cabinet['uuid'] = (string) Encrypt::uuid();
-        $cabinet['user_uuid'] = $login['uuid'];
+        $cabinet                    = [];
+        $login                      = $this->request->only("firstname", "lastname", "mobilenumber", "emailid", "username");
+        $login['password']          = Hash::make($this->request->password);
+        $login['uuid']              = (string) Encrypt::uuid();
+        $login["client_id"]         = $this->request->auth->client_id <= 0 ? $this->request->client_id : $this->request->auth->client_id;
+        $cabinet['uuid']            = (string) Encrypt::uuid();
+        $cabinet['user_uuid']       = $login['uuid'];
+        $cabinet['style']           = $this->request->cabinet_style;
+        $cabinet['name']            = $this->request->machine_name;
+        $cabinet['max_rowss']        = $this->request->cabinet_rows;
+        $cabinet['max_columns']     = $this->request->cabinet_columns;
+        $cabinet['aisles_format']   = $this->request->start_end_aisle;
+
+        $model  = Client::where("id", $login["client_id"])->first();
         DB::beginTransaction();
         try {
             MachineUser::insert($login);
             Cabinet::insert($cabinet);
             DB::commit();
+            self::sendMail($model);
             return $this->controller->sendSuccess("Machine login request successfully submiited.");
         } catch (\Exception $e) {
             DB::rollback();
             return $this->controller->sendError($e->getMessage());
         }
+    }
+
+    function sendMail($model)
+    {
+        $emailObj = [
+            "name" => "Admin",
+            "message" => "Please approve the Machine Login request for the below mentioned.",
+            "client_name" => $model->client_name
+        ];
+
+        if (!empty($model->client_address)) {
+            $emailObj['client_address'] = $model->client_address;
+        }
+
+        if (!empty($model->client_mobile_number)) {
+            $emailObj['client_mobile_number'] = $model->client_phone;
+        }
+
+        if (!empty($model->client_email)) {
+            $emailObj['client_email'] = $model->client_email;
+        }
+
+        if (!empty($model->business_registration_number)) {
+            $emailObj['business_registration_number'] = $model->business_registration_number;
+        }
+
+        $object = new MachineRequestMail($emailObj);
+
+        $to = env("ADMIN_EMAIL");
+
+        $message = "Mail sent successfully.";
+
+        $emailMessage = $this->controller->sendEmail(compact("object", "to", "message"));
+        die($emailMessage);
+        return $emailMessage;
     }
 }

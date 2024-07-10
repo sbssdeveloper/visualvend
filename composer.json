@@ -10,10 +10,13 @@
         "darkaonline/swagger-lume": "8.*",
         "firebase/php-jwt": "^6.10",
         "flipbox/lumen-generator": "^9.3",
+        "guzzlehttp/guzzle": "^7.8",
+        "illuminate/mail": "^8.83",
         "illuminate/validation": "^8.83",
         "laravel/lumen-framework": "^8.3.1",
         "phpoffice/phpspreadsheet": "^1.29",
         "predis/predis": "^2.2",
+        "sendgrid/sendgrid": "^8.1",
         "vlucas/phpdotenv": "^5.6"
     },
     "require-dev": {

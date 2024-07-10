@@ -8,6 +8,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
 
+
 /*
 |--------------------------------------------------------------------------
 | Create The Application
@@ -22,6 +23,7 @@ date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
 $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
 );
+
 
 $app->withFacades();
 
@@ -48,6 +50,16 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+// MAIL SERVICE PROVIDER
+$app->register(Illuminate\Mail\MailServiceProvider::class);
+
+$app->configure('mail');
+
+$app->singleton(Illuminate\Contracts\Mail\Factory::class, function ($app) {
+    return $app->loadComponent('mail', 'Illuminate\Mail\MailServiceProvider', 'mailer');
+});
+
+
 /*
 |--------------------------------------------------------------------------
 | Register Config Files
@@ -62,7 +74,6 @@ $app->singleton(
 $app->configure('app');
 $app->configure('swagger-lume');
 $app->configure('filesystems');
-
 /*
 |--------------------------------------------------------------------------
 | Register Middleware
@@ -104,10 +115,12 @@ $app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
 $app->register(App\Providers\S3BucketServiceProvider::class);
 $app->register(Illuminate\Validation\ValidationServiceProvider::class);
 
-class_alias(PhpOffice\PhpSpreadsheet\Spreadsheet::class,"Spreadsheet");
-class_alias( PhpOffice\PhpSpreadsheet\Writer\Xlsx::class,"XlsxWriter");
-class_alias(PhpOffice\PhpSpreadsheet\Reader\Xlsx::class,"XlsxReader");
-class_alias(Illuminate\Support\Str::class,"Encrypt");
+
+class_alias(PhpOffice\PhpSpreadsheet\Spreadsheet::class, "Spreadsheet");
+class_alias(PhpOffice\PhpSpreadsheet\Writer\Xlsx::class, "XlsxWriter");
+class_alias(PhpOffice\PhpSpreadsheet\Reader\Xlsx::class, "XlsxReader");
+class_alias(Illuminate\Support\Str::class, "Encrypt");
+class_alias(Illuminate\Support\Facades\Mail::class, 'Mail');
 
 /*
 |--------------------------------------------------------------------------
@@ -131,5 +144,12 @@ $app->router->group([
 ], function ($router) {
     require __DIR__ . '/../routes/api.php';
 });
+
+// if ($app->environment('local')) {
+//     DB::listen(function ($query) {
+//         die("HELLO");
+//         \Log::info($query->sql, $query->bindings, $query->time);
+//     });
+// }
 
 return $app;

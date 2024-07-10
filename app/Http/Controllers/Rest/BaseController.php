@@ -4,6 +4,8 @@
 namespace App\Http\Controllers\Rest;
 
 use Exception;
+use Mail;
+use App\Mail\MachineRequestMail;
 use App\Http\Controllers\Controller as Controller;
 use Doctrine\DBAL\Cache\ArrayResult;
 use Illuminate\Http\JsonResponse;
@@ -128,7 +130,7 @@ class BaseController extends Controller
                 }
                 if (isset($withObj["withVal"]) && $withObj["withVal"] === $valName) {
                     $exactValue     = $value[$withObj["with"]][$valName];
-                }else{
+                } else {
                     $exactValue     = $value[$valName];
                 }
 
@@ -271,5 +273,13 @@ class BaseController extends Controller
             'exp' => time() + 60 * 60 * 1440, // 1209600 //60*60 // Expiration time
         ];
         return JWT::encode($payload, env('JWT_TOKEN'), env('JWT_ALGORITHM'));
+    }
+
+    public function sendEmail($params)
+    {
+        extract($params);
+        Mail::to($to)->send($object);
+
+        return $message;
     }
 }
