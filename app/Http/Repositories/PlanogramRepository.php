@@ -450,8 +450,61 @@ class PlanogramRepository
     {
         $model = $this->request->type == "planogram" ? PlanogramData::class : HappyHoursData::class;
 
-        $data = $model::where("plano_uuid", $this->request->uuid)->get();
+        $data = $model::where("plano_uuid", $this->request->uuid)->first();
 
-        return $this->controller->sendSuccess($data);
+        return $this->controller->sendResponse("Success", $data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/delete",
+     *     summary="Planogram Delete",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                type="object",
+     *                @OA\Property(property="uuid", type="string", example=""),
+     *                @OA\Property(property="type", type="string", enum={"planogram","happy_hours"})
+     *             )
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function delete()
+    {
+        $plano = $this->request->type == "planogram" ? Planogram::class : HappyHours::class;
+        $model = $this->request->type == "planogram" ? PlanogramData::class : HappyHoursData::class;
+
+        $data = $plano::where("uuid", $this->request->uuid)->first();
+
+        DB::beginTransaction();
+        try {
+            if ($data->status === "Active") {
+                MachineAssignProduct::where("machine_id", $data->machine_id)->delete();
+                MachineProductMap::where("machine_id", $data->machine_id)->delete();
+            }
+            $data->delete();
+            $model::where("plano_uuid", $this->request->uuid)->delete();
+            DB::commit();
+            return $this->controller->sendSuccess("Planogram deleted successfully.");
+        } catch (\Exception $e) {
+            DB::rollback();
+            return $this->controller->sendError($e->getMessage());
+        }
     }
 }

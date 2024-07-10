@@ -99,4 +99,17 @@ class PlanogramController extends Controller
 
         return $this->repo->view();
     }
+
+    public function delete(Request $request)
+    {
+        ['type' => $type] = $request->only("type");
+        $rules = [
+            'type'  => 'required|in:planogram,happy_hours',
+            'uuid'  => "required|exists:$type,uuid",
+        ];
+
+        $this->validate($request, $rules);
+
+        return $this->repo->delete();
+    }
 }

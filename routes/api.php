@@ -98,6 +98,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
             $router->post('update',             'PlanogramController@update');
             $router->post('reset',              'PlanogramController@reset');
             $router->post('view',               'PlanogramController@view');
+            $router->post('delete',             'PlanogramController@delete');
         });
     });
 });
