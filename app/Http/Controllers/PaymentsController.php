@@ -65,7 +65,7 @@ class PaymentsController extends BaseController
         $device     = $request->device;
 
         $badges        = Transaction::selectRaw("SUM(IF(remote_vend_log.status='2',1,0)) as successfull_vends, SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11'),1,0)) as failed_vends, FORMAT(SUM(transactions.amount),2) as total_payments, FORMAT(SUM(IF(transactions.payment_status='SUCCESS',transactions.amount,0)),2) as successfull_payments, FORMAT(SUM(IF(transactions.payment_status='FAILED',transactions.amount,0)),2) as failed_payments");
-        
+
         $badges->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
 
         $other = "SUM(IF(pay_method='pay_to_card',1,0)) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00') AND (transactions.payment_status IS NULL OR transactions.payment_status<>'FAILED') AND pay_method='pay_to_card', 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0) AND pay_method='pay_to_card') as in_progress, SUM(IF(remote_vend_log.status='2' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED' AND pay_method='pay_to_card', 1, 0)) as pay_failed, SUM(IF(transactions.id>0 AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00') AND pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS',1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as failed_mobile_payments, SUM(IF(remote_vend_log.status='2' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as successfull_mobile_vends";
@@ -83,9 +83,9 @@ class PaymentsController extends BaseController
             $badges->where("remote_vend_log.machine_id", $machine_id);
         }
 
-        $model  = $model->first();
+        $model  = $model->groupBy("transactions.id")->orderBy("remote_vend_log.id","DESC")->first();
 
-        $model->badges = $badges->first();
+        $model->badges = $badges->groupBy("transactions.id")->orderBy("remote_vend_log.id","DESC")->first();
         $model->all_card_payments   = number_format($model->visa_amount + $model->mastercard_amount + $model->amex_amount, 2);
         $model->all_mobile_payments = number_format($model->apple_amount + $model->google_amount + $model->paypal_amount + $model->after_pay_amount, 2);
 
