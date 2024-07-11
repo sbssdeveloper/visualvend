@@ -63,7 +63,7 @@ class PaymentsController extends BaseController
         $machine_id = $request->machine_id;
         $type       = $request->type;
         $device     = $request->device;
-
+        DB::statement("SET SQL_MODE=''");
         $badges        = Transaction::selectRaw("SUM(IF(remote_vend_log.status='2',1,0)) as successfull_vends, SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11'),1,0)) as failed_vends, FORMAT(SUM(transactions.amount),2) as total_payments, FORMAT(SUM(IF(transactions.payment_status='SUCCESS',transactions.amount,0)),2) as successfull_payments, FORMAT(SUM(IF(transactions.payment_status='FAILED',transactions.amount,0)),2) as failed_payments");
 
         $badges->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
@@ -83,9 +83,9 @@ class PaymentsController extends BaseController
             $badges->where("remote_vend_log.machine_id", $machine_id);
         }
 
-        $model  = $model->groupBy("transactions.id")->orderBy("remote_vend_log.id","DESC")->first();
+        $model  = $model->groupBy("transactions.id")->orderBy("remote_vend_log.id", "DESC")->first();
 
-        $model->badges = $badges->groupBy("transactions.id")->orderBy("remote_vend_log.id","DESC")->first();
+        $model->badges = $badges->groupBy("transactions.id")->orderBy("remote_vend_log.id", "DESC")->first();
         $model->all_card_payments   = number_format($model->visa_amount + $model->mastercard_amount + $model->amex_amount, 2);
         $model->all_mobile_payments = number_format($model->apple_amount + $model->google_amount + $model->paypal_amount + $model->after_pay_amount, 2);
 
