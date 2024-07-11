@@ -25,25 +25,6 @@ class MachineController extends BaseController
         $this->middleware('jwt'); //['except' => ['login']]
     }    
 
-    public function list(Request $request)
-    {
-        $this->validate($request, ['type' => 'required|in:list,pagination', 'length' => 'required_if:type,pagination', 'page' => 'required_if:type,pagination']);
-        $client_id = $request->auth->client_id;
-        $model = Machine::where('is_deleted', 0);
-        if ($client_id > 0) {
-            $list   = explode(",", $request->auth->machines);
-            $model = $model->whereIn("id", $list);
-        }
-        $model = $model->orderBy('machine_name', "ASC");
-        if ($request->type === "list") {
-            $model = $model->select(["id", "machine_name as name"])->get();
-            return parent::sendResponse("Success", $model);
-        } else {
-            $model = $model->paginate($request->length);
-            return parent::sendResponseWithPagination($model, "Success");
-        }
-    }
-
     public function products(Request $request, MachineProductMap $model)
     {
         $this->validate($request, ['machine_id' => 'required||exists:machine,id']);
