@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Models;
+namespace App\Http\Repositories;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
+use App\Models\HappyHours;
+use App\Models\HappyHoursData;
+use App\Models\MachineAssignProduct;
+use App\Models\MachineProductMap;
+use App\Models\Planogram;
+use App\Models\PlanogramData;
 
-class StockReset extends Model
+class StockRepository
 {
-    protected $table = 'stock_reset';
-    protected $fillable = ['*'];
-
     public function reset($request)
     {
         $planoGram = Planogram::where("machine_id", $request->machine_id)->where("status", "Active")->first();

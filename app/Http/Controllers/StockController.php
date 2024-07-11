@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Repositories\StockRepository;
 use App\Models\Machine;
 use App\Models\MachineProductMap;
 use App\Models\RefillHistory;
-use App\Models\StockReset;
 use Illuminate\Http\Request;
 
 class StockController extends BaseController
@@ -73,7 +73,7 @@ class StockController extends BaseController
      * )
      */
 
-    public function reset(Request $request, StockReset $model)
+    public function reset(Request $request, StockRepository $model)
     {
         $this->validate($request, ['machine_id' => 'required|exists:machine,id', "aisles" => "required"]);
         $model = $model->reset($request);
