@@ -13,36 +13,20 @@ class StockReset extends Model
 
     public function reset($request)
     {
-        $model = MachineProductMap::select("product_location", "product_id", "product_name", "product_quantity")->whereIn("product_location", $request->aisles)->where("machine_id", $request->machine_id)->get()->toArray();
-
-        $mapped = [];
-
-        foreach ($model as $value) {
-            extract($value);
-            $mapped[$value["product_location"]] = ["product_id" => $product_id, "product_name" => $product_name, "product_quantity" => $product_quantity];
-        }
-
-        $machine_name = Machine::find($request->machine_id)->first()->machine_name;
-
-        $array = [];
-
-        foreach ($request->aisles as $value) {
-            $array[] = [
-                "uuid"              => (string) Str::uuid(),
-                "aisle"             => $value,
-                "client_id"         => $request->auth->client_id,
-                "client_name"       => $request->auth->client_name ?? "",
-                "product_id"        => isset($mapped[$value]) ? $mapped[$value]["product_id"] : "no-product",
-                "product_name"      => isset($mapped[$value]) ? $mapped[$value]["product_name"] : "no-Product",
-                "machine_id"        => $request->machine_id,
-                "machine_name"      => $machine_name ?? "",
-                "original_amount"   => isset($mapped[$value]) ? $mapped[$value]["product_quantity"] : 0,
-            ];
-        }
-
+        $planoGram = Planogram::where("machine_id", $request->machine_id)->where("status", "Active")->first();
+        $happy_hours = HappyHours::where("machine_id", $request->machine_id)->where("status", "Active")->first();
         DB::beginTransaction();
         try {
-            self::insert($array);
+            if ($planoGram) {
+                PlanogramData::where("plano_uuid", $planoGram->uuid)->whereIn("product_location", $request->aisles)->update([
+                    "product_quantity" => 0
+                ]);
+            }
+            if ($happy_hours) {
+                HappyHoursData::where("plano_uuid", $happy_hours->uuid)->whereIn("product_location", $request->aisles)->update([
+                    "product_quantity" => 0
+                ]);
+            }
             MachineProductMap::whereIn("product_location", $request->aisles)->where("machine_id", $request->machine_id)->update([
                 "product_quantity" => 0
             ]);
@@ -55,5 +39,5 @@ class StockReset extends Model
             DB::rollBack();
             return ["response" => "error", "message" => $e->getMessage()];
         }
-    }    
+    }
 }
