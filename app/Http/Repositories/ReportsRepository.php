@@ -1376,7 +1376,8 @@ class ReportsRepository
         $failedSummary->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
         $failedSummary->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
 
-        $badges        = Transaction::selectRaw("SUM(IF(remote_vend_log.status='2',1,0)) as successfull_vends, SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11'),1,0)) as failed_vends, FORMAT(SUM(transactions.amount),2) as total_payments, FORMAT(SUM(IF(transactions.payment_status='SUCCESS',transactions.amount,0)),2) as successfull_payments, FORMAT(SUM(IF(transactions.payment_status='FAILED',transactions.amount,0)),2) as failed_payments");
+        $badges        = Transaction::selectRaw("COUNT(*) as vend_total_pay_total_count, SUM(IF(remote_vend_log.status='2',1,0)) as vend_success_pay_success_count,  SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11') AND transactions.payment_status='SUCCESS',1,0)) as vend_fail_pay_success_count, SUM(IF(transactions.payment_status='FAILED',1,0)) as vend_fail_pay_fail_count, SUM(IF(transactions.payment_status='SUCCESS',1,0)) as pay_success_count, FORMAT(SUM(transactions.amount),2) as vend_total_pay_total_amount, SUM(IF(remote_vend_log.status='2',FORMAT(transactions.amount,2),0)) as vend_success_pay_success_amount,  SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11') AND transactions.payment_status='SUCCESS',FORMAT(transactions.amount,2),0)) as vend_fail_pay_success_amount, SUM(IF(transactions.payment_status='FAILED',FORMAT(transactions.amount,2),0)) as vend_fail_pay_fail_amount, SUM(IF(transactions.payment_status='SUCCESS',FORMAT(transactions.amount,2),0)) as pay_success_amount");
+
         $badges->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
         $badges->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
 
