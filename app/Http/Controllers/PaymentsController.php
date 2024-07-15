@@ -62,7 +62,6 @@ class PaymentsController extends BaseController
         $end_date   = $request->end_date;
         $machine_id = $request->machine_id;
         $type       = $request->type;
-        $device     = $request->device;
 
         $badgeCount = "COUNT(*) as vend_total_pay_total_count, SUM(IF(remote_vend_log.status='2',1,0)) as vend_success_pay_success_count,  SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11') AND transactions.payment_status='SUCCESS',1,0)) as vend_fail_pay_success_count, SUM(IF(transactions.payment_status='FAILED',1,0)) as vend_fail_pay_fail_count, SUM(IF(transactions.payment_status='SUCCESS',1,0)) as pay_success_count";
 
@@ -103,56 +102,6 @@ class PaymentsController extends BaseController
         $model  = $model->first();
 
         $model->badges = $badges->first();
-
-        if ($device) {
-            $cardPayments  =   [
-                [
-                    "name" => "Visa",
-                    "color" => "#BBE409",
-                    "population" => (float) $model->visa,
-                ],
-                [
-                    "name" => "Mastercard",
-                    "color" => "#D5A804",
-                    "population" => (float) $model->master_card,
-                ],
-                [
-                    "name" => "Amex",
-                    "color" => "#08CFD5",
-                    "population" => (float) $model->amex,
-                ],
-                [
-                    "name" => "Debit Card",
-                    "color" => "#D75DCC",
-                    "population" => (float) $model->debit_card,
-                ]
-            ];
-            $model->card_payments = $cardPayments;
-
-            $mobPayments  =   [
-                [
-                    "name" => "Apple Pay",
-                    "color" => "#D75DCC",
-                    "population" => (float) $model->apple,
-                ],
-                [
-                    "name" => "Gpay",
-                    "color" => "#BBE409",
-                    "population" => (float) $model->google_pay,
-                ],
-                [
-                    "name" => "Paypal",
-                    "color" => "#08CFD5",
-                    "population" => (float) $model->paypal,
-                ],
-                [
-                    "name" => "After Pay",
-                    "color" => "#D5A804",
-                    "population" => (float) $model->after_pay,
-                ]
-            ];
-            $model->mobile_payments = $mobPayments;
-        }
 
         return parent::sendResponse("Success", $model);
     }
