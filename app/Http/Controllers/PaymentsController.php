@@ -64,14 +64,29 @@ class PaymentsController extends BaseController
         $type       = $request->type;
         $device     = $request->device;
 
-        $badges        = Transaction::selectRaw("COUNT(*) as vend_total_pay_total_count, SUM(IF(remote_vend_log.status='2',1,0)) as vend_success_pay_success_count,  SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11') AND transactions.payment_status='SUCCESS',1,0)) as vend_fail_pay_success_count, SUM(IF(transactions.payment_status='FAILED',1,0)) as vend_fail_pay_fail_count, SUM(IF(transactions.payment_status='SUCCESS',1,0)) as pay_success_count, FORMAT(SUM(transactions.amount),2) as vend_total_pay_total_amount, FORMAT(SUM(IF(remote_vend_log.status='2',transactions.amount,0)),2) as vend_success_pay_success_amount,  FORMAT(SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11') AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as vend_fail_pay_success_amount, FORMAT(SUM(IF(transactions.payment_status='FAILED',transactions.amount,0)),2) as vend_fail_pay_fail_amount, FORMAT(SUM(IF(transactions.payment_status='SUCCESS',transactions.amount,0)),2) as pay_success_amount");
-        
+        $badgeCount = "COUNT(*) as vend_total_pay_total_count, SUM(IF(remote_vend_log.status='2',1,0)) as vend_success_pay_success_count,  SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11') AND transactions.payment_status='SUCCESS',1,0)) as vend_fail_pay_success_count, SUM(IF(transactions.payment_status='FAILED',1,0)) as vend_fail_pay_fail_count, SUM(IF(transactions.payment_status='SUCCESS',1,0)) as pay_success_count";
+
+        $badgeSelector = $badgeCount . ",FORMAT(SUM(transactions.amount),2) as vend_total_pay_total_amount, FORMAT(SUM(IF(remote_vend_log.status='2',transactions.amount,0)),2) as vend_success_pay_success_amount,  FORMAT(SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11') AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as vend_fail_pay_success_amount, FORMAT(SUM(IF(transactions.payment_status='FAILED',transactions.amount,0)),2) as vend_fail_pay_fail_amount, FORMAT(SUM(IF(transactions.payment_status='SUCCESS',transactions.amount,0)),2) as pay_success_amount";
+
+        $modalVendCount = "SUM(IF(pay_method='pay_to_card',1,0)) as total_card_vends, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as total_mobile_vends,";
+
+        $modalVendCount .= "SUM(IF(pay_method='pay_to_card' AND transactions.payment_status='SUCCESS')) as total_card_payment_success, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS')) as total_mobile_payment_success,";
+
+        $modalVendCount .= "SUM(IF(pay_method='pay_to_card' AND remote_vend_log.status='2')) as total_card_vend_success, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND remote_vend_log.status='2')) as total_mobile_vend_success,";
+
+        $modalVendCount .= "SUM(IF(pay_method='pay_to_card' AND remote_vend_log.status IN('3','4','5','6','7','8','00'))) as total_card_vend_fail, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND remote_vend_log.status IN('3','4','5','6','7','8','00'))) as total_mobile_vend_fail,";
+
+        $modalVendCount .= "SUM(IF(pay_method='pay_to_card' AND transactions.payment_status='FAILED')) as total_card_payment_fail, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='FAILED')) as total_mobile_payment_fail,";
+
+        $modelSelector = $modalVendCount . "FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%MASTERCARD%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as master_card, FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%VISA%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as visa, FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%DEBIT%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as debit_card, FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%AMEX%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as amex, FORMAT(SUM(IF(pay_method='apple_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as apple, FORMAT(SUM(IF(pay_method='google_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as google_pay, FORMAT(SUM(IF(pay_method='after_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as after_pay, FORMAT(SUM(IF(pay_method='apple_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as paypal";
+
+        $badges        = Transaction::selectRaw($badgeSelector);
+
         $badges->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
 
-        $other = "SUM(IF(pay_method='pay_to_card',1,0)) as total_vends, SUM(IF(remote_vend_log.status IN('3','4','5','6','7','8','00') AND (transactions.payment_status IS NULL OR transactions.payment_status<>'FAILED') AND pay_method='pay_to_card', 1, 0)) as failed_vends, SUM(IF(remote_vend_log.status IN('0','1','11'), 1, 0) AND pay_method='pay_to_card') as in_progress, SUM(IF(remote_vend_log.status='2' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card', 1, 0)) as successfull_vends, SUM(IF(transactions.payment_status='FAILED' AND pay_method='pay_to_card', 1, 0)) as pay_failed, SUM(IF(transactions.id>0 AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as total_mobile_vends, SUM(IF(transactions.id>0 AND remote_vend_log.status IN('3','4','5','6','7','8','00') AND pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS',1,0)) as failed_mobile_vends, SUM(IF(transactions.id>0 AND payment_status='FAILED' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as failed_mobile_payments, SUM(IF(remote_vend_log.status='2' AND pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as successfull_mobile_vends";
+        $model = Transaction::selectRaw($modelSelector);
 
-
-        $model = Transaction::selectRaw("$other, SUM(IF(transactions.payment_status='SUCCESS', amount, 0)) as total_amount, SUM(IF(response LIKE '%DEBIT%' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card',amount,0)) as debit_card_amount,SUM(IF(response LIKE '%CREDIT%' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card',amount,0)) as credit_card_amount, SUM(IF(response LIKE '%VISA%' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card',amount,0)) as visa_amount, SUM(IF(response LIKE '%MASTERCARD%' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card',amount,0)) as mastercard_amount, SUM(IF(response LIKE '%AMEX%' AND transactions.payment_status='SUCCESS' AND pay_method='pay_to_card',amount,0)) as amex_amount, SUM(IF(pay_method='apple_pay' AND transactions.payment_status='SUCCESS',amount,0)) as apple_amount,  SUM(IF(pay_method='google_pay' AND transactions.payment_status='SUCCESS',amount,0)) as google_amount,  SUM(IF(pay_method='paypal' AND transactions.payment_status='SUCCESS',amount,0)) as paypal_amount,  SUM(IF(pay_method='after_pay' AND transactions.payment_status='SUCCESS',amount,0)) as after_pay_amount")->leftJoin('remote_vend_log', 'transactions.transaction_id', '=', 'remote_vend_log.transaction_id');
+        $model->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
 
         if (!empty($start_date) && !empty($end_date)) {
             $model->whereRaw("transactions.created_at >= '$start_date'")->whereRaw("transactions.created_at <= '$end_date'");
@@ -86,52 +101,28 @@ class PaymentsController extends BaseController
         $model  = $model->first();
 
         $model->badges = $badges->first();
-        $model->all_card_payments   = number_format($model->visa_amount + $model->mastercard_amount + $model->amex_amount, 2);
-        $model->all_mobile_payments = number_format($model->apple_amount + $model->google_amount + $model->paypal_amount + $model->after_pay_amount, 2);
-
-        // percentage code
-        $model->vend_success_rate   = $model->total_vends > 0 ? number_format(($model->successfull_vends / $model->total_vends) * 100, 2) : 0;
-        $model->vend_success_rate   .= "%";
-
-        $model->vend_failed_rate    = $model->total_vends > 0 ? number_format(($model->failed_vends / $model->total_vends) * 100, 2) : 0;
-        $model->vend_failed_rate   .= "%";
-
-        $model->vend_progress_rate  = $model->total_vends > 0 ? number_format(($model->in_progress / $model->total_vends) * 100, 2) : 0;
-        $model->vend_progress_rate .= "%";
-
-        $model->pay_failed_rate     = $model->total_vends > 0 ? number_format(($model->pay_failed / $model->total_vends) * 100, 2) : 0;
-        $model->pay_failed_rate    .= "%";
-
-        $model->mbl_success_rate    = $model->total_mobile_vends > 0 ? number_format(($model->successfull_mobile_vends / $model->total_mobile_vends) * 100, 2) : 0;
-        $model->mbl_success_rate   .= "%";
-
-        $model->mbl_failed_rate     = $model->total_mobile_vends > 0 ? number_format(($model->failed_mobile_vends / $model->total_mobile_vends) * 100, 2) : 0;
-        $model->mbl_failed_rate    .= "%";
-
-        $model->mbl_failed_pay_rate  = $model->total_mobile_vends > 0 ? number_format(($model->failed_mobile_payments / $model->total_mobile_vends) * 100, 2) : 0;
-        $model->mbl_failed_pay_rate .= "%";
 
         if ($device) {
             $cardPayments  =   [
                 [
                     "name" => "Visa",
                     "color" => "#BBE409",
-                    "population" => (float) $model->visa_amount,
+                    "population" => (float) $model->visa,
                 ],
                 [
                     "name" => "Mastercard",
                     "color" => "#D5A804",
-                    "population" => (float) $model->mastercard_amount,
+                    "population" => (float) $model->mastercard,
                 ],
                 [
                     "name" => "Amex",
                     "color" => "#08CFD5",
-                    "population" => (float) $model->amex_amount,
+                    "population" => (float) $model->amex,
                 ],
                 [
                     "name" => "Debit Card",
                     "color" => "#D75DCC",
-                    "population" => (float) $model->debit_card_amount,
+                    "population" => (float) $model->debit_card,
                 ]
             ];
             $model->card_payments = $cardPayments;
@@ -140,22 +131,22 @@ class PaymentsController extends BaseController
                 [
                     "name" => "Apple Pay",
                     "color" => "#D75DCC",
-                    "population" => (float) $model->apple_amount,
+                    "population" => (float) $model->apple,
                 ],
                 [
                     "name" => "Gpay",
                     "color" => "#BBE409",
-                    "population" => (float) $model->google_amount,
+                    "population" => (float) $model->google_pay,
                 ],
                 [
                     "name" => "Paypal",
                     "color" => "#08CFD5",
-                    "population" => (float) $model->paypal_amount,
+                    "population" => (float) $model->paypal,
                 ],
                 [
                     "name" => "After Pay",
                     "color" => "#D5A804",
-                    "population" => (float) $model->after_pay_amount,
+                    "population" => (float) $model->after_pay,
                 ]
             ];
             $model->mobile_payments = $mobPayments;
