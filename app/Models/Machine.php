@@ -28,15 +28,19 @@ class Machine extends Model
         return $this->hasOne(MachineHeartBeat::class, 'machine_id', "id");
     }
 
-    public static function personal($auth, $type = "count", $select = ["id"])
+    public static function personal($request, $type = "count", $select = ["id"])
     {
+        $auth = $request->auth;
         $array =  self::select($select);
 
         if ($auth->client_id > 0) {
-            $array = $array->whereRaw(\DB::raw("FIND_IN_SET(id,\"$auth->machines\")", '!=', null));
+            $array->whereRaw(\DB::raw("FIND_IN_SET(id,\"$auth->machines\")", '!=', null));
+        }
+        if ($request->machine_id > 0) {
+            $array->where("id",$request->machine_id);
         }
 
-        $array = $array->where("is_deleted", 0);
+        $array->where("is_deleted", 0);
 
         if ($type === "columns") {
             $columns = $array->get();
@@ -68,19 +72,12 @@ class Machine extends Model
         return compact('list', 'ids');
     }
 
-    public static function dashboardInfo($request, $machines)
+    public static function dashboardInfo($auth, $machines)
     {
-        $auth = $request->auth;
         $model = self::with(['heart_beats'])->where("is_deleted", 0);
 
-        if($request->machine_id>0){
-            echo "HERE";
-            die;
-            $model->where("id", $request->machine_id);
-        }
-
         if ($auth->client_id > 0) {
-            $model->whereIn("id", $machines);
+            $model  = $model->whereIn("id", $machines);
         }
 
         $model  = $model->select('id')->get();

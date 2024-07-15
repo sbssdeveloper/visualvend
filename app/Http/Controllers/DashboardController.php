@@ -37,7 +37,7 @@ class DashboardController extends BaseController
     public function dashboard(Request $request)
     {
         $auth       = $request->auth;
-        $machines   = Machine::personal($auth, 'columns', ['id', 'machine_name', 'machine_client_id']);
+        $machines   = Machine::personal($request, 'columns', ['id', 'machine_name', 'machine_client_id']);
         $collection = collect($machines);
 
         $machine_ids = $collection->map(function ($item, $key) {
