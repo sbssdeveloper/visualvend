@@ -70,7 +70,7 @@ class PaymentsController extends BaseController
 
         $modalVendCount = "SUM(IF(pay_method='pay_to_card',1,0)) as total_card_vends, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay'),1,0)) as total_mobile_vends,";
 
-        $modalVendCount .= "SUM(IF(pay_method='pay_to_card' AND transactions.payment_status='SUCCESS')) as total_card_payment_success, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS')) as total_mobile_payment_success,";
+        $modalVendCount .= "SUM(IF(pay_method='pay_to_card' AND transactions.payment_status='SUCCESS',transactions.amount,0)) as total_card_payment_success, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS',transactions.amount,0)) as total_mobile_payment_success,";
 
         $modalVendCount .= "SUM(IF(pay_method='pay_to_card' AND remote_vend_log.status='2')) as total_card_vend_success, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND remote_vend_log.status='2')) as total_mobile_vend_success,";
 
