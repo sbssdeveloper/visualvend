@@ -68,9 +68,14 @@ class Machine extends Model
         return compact('list', 'ids');
     }
 
-    public static function dashboardInfo($auth, $machines)
+    public static function dashboardInfo($request, $machines)
     {
+        $auth = $request->auth;
         $model = self::with(['heart_beats'])->where("is_deleted", 0);
+
+        if($request->machine_id>0){
+            $model = $model->where("id", $request->machine_id);
+        }
 
         if ($auth->client_id > 0) {
             $model  = $model->whereIn("id", $machines);
