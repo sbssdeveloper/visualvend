@@ -78,7 +78,9 @@ class PaymentsController extends BaseController
 
         $modalVendCount .= "SUM(IF(pay_method='pay_to_card' AND transactions.payment_status='FAILED',transactions.amount,0)) as total_card_payment_fail, SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='FAILED',transactions.amount,0)) as total_mobile_payment_fail,";
 
-        $modelSelector = $modalVendCount . "FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%MASTERCARD%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as master_card, FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%VISA%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as visa, FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%DEBIT%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as debit_card, FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%AMEX%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as amex, FORMAT(SUM(IF(pay_method='apple_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as apple, FORMAT(SUM(IF(pay_method='google_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as google_pay, FORMAT(SUM(IF(pay_method='after_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as after_pay, FORMAT(SUM(IF(pay_method='apple_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as paypal";
+        $modelSelector = $modalVendCount . "FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%MASTERCARD%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as master_card, FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%VISA%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as visa, FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%DEBIT%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as debit_card, FORMAT(SUM(IF(pay_method='pay_to_card' AND response LIKE '%AMEX%' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as amex, FORMAT(SUM(IF(pay_method='apple_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as apple, FORMAT(SUM(IF(pay_method='google_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as google_pay, FORMAT(SUM(IF(pay_method='after_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as after_pay, FORMAT(SUM(IF(pay_method='apple_pay' AND transactions.payment_status='SUCCESS',amount,0)),2) as paypal,";
+
+        $modelSelector .= "FORMAT(SUM(IF(pay_method='pay_to_card' AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as total_card_payments_amount,FORMAT(SUM(IF(pay_method IN ('google_pay','paypal','apple_pay','after_pay') AND transactions.payment_status='SUCCESS',transactions.amount,0)),2) as total_mobile_payments_amount";
 
         $badges        = Transaction::selectRaw($badgeSelector);
 
@@ -112,7 +114,7 @@ class PaymentsController extends BaseController
                 [
                     "name" => "Mastercard",
                     "color" => "#D5A804",
-                    "population" => (float) $model->mastercard,
+                    "population" => (float) $model->master_card,
                 ],
                 [
                     "name" => "Amex",
