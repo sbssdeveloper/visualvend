@@ -74,11 +74,13 @@ class Machine extends Model
         $model = self::with(['heart_beats'])->where("is_deleted", 0);
 
         if($request->machine_id>0){
-            $model = $model->where("id", $request->machine_id);
+            echo "HERE";
+            die;
+            $model->where("id", $request->machine_id);
         }
 
         if ($auth->client_id > 0) {
-            $model  = $model->whereIn("id", $machines);
+            $model->whereIn("id", $machines);
         }
 
         $model  = $model->select('id')->get();
