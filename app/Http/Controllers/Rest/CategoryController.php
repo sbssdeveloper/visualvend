@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Rest;
 
+use App\Http\Repositories\CategoryRepository;
 use App\Models\Category;
 use App\Rules\UniqueCategoryRule;
 use Illuminate\Http\Request;
@@ -10,10 +11,24 @@ use Illuminate\Support\Facades\Cache;
 class CategoryController extends BaseController
 {
     public $admin_logged_in;
-
-    public function __construct(Type $var = null)
+    public $repo;
+    public function __construct(CategoryRepository $repo)
     {
         $this->admin_logged_in = $request->auth->admin ?? "client";
+        $this->repo = $repo;
+    }
+
+    public function info(Request $request, $cid = null)
+    {
+        if ($cid) {
+            $request->merge(['cid' => $cid]);
+        }
+        $rules = [
+            'cid'                      => 'required|exists:category,id'
+        ];
+
+        $this->validate($request, $rules);
+        return $this->repo->info();
     }
 
     /**
