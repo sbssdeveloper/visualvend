@@ -151,7 +151,7 @@ class LatestReportsRepository
             $model          = $model->orderBy('machine_name', "ASC");
             $groupBy        = "machine_id";
         }
-        $model              = $model->groupBy("id", $groupBy)->paginate($this->request->length ?? 10);
+        $model              = $model->groupBy("$groupBy")->paginate($this->request->length ?? 10);
         $total              = $total->sum("product_price");
         $extra              = [
             "total_sales" => number_format($total, 2),
