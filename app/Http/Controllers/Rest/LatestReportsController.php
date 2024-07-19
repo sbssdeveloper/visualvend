@@ -34,7 +34,7 @@ class LatestReportsController extends LinkedMachineController
         $this->validate($this->request, [
             'start_date' => 'required|date',
             'end_date'  => 'required|date',
-            'type'      => 'required|in:product,machine,pickup_return',
+            'type'      => 'required|in:product,machine,pickup_or_return',
             'value'     => 'required',
         ]);
         return $this->repo->salesData($this->linked_machines);

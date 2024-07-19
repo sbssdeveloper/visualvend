@@ -59,7 +59,7 @@ class LatestReportsRepository
      *         required=true,
      *         description="Authorization token",
      *         @OA\Schema(type="string"),
-     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOjE2MSwiYWRtaW5faWQiOjE1OX0sImlhdCI6MTcxODk2ODA3OSwiZXhwIjoxNzI0MTUyMDc5fQ.LuLaN2o66G1CYxBRa0uheC-ETKD2IiOv3sxEq8QPg7g"
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcyMTM4NDg4NSwiZXhwIjoxNzI2NTY4ODg1fQ.4EgnOxeP9oeFhFzNDz9bouJluUmmn1hV1z60ASB7cuU"
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -165,5 +165,42 @@ class LatestReportsRepository
         }
         $data               = $this->controller->sendResponseWithPagination($model, "Success", $extra);
         return $data;
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/sales/data",
+     *     summary="Mobile Reports Sale Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date","client_id"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="value", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example=""),
+     *              @OA\Property(property="client_id", type="integer", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOjE2MSwiYWRtaW5faWQiOjE1OX0sImlhdCI6MTcxODk2ODA3OSwiZXhwIjoxNzI0MTUyMDc5fQ.LuLaN2o66G1CYxBRa0uheC-ETKD2IiOv3sxEq8QPg7g"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function salesData()
+    {
     }
 }
