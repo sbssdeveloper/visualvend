@@ -136,19 +136,19 @@ class LatestReportsRepository
 
         $groupBy            = "";
         if ($this->request->type === "machine") {
-            $model->whereNotNull("machine_name")->orderBy('machine_name', "ASC");
+            $model->where("machine_name","<>","")->orderBy('machine_name', "ASC");
             $groupBy        = "machine_id";
         } else if ($this->request->type === "employee") {
-            $model->whereNotNull("employee_name")->orderBy("employee_name", "DESC");
+            $model->where("employee_name","<>","")->orderBy("employee_name", "DESC");
             $groupBy        = "employee_id";
         } else if ($this->request->type === "product") {
-            $model->whereNotNull("product_name")->orderBy("product_name", "ASC");
+            $model->where("product_name","<>","")->orderBy("product_name", "ASC");
             $groupBy        = "product_id";
         } else if ($this->request->type === "pickup_or_return") {
-            $model->whereNotNull("pickup_or_return")->orderBy('pickup_or_return', "ASC");
+            $model->where("pickup_or_return","<>","")->orderBy('pickup_or_return', "ASC");
             $groupBy        = "pickup_or_return";
         } else {
-            $model->whereNotNull("machine_name")->orderBy('machine_name', "ASC");
+            $model->where("machine_name","<>","")->orderBy('machine_name', "ASC");
             $groupBy        = "machine_id";
         }
         $model              = $model->groupBy("$groupBy")->paginate($this->request->length ?? 10);
