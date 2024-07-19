@@ -61,7 +61,7 @@ class BaseController extends Controller
         return response()->json($response, 200);
     }
 
-    public function sendResponseWithPagination($result, $message = "Success"): JsonResponse
+    public function sendResponseWithPagination($result, $message = "Success", $extra = []): JsonResponse
     {
         $response = [
             'success' => true,
@@ -80,6 +80,9 @@ class BaseController extends Controller
             ]
         ];
 
+        if ($extra && count($extra) > 0) {            
+            $response = array_merge($response, $extra);
+        }
         return response()->json($response, 200);
     }
 

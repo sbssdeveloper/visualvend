@@ -95,8 +95,58 @@ class ClientRepository
 
     public function info($request)
     {
-        $model = Client::with(['portal_users','machine_users'])->where("id", $request->client_id)->first();
+        $model = Client::with(['portal_users', 'machine_users'])->where("id", $request->client_id)->first();
         return $this->controller->sendResponse("Success", $model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/client/create",
+     *     summary="Clients Create",
+     *     tags={"V1"},
+     *      @OA\Parameter( name="client_name", in="query", required=true, @OA\Schema(type="string")),
+     *      @OA\Parameter( name="client_code", in="query", required=true, @OA\Schema(type="string")),
+     *      @OA\Parameter( name="business_registration_number", in="query", required=true, @OA\Schema(type="string")),
+     *      @OA\Parameter( name="client_email", in="query", required=true, @OA\Schema(type="string")),
+     *      @OA\Parameter( name="client_phone", in="query", required=true, @OA\Schema(type="string")),
+     *      @OA\Parameter( name="client_address", in="query", required=true, @OA\Schema(type="string")),
+     *      @OA\Parameter( name="report_sale", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="report_refill", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="report_vend_error", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="report_feedback", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="report_media_ad", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="report_staff", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="report_customer", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="report_e_receipt", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="report_gift_vend", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="enable_portal", in="query", required=false, @OA\Schema(type="boolean")),
+     *      @OA\Parameter( name="password", in="query", required=false, @OA\Schema(type="string")),
+     *      @OA\Parameter( name="confirm_password", in="query", required=false, @OA\Schema(type="string")),
+     *      @OA\Parameter( name="selected_report", in="query", required=false, @OA\Schema(type="string")),
+     *      @OA\Parameter( name="selected_menu", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function create($request)
+    {
+        $clients = $request->all();
+        try {
+            
+            return $this->controller->sendSuccess("Client updated successfully.");
+        } catch (\Throwable $th) {
+            return $this->controller->sendError($th->getMessage());
+        }
     }
 
     /**

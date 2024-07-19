@@ -95,13 +95,47 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         /****************************Planogram******************************/
         $router->group(['prefix' => 'planogram'], function () use ($router) {
             $router->post('list',               'PlanogramController@list');
-            $router->get('info[/{uuid}/{type}]','PlanogramController@info');
+            $router->get('info[/{uuid}/{type}]', 'PlanogramController@info');
             $router->post('upload',             'PlanogramController@upload');
             $router->post('update',             'PlanogramController@update');
             $router->post('reset',              'PlanogramController@reset');
             $router->post('view',               'PlanogramController@view');
             $router->post('delete',             'PlanogramController@delete');
             $router->post('status/update',      'PlanogramController@status');
+        });
+
+        /****************************WEBPORTAL******************************/
+        $router->post('webportal/vend/queue',     'ReportsController@vend_queue');
+        /****************************MOBILE REPORTS******************************/
+        $router->group(['prefix' => 'latest/reports'], function () use ($router) {
+            $router->post('sales',              'LatestReportsController@sales');
+            $router->post('sales/data',         'LatestReportsController@salesData');
+            $router->post('refill',             'LatestReportsController@refill');
+            $router->post('refill',             'LatestReportsController@refill');
+            $router->post('stock',              'LatestReportsController@stock');
+            $router->post('stock',              'LatestReportsController@stock');
+            $router->post('vend/activity',      'LatestReportsController@vend_activity');
+            $router->post('vend/activity',      'LatestReportsController@vend_activity');
+            $router->post('expiry/products',    'LatestReportsController@expiryProducts');
+            $router->post('expiry/products',    'LatestReportsController@expiryProducts');
+            $router->post('vend/error',         'LatestReportsController@vend_error');
+            $router->post('vend/error',         'LatestReportsController@vend_error');
+            $router->post('feedback',           'LatestReportsController@feedback');
+            $router->post('feedback',           'LatestReportsController@feedback');
+            $router->post('email',              'LatestReportsController@getEmail');
+            $router->post('email',              'LatestReportsController@getEmail');
+            $router->post('staff',              'LatestReportsController@staff');
+            $router->post('staff',              'LatestReportsController@staff');
+            $router->post('service',            'LatestReportsController@service');
+            $router->post('service',            'LatestReportsController@service');
+            $router->post('receipts',           'LatestReportsController@receipts');
+            $router->post('receipts',           'LatestReportsController@receipts');
+            $router->post('gift',               'LatestReportsController@gift');
+            $router->post('gift',               'LatestReportsController@gift');
+            $router->post('payment',            'LatestReportsController@payment');
+            $router->post('payment',            'LatestReportsController@payment');
+            $router->post('vend/queue',         'LatestReportsController@vend_queue');
+            $router->post('vend/queue',         'LatestReportsController@vend_queue');
         });
     });
 });
