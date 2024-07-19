@@ -91,11 +91,6 @@ class LatestReportsRepository
         }
         $model              = Sale::selectRaw($select)->where("is_deleted", 0);
 
-        if ($this->client_id > 0) {
-            $total->where("client_id", $this->client_id);
-            $model->where("client_id", $this->client_id);
-        }
-
         if ($this->client_id > 0 && !in_array($this->role, ["Super Admin", "Full Access"])) {
             $model->where("id NOT IN (SELECT `sale_id` FROM `hidden_sale_reports` WHERE `user_id`=$this->admin_id)");
             $total->where("id NOT IN (SELECT `sale_id` FROM `hidden_sale_reports` WHERE `user_id`=$this->admin_id)");
@@ -136,19 +131,19 @@ class LatestReportsRepository
 
         $groupBy            = "";
         if ($this->request->type === "machine") {
-            $model->where("machine_name","<>","")->orderBy('machine_name', "ASC");
+            $model->where("machine_name", "<>", "")->orderBy('machine_name', "ASC");
             $groupBy        = "machine_id";
         } else if ($this->request->type === "employee") {
-            $model->where("employee_name","<>","")->orderBy("employee_name", "DESC");
+            $model->where("employee_name", "<>", "")->orderBy("employee_name", "DESC");
             $groupBy        = "employee_id";
         } else if ($this->request->type === "product") {
-            $model->where("product_name","<>","")->orderBy("product_name", "ASC");
+            $model->where("product_name", "<>", "")->orderBy("product_name", "ASC");
             $groupBy        = "product_id";
         } else if ($this->request->type === "pickup_or_return") {
-            $model->where("pickup_or_return","<>","")->orderBy('pickup_or_return', "ASC");
+            $model->where("pickup_or_return", "<>", "")->orderBy('pickup_or_return', "ASC");
             $groupBy        = "pickup_or_return";
         } else {
-            $model->where("machine_name","<>","")->orderBy('machine_name', "ASC");
+            $model->where("machine_name", "<>", "")->orderBy('machine_name', "ASC");
             $groupBy        = "machine_id";
         }
         $model              = $model->groupBy("$groupBy")->paginate($this->request->length ?? 10);
@@ -200,7 +195,62 @@ class LatestReportsRepository
      * )
      */
 
-    public function salesData()
+    public function salesData($machines)
     {
+        $whereKey = "";
+
+        switch ($this->request->type) {
+            case 'machine':
+                $whereKey = 'machine_id';
+                break;
+            case 'product':
+                $whereKey = 'product_id';
+                break;
+            case 'employee':
+                $whereKey = 'employee_id';
+                break;
+            default:
+                $whereKey = 'pickup_or_return';
+                break;
+        }
+
+        $model              = Sale::select("*", DB::raw("IF(aisle_no IS NULL,'NA',aisle_no) as aisles"), DB::raw("FORMAT(product_price,2) as price"))->with("product");
+
+        $model->where("is_deleted", 0)->where($whereKey, $this->request->value);
+
+
+        if ($this->client_id > 0) {
+            $model          = $model->whereIn("machine_id", $machines);
+            if (!in_array($this->role, ["Super Admin", "Full Access"])) {
+                $model          = $model->where("id NOT IN (SELECT `sale_id` FROM `hidden_sale_reports` WHERE `user_id`=$this->admin_id)");
+            }
+        } else {
+            $model->where("client_id", $this->request->client_id);
+        }
+
+        if (!empty($search)) {
+            $model      = $model->where(function ($query) use ($search) {
+                $query->where("product_name", "LIKE", "$search%")->orWhere("machine_name", "LIKE", "$search%")->orWhere("employee_name", "LIKE", "$search%");
+            });
+        }
+
+        if (!empty($this->request->start_date) && !empty($this->request->end_date)) {
+            $model          = $model->whereDate('timestamp', '>=', $this->request->start_date)->whereDate('timestamp', '<=', $this->request->end_date);
+        }
+
+        if ($this->request->type === "machine") {
+            $model          = $model->orderBy('machine_name', "ASC");
+        } else if ($this->request->type === "employee") {
+            $model          = $model->orderBy("employee_name", "DESC");
+        } else if ($this->request->type === "product") {
+            $model          = $model->orderBy("product_name", "ASC");
+        } else if ($this->request->type === "pickup_or_return") {
+            $model          = $model->orderBy('pickup_or_return', "ASC");
+        } else {
+            $model          = $model->orderBy('machine_name', "ASC");
+        }
+
+        $model              = $model->paginate($this->request->length ?? 50);
+        return $this->controller->sendResponseWithPagination($model, "Success");
     }
 }

@@ -23,20 +23,26 @@ class LatestReportsController extends LinkedMachineController
     public function sales()
     {
         $this->validate($this->request, [
-            'start_date' => 'required|date',
-            'end_date' => 'required|date'
+            'start_date'    => 'required|date',
+            'end_date'      => 'required|date',
+            'type'          => 'required|in:product,machine,employee,pickup_or_return',
         ]);
         return $this->repo->sales($this->linked_machines);
     }
 
     public function salesData()
     {
-        $this->validate($this->request, [
-            'start_date' => 'required|date',
-            'end_date'  => 'required|date',
-            'type'      => 'required|in:product,machine,pickup_or_return',
-            'value'     => 'required',
-        ]);
+        $rules = [
+            'start_date'    => 'required|date',
+            'end_date'      => 'required|date',
+            'type'          => 'required|in:product,machine,pickup_or_return',
+            'value'         => 'required'
+        ];
+        // die("===>".$this->request->auth->client_id);
+        if (!$this->request->auth->client_id || $this->request->auth->client_id <= 0) {
+            $rules["client_id"] = "required";
+        }
+        $this->validate($this->request, $rules);
         return $this->repo->salesData($this->linked_machines);
     }
 
