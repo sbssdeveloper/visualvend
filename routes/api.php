@@ -112,9 +112,9 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
             $router->post('sales/data',         'LatestReportsController@salesData');
             $router->post('refill',             'LatestReportsController@refill');
             $router->post('refill/data',        'LatestReportsController@refillData');
-            
+
             $router->post('stock',              'LatestReportsController@stock');
-            $router->post('stock',              'LatestReportsController@stock');
+            $router->post('stock/data',         'LatestReportsController@stockData');
             $router->post('vend/activity',      'LatestReportsController@vend_activity');
             $router->post('vend/activity',      'LatestReportsController@vend_activity');
             $router->post('expiry/products',    'LatestReportsController@expiryProducts');
