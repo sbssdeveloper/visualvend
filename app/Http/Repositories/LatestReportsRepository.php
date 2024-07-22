@@ -325,20 +325,26 @@ class LatestReportsRepository
         $select = $groupBy = "";
         switch ($this->request->type) {
             case 'machine':
-                $select     = "sale_report.machine_id, sale_report.machine_name";
-                $groupBy    = "sale_report.machine_id";
+                if ($refill_type === "sale") {
+                    $select     = "sale_report.machine_id, sale_report.machine_name";
+                    $groupBy    = "sale_report.machine_id";
+                } else {
+                    $select     = "machine_product_map.machine_id, machine.machine_name";
+                    $groupBy    = "machine_product_map.machine_id";
+                }
                 break;
             case 'product':
-                $select     = "product_id, product_name";
-                $groupBy    = "product_id, machine_id";
-                break;
-            case 'category':
-                $select     = "category_id, category_name";
-                $groupBy    = "category_id";
+                if ($refill_type === "sale") {
+                    $select     = "sale_report.product_id, sale_report.product_name";
+                    $groupBy    = "sale_report.product_id, sale_report.machine_id";
+                } else {
+                    $select     = "machine_product_map.product_id, machine_product_map.product_name";
+                    $groupBy    = "machine_product_map.product_id, machine_product_map.machine_id";
+                }
                 break;
             case 'aisle':
-                $select     = $refill_type === "sale" ? "aisle_no as aisle" : "product_location as aisle";
-                $groupBy    = $refill_type === "sale" ? "aisle_no" : "product_location";
+                $select     = $refill_type === "sale" ? "sale_report.aisle_no as aisle" : "machine_product_map.product_location as aisle";
+                $groupBy    = $refill_type === "sale" ? "sale_report.aisle_no" : "machine_product_map.product_location";
                 break;
             default:
                 if ($refill_type === "sale") {
@@ -490,26 +496,19 @@ class LatestReportsRepository
         $lowRefill         = $topLow->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>1")->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)<$endCount")->orderBy("count", "ASC")->limit(5)->get()->toArray();
 
         if ($refill_type == "sale") {
-            $model         = $model->groupBy($groupBy)->orderBy("sale_report.id", "DESC");
+            $model         = $model->groupByRaw($groupBy)->orderBy("sale_report.id", "DESC");
         } else {
-            $model         = $model->groupBy($groupBy)->orderBy("refill_qty", "DESC");
+            $model         = $model->groupByRaw($groupBy)->orderBy("machine_product_map.id", "DESC");
         }
+        $model                          = $model->paginate($this->request->length ?? 10);
+        $extra                          = [];
+        $extra["total_refills"]         = $refill_qty ?? 0;
+        $extra["total_machines"]        = $machines;
+        $extra["top_refilling"]         = $topRefill;
+        $extra["vended_refills"]        = $vended_new_qty;
+        $extra["least_refilling"]       = array_reverse($lowRefill);
 
-        $model          = $model->paginate($this->request->length ?? 10);
-
-        $data =  $this->controller->sendResponseWithPaginationList($model, [
-            "type"      => $this->request->type,
-            "selector"  => "id",
-            "typeArr"   => ["machine", "employee", "product"],
-            "keyName"   => $this->request->type === "machine" ? "machine_id" : ($this->request->type === "employee" ? "employee_id" : "product_id"),
-            "valName"   => $this->request->type === "machine" ? "machine_name" : ($this->request->type === "employee" ? "employee_name" : "product_name"),
-            "extra"     => ["repeated_products"]
-        ]);
-        $data["total_refills"]          = $refill_qty ?? 0;
-        $data["total_machines"]         = $machines;
-        $data["top_refilling"]          = $topRefill;
-        $data["vended_refills"]         = $vended_new_qty;
-        $data["least_refilling"]        = array_reverse($lowRefill);
-        return $this->controller->sendResponseReport($data);
+        $data               = $this->controller->sendResponseWithPagination($model, "Success", $extra);
+        return $data;
     }
 }
