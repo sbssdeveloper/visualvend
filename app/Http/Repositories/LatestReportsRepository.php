@@ -485,6 +485,7 @@ class LatestReportsRepository
      *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
      *              @OA\Property(property="machine_id", type="integer", example=""),
      *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="value", type="string", example=""),
      *              @OA\Property(property="search", type="string", example=""),
      *              @OA\Property(property="refill_type", type="string", example="sale")
      *         )
@@ -629,6 +630,198 @@ class LatestReportsRepository
         }
 
         $model             = $model->paginate($this->request->length ?? 10);
+        return $this->controller->sendResponseWithPagination($model, "Success");
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/stock",
+     *     summary="Reports Stock Mobile",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function stock($machines)
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+
+        switch ($this->request->type) {
+            case 'machine':
+                $select     = "machine_product_map.machine_id, machine.machine_name";
+                $groupBy    = "machine_product_map.machine_id";
+                break;
+            case 'product':
+                $select     = "machine_product_map.product_id, machine_product_map.product_name";
+                $groupBy    = "machine_product_map.product_id, machine_product_map.machine_id";
+                break;
+            case 'aisle':
+                $select     = "machine_product_map.product_location as aisle";
+                $groupBy    = "machine_product_map.product_location";
+                break;
+            default:
+                $select = "CASE WHEN product_quantity=0 THEN 'empty' WHEN product_quantity>0 THEN 'partial' WHEN product_max_quantity-product_quantity=0 THEN 'full' ELSE 'unknown' END as quantity";
+                $groupBy    = "quantity";
+                break;
+        }
+
+        $model  = Machine::selectRaw($select)->leftJoin("machine_product_map", "machine_product_map.machine_id", "=", "machine.id")->leftJoin("refill_history", function ($join) {
+            $join->on("refill_history.machine_id", "=", "machine_product_map.machine_id");
+            $join->on("refill_history.aisle_number", "=", "machine_product_map.product_location");
+        });
+        $model->where("machine_product_map.product_id", "<>", "");
+        $model->where(function ($query) {
+            $query->whereNull("refill_history.is_deleted");
+            $query->orWhere("refill_history.is_deleted", 0);
+        });
+
+        if ($client_id > 0) {
+            $model  = $model->where("machine.machine_client_id", $client_id)->whereIn("machine.id", $machines);
+        }
+
+        if ($machine_id > 0) {
+            $model  = $model->where("machine.id", $machine_id);
+        }
+        if (!empty($search)) {
+            $model  = $model->where(function ($query) {
+                $query->where("machine.machine_name", "LIKE", "$search%");
+                $query->orWhere("machine_product_map.product_name", "LIKE", "$search%");
+            });
+        }
+
+        if (!empty($start_date)) {
+            $model  = $model->whereDate("refill_history.created_at", ">=", $start_date);
+            $model  = $model->whereDate("refill_history.created_at", "<=", $end_date);
+        }
+
+        $model  = $model->groupByRaw($groupBy)->paginate($this->request->length ?? 10);
+        return $this->controller->sendResponseWithPagination($model, "Success");
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/stock/data",
+     *     summary="Reports Stock Data Mobile",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="value", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function stockValue($machines)
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+
+        $model  = Machine::select("machine_product_map.id AS id", "machine.id AS machine_id", "refill_history.aisle_number", "machine.machine_name", "machine_product_map.product_location", "machine_product_map.product_id", DB::raw("IF(machine_product_map.product_id = '', 'Empty', machine_product_map.product_name) AS product_name"), "machine_product_map.product_quantity", "machine_product_map.category_id", "machine_product_map.product_max_quantity", DB::raw("(machine_product_map.product_max_quantity - machine_product_map.product_quantity) AS need_refill_amount"), DB::raw("IF (machine_product_map.product_max_quantity <= 0, 0, FLOOR(machine_product_map.product_quantity / machine_product_map.product_max_quantity * 100)) AS stock_percentage"), DB::raw("SUBSTRING_INDEX(GROUP_CONCAT(refill_history.refill_amount ORDER BY refill_history.id DESC), ',', 1) AS last_refill_amount"), DB::raw("SUBSTRING_INDEX(GROUP_CONCAT(refill_history.created_at ORDER BY refill_history.id DESC), ',', 1) AS last_refill_date"), DB::raw("DATE(SUBSTRING_INDEX(GROUP_CONCAT(refill_history.created_at ORDER BY refill_history.id DESC), ',', 1)) AS last_refill_date_only"))->leftJoin("machine_product_map", "machine_product_map.machine_id", "=", "machine.id");
+
+        $model->leftJoin("refill_history", function ($join) {
+            $join->on("refill_history.machine_id", "=", "machine_product_map.machine_id");
+            $join->on("refill_history.aisle_number", "=", "machine_product_map.product_location");
+        });
+        $model->where("machine_product_map.product_id", "<>", "");
+        $model->where(function ($query) {
+            $query->whereNull("refill_history.is_deleted");
+            $query->orWhere("refill_history.is_deleted", 0);
+        });
+
+        if ($client_id > 0) {
+            $model  = $model->where("machine.machine_client_id", $client_id)->whereIn("machine.id", $machines);
+        }
+
+        if ($machine_id > 0) {
+            $model  = $model->where("machine.id", $machine_id);
+        }
+
+        if (!empty($search)) {
+            $model  = $model->where(function ($query) {
+                $query->where("machine.machine_name", "LIKE", "$search%");
+                $query->orWhere("machine_product_map.product_name", "LIKE", "$search%");
+            });
+        }
+
+        switch ($this->request->type) {
+            case 'machine':
+                $model->where("machine_product_map.machine_id", $value);
+                break;
+            case 'product':
+                $model->where("machine_product_map.product_id", $value);
+                break;
+            case 'aisle':
+                $model->where("machine_product_map.product_location", $value);
+                break;
+            default:
+                if ($value === "empty") {
+                    $model->where("machine_product_map.product_quantity", 0);
+                } else if ($value === "partial") {
+                    $model->where("machine_product_map.product_quantity", "<", "machine_product_map.product_max_quantity");
+                } else {
+                    $model->where("machine_product_map.product_quantity", "=", "machine_product_map.product_max_quantity");
+                }
+                break;
+        }
+
+        if (!empty($start_date)) {
+            $model  = $model->whereDate("refill_history.created_at", ">=", $start_date);
+            $model  = $model->whereDate("refill_history.created_at", "<=", $end_date);
+        }
+
+        $model  = $model->groupByRaw("IFNULL(refill_history.machine_id, machine_product_map.id), IFNULL(refill_history.aisle_number, machine_product_map.id) ORDER BY machine.id ASC")->paginate($this->request->length ?? 10);
         return $this->controller->sendResponseWithPagination($model, "Success");
     }
 }
