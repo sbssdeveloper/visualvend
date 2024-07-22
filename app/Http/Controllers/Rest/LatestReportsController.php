@@ -94,6 +94,15 @@ class LatestReportsController extends LinkedMachineController
         return $this->repo->vend_activity($this->linked_machines);
     }
 
+    public function vend_activityData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->vend_activityData($this->linked_machines);
+    }
+
     public function expiryProducts()
     {
         $this->validate($this->request, [

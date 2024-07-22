@@ -825,4 +825,232 @@ class LatestReportsRepository
         $model  = $model->groupByRaw("IFNULL(refill_history.machine_id, machine_product_map.id), IFNULL(refill_history.aisle_number, machine_product_map.id) ORDER BY machine.id ASC")->paginate($this->request->length ?? 10);
         return $this->controller->sendResponseWithPagination($model, "Success");
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/vend/activity",
+     *     summary="Reports Vend Activity",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function vend_activity($machines)
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+        $select             = $groupBy = "";
+        switch ($this->request->type) {
+            case 'machine':
+                $select     = "sale_report.machine_id, sale_report.machine_name";
+                $groupBy    = "sale_report.machine_id";
+                break;
+            case 'product':
+                $select     = "sale_report.product_id, sale_report.product_name";
+                $groupBy    = "sale_report.product_id, sale_report.machine_id";
+                break;
+            case 'employee':
+                $select     = "sale_report.employee_id, sale_report.employee_name";
+                $groupBy    = "sale_report.employee_id";
+                break;
+            default:
+                $select = "IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_return";
+                $groupBy    = "IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_return";
+                break;
+        }
+
+        $model              = Sale::selectRaw($select)->leftJoin("machine_product_map", function ($join) {
+            $join->on("sale_report.product_id", "=", "machine_product_map.product_id");
+            $join->on("sale_report.machine_id", "=", "machine_product_map.machine_id");
+            $join->on("sale_report.aisle_no", "=", "machine_product_map.product_location");
+        })->where("sale_report.is_deleted", 0);
+
+        $sales  = Sale::where("is_deleted", 0);
+
+        $errors = LocationNonFunctional::selectRaw("COUNT(location_non_functional.id) as count, SUM(CASE WHEN LOCATE('Cancel', error_code) THEN 1 ELSE 0 END) AS cancelled")->leftJoin("machine", "machine.id", "=", "location_non_functional.machine_id");
+
+        if ($client_id > 0) {
+            $sales->whereIn("machine_id", $machines);
+            $model->whereIn("sale_report.machine_id", $machines);
+            $errors->whereIn("machine.id", $machines);
+        }
+
+        if (!empty($search)) {
+            $sales->where(function ($query) use ($search) {
+                $query->where("machine_name", "LIKE", "$search%");
+                $query->orWhere("employee_name", "LIKE", "%$search%");
+                $query->orWhere("product_name", "LIKE", "$search%");
+            });
+
+            $model->where(function ($query) use ($search) {
+                $query->where("sale_report.machine_name", "LIKE", "$search%");
+                $query->orWhere("sale_report.employee_name", "LIKE", "%$search%");
+                $query->orWhere("sale_report.product_name", "LIKE", "$search%");
+            });
+
+            $errors->where(function ($query) use ($search) {
+                $query->where("location_non_functional.machine_name", "LIKE", "$search%");
+                $query->orWhere("location_non_functional.product_name", "LIKE", "$search%");
+            });
+        }
+
+        if (!empty($machine_id)) {
+            $sales->where("sale_report.machine_id", $machine_id);
+            $model->where("sale_report.machine_id", $machine_id);
+            $errors->where("location_non_functional.machine_id", $machine_id);
+        }
+
+        if ($start_date && !empty($start_date) && $end_date && !empty($end_date)) {
+            $sales->whereDate("sale_report.timestamp", ">=", $start_date);
+            $sales->whereDate("sale_report.timestamp", "<=", $end_date);
+            $model->whereDate("sale_report.timestamp", ">=", $start_date);
+            $model->whereDate("sale_report.timestamp", "<=", $end_date);
+            $errors->whereDate("location_non_functional.timestamp", ">=", $start_date);
+            $errors->whereDate("location_non_functional.timestamp", "<=", $end_date);
+        }
+        $errors     = $errors->first();
+        if ($type === "machine") {
+            $model->orderBy('sale_report.machine_name', "ASC");
+        } else if ($type === "employee") {
+            $model->orderBy("sale_report.employee_name", "DESC");
+        } else if ($type === "product") {
+            $model->orderBy("sale_report.product_name", "ASC");
+        } else {
+            $model->orderBy("IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_return", "ASC");
+        }
+
+        $model              = $model->groupBy($groupBy)->paginate($this->request->length ?? 50);
+
+        $data               = $this->controller->sendResponseWithPagination($model, "Success", [
+            "failed"        => $errors->count,
+            "cancelled"     => $errors->cancelled,
+            "sales"         => number_format($sales->sum("product_price"), 2)
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/reports/vend/activity/data",
+     *     summary="Reports Vend Activity Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2020-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=""),
+     *              @OA\Property(property="type", type="string", example="machine"),
+     *              @OA\Property(property="value", type="string", example=196),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function vend_activityData($machines)
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $value              = $this->request->value;
+        $search             = $this->request->search;
+
+        $model              = Sale::select("sale_report.employee_id", "sale_report.employee_name", "sale_report.id", "sale_report.timestamp", "sale_report.transaction_id", "sale_report.product_id", "sale_report.machine_id", "sale_report.product_name", "sale_report.machine_name", DB::raw("IF(sale_report.pickup_or_return=-1,'Pickup','Return') as vend_state"), DB::raw("IF(sale_report.transaction_status=2,'Vended Ok','Error') as errror_code"), DB::raw("IF(sale_report.transaction_status=2,'Paid - Vended','Error') as status"), DB::raw("IF(sale_report.aisle_no IS NULL,'NA',sale_report.aisle_no) as aisle_no"), DB::raw("FORMAT(sale_report.product_price,2) as price"), "machine_product_map.product_max_quantity", "machine_product_map.product_quantity")->leftJoin("machine_product_map", function ($join) {
+            $join->on("sale_report.product_id", "=", "machine_product_map.product_id");
+            $join->on("sale_report.machine_id", "=", "machine_product_map.machine_id");
+            $join->on("sale_report.aisle_no", "=", "machine_product_map.product_location");
+        })->where("sale_report.is_deleted", 0);
+
+        if ($client_id > 0) {
+            $model->whereIn("sale_report.machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model  = $model->where(function ($query) use ($search) {
+                $query->where("sale_report.machine_name", "LIKE", "$search%");
+                $query->orWhere("sale_report.employee_name", "LIKE", "%$search%");
+                $query->orWhere("sale_report.product_name", "LIKE", "$search%");
+            });
+        }
+
+        if (!empty($machine_id)) {
+            $model  = $model->where("sale_report.machine_id", $machine_id);
+        }
+
+        if ($start_date && !empty($start_date) && $end_date && !empty($end_date)) {
+            $model  = $model->whereDate("sale_report.timestamp", ">=", $start_date);
+            $model  = $model->whereDate("sale_report.timestamp", "<=", $end_date);
+        }
+
+        switch ($this->request->type) {
+            case 'machine':
+                $model->where("sale_report.machine_id", $value);
+                break;
+            case 'product':
+                $model->where("sale_report.product_id", $value);
+                break;
+            case 'employee':
+                $model->where("sale_report.employee_id", $value);
+                break;
+            default:
+                $model->whereRaw("IF(sale_report.pickup_or_return=-1,'Pickup','Return')='$value'");
+                break;
+        }
+
+        if ($type === "machine") {
+            $model          = $model->orderBy('sale_report.machine_name', "ASC");
+        } else if ($type === "employee") {
+            $model          = $model->orderBy("sale_report.employee_name", "DESC");
+        } else if ($type === "product") {
+            $model          = $model->orderBy("sale_report.product_name", "ASC");
+        } else {
+            $model->orderBy("IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_return", "ASC");
+        }
+        $model              = $model->groupBy("sale_report.id")->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($data);
+    }
 }
