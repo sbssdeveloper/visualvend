@@ -121,6 +121,15 @@ class LatestReportsController extends LinkedMachineController
         return $this->repo->vend_error($this->linked_machines);
     }
 
+    public function vend_errorData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->vend_errorData($this->linked_machines);
+    }
+
     public function feedback()
     {
         $this->validate($this->request, [
@@ -128,6 +137,15 @@ class LatestReportsController extends LinkedMachineController
             'end_date' => 'required|date'
         ]);
         return $this->repo->feedback($this->linked_machines);
+    }
+
+    public function feedbackData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->feedbackData($this->linked_machines);
     }
 
     public function getEmail()
@@ -139,6 +157,15 @@ class LatestReportsController extends LinkedMachineController
         return $this->repo->getEmail();
     }
 
+    public function getEmailData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->getEmailData();
+    }
+
     public function staff()
     {
         $this->validate($this->request, [
@@ -146,6 +173,15 @@ class LatestReportsController extends LinkedMachineController
             'end_date' => 'required|date'
         ]);
         return $this->repo->staff($this->linked_machines);
+    }
+
+    public function staffData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->staffData($this->linked_machines);
     }
 
     public function service()
@@ -157,6 +193,15 @@ class LatestReportsController extends LinkedMachineController
         return $this->repo->service($this->linked_machines);
     }
 
+    public function serviceData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->serviceData($this->linked_machines);
+    }
+
     public function receipts()
     {
         $this->validate($this->request, [
@@ -164,6 +209,15 @@ class LatestReportsController extends LinkedMachineController
             'end_date' => 'required|date'
         ]);
         return $this->repo->receipts($this->linked_machines);
+    }
+
+    public function receiptsData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->receiptsData($this->linked_machines);
     }
 
     public function gift()
@@ -175,6 +229,15 @@ class LatestReportsController extends LinkedMachineController
         return $this->repo->gift($this->linked_machines);
     }
 
+    public function giftData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->giftData($this->linked_machines);
+    }
+
     public function payment()
     {
         $this->validate($this->request, [
@@ -184,6 +247,15 @@ class LatestReportsController extends LinkedMachineController
         return $this->repo->payment($this->linked_machines);
     }
 
+    public function paymentData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->paymentData($this->linked_machines);
+    }
+
     public function vend_queue()
     {
         $this->validate($this->request, [
@@ -191,5 +263,14 @@ class LatestReportsController extends LinkedMachineController
             'end_date' => 'required|date'
         ]);
         return $this->repo->vend_queue($this->linked_machines);
+    }
+
+    public function vend_queueData()
+    {
+        $this->validate($this->request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date'
+        ]);
+        return $this->repo->vend_queueData($this->linked_machines);
     }
 }

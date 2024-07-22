@@ -1053,4 +1053,1872 @@ class LatestReportsRepository
 
         return $this->controller->sendResponseWithPagination($data);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/expiry/products",
+     *     summary="Reports Expiry Products Latest",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function expiryProducts($machines)
+    {
+        $type           = $this->request->type;
+        $machine_id     = $this->request->machine_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $search         = $this->request->search;
+
+        switch ($this->request->type) {
+            case 'machine':
+                $select     = "machine_product_map.machine_id, machine.machine_name";
+                $groupBy    = "machine_product_map.machine_id";
+                break;
+            case 'product':
+                $select     = "machine_product_map.product_id, machine_product_map.product_name";
+                $groupBy    = "machine_product_map.product_id";
+                break;
+            case 'expiry':
+                $select     = "product.product_batch_expiray_date";
+                $groupBy    = "product.product_batch_expiray_date";
+                break;
+            case 'category':
+                $select     = "machine_product_map.category_id, machine_product_map.category_name";
+                $groupBy    = "machine_product_map.category_id";
+                break;
+            case 'quantity':
+                $select     = "machine_product_map.product_quantity";
+                $groupBy    = "machine_product_map.product_quantity";
+                break;
+            default:
+                $select     = "machine_product_map.machine_id, machine.machine_name";
+                $groupBy    = "machine_product_map.machine_id";
+                break;
+        }
+
+        $model          = MachineProductMap::selectRaw($select);
+
+        $model->leftJoin("product", function ($join) {
+            $join->on("machine_product_map.product_id", "=", "product.product_id");
+            $join->on("machine_product_map.client_id", "=", "product.client_id");
+        });
+
+        $model->leftJoin("machine", "machine.id", "=", "machine_product_map.machine_id");
+
+        $model->whereNotNull("product.product_batch_expiray_date");
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->WhereDate("product.created_at", ">=", $start_date);
+            $model->WhereDate("product.created_at", "<=", $end_date);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where('machine_product_map.product_name', 'like', "$search%");
+                $query->orWhere('machine.machine_name', 'like', "$search%");
+            });
+        }
+
+        if ($machine_id > 0) {
+            $model->where("machine_product_map.machine_id", $machine_id);
+        }
+
+        if ($this->client_id > 0) {
+            $model->whereIn("machine_product_map.machine_id", $machines);
+        }
+
+        $model->groupBy($groupBy);
+
+        $model->orderBy("machine_product_map.id", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/expiry/products/data",
+     *     summary="Reports Expiry Products",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2020-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="value", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function expiryProductsData($machines)
+    {
+        $type           = $this->request->type;
+        $value          = $this->request->value;
+        $machine_id     = $this->request->machine_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $search         = $this->request->search;
+
+        $model          = MachineProductMap::selectRaw("machine_product_map.id,machine_product_map.updated_at,machine_product_map.machine_id,  machine.machine_name, machine_product_map.product_id, machine_product_map.product_name, product.product_batch_no, machine_product_map.product_quantity, product.product_batch_expiray_date, GROUP_CONCAT(machine_product_map.product_location) as aisles, product.discount_price, product.product_discount_type, product.product_discount_code, machine_product_map.product_price, IF(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date)>0,CONCAT(TIMESTAMPDIFF(DAY,NOW(),product.product_batch_expiray_date),' Days'),'EXPIRED') as days_remaining");
+
+        $model->leftJoin("product", function ($join) {
+            $join->on("machine_product_map.product_id", "=", "product.product_id");
+            $join->on("machine_product_map.client_id", "=", "product.client_id");
+        });
+
+        $model->leftJoin("machine", "machine.id", "=", "machine_product_map.machine_id");
+
+        $model->whereNotNull("product.product_batch_expiray_date");
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->WhereDate("product.created_at", ">=", $start_date);
+            $model->WhereDate("product.created_at", "<=", $end_date);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where('machine_product_map.product_name', 'like', "$search%");
+                $query->orWhere('machine.machine_name', 'like', "$search%");
+            });
+        }
+
+        if ($machine_id > 0) {
+            $model->where("machine_product_map.machine_id", $machine_id);
+        }
+
+        if ($this->client_id > 0) {
+            $model->whereIn("machine_product_map.machine_id", $machines);
+        }
+
+        switch ($this->request->type) {
+            case 'machine':
+                $model->where("machine_product_map.machine_id", $value);
+                break;
+            case 'product':
+                $model->where("machine_product_map.product_id", $value);
+                break;
+            case 'expiry':
+                $model->where("machine_product_map.product_batch_expiray_date", $value);
+                break;
+            case 'category':
+                $model->where("machine_product_map.category_id", $value);
+                break;
+            case 'quantity':
+                $model->where("machine_product_map.product_quantity", $value);
+                break;
+            default:
+                $model->where("machine_product_map.machine_id", $value);
+                break;
+        }
+
+        $model->groupBy("machine_product_map.machine_id", "machine_product_map.product_id");
+
+        $model->orderBy("machine_product_map.id", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/vend/error",
+     *     summary="Reports Vend Error",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function vend_error($machines)
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+
+        $select = $groupBy = "";
+
+        switch ($type) {
+            case 'machine':
+                $select     = "machine_id,machine_name";
+                $groupBy    = "machine_id";
+                break;
+            case 'errors':
+                $select = "error_code";
+                $groupBy = "error_code";
+                break;
+            default:
+                $select = "machine_id,machine_name";
+                $groupBy = "error_code";
+                break;
+        }
+        $model              = LocationNonFunctional::selectRaw($select);
+        $model->where("location_non_functional.is_deleted", 0);
+
+        if ($client_id > 0) {
+            $model->whereIn("location_non_functional.machine_id", $machines);
+        }
+
+        if ($machine_id && $machine_id > 0) {
+            $model->where("location_non_functional.id", $machine_id);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("location_non_functional.machine_name", "like", "$search%");
+                $query->orWhere("location_non_functional.error_code", "like", "$search%");
+            });
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereDate("location_non_functional.timestamp", ">=", $start_date);
+            $model->whereDate("location_non_functional.timestamp", "<=", $end_date);
+        }
+
+        if ($client_id > 0) {
+            $model->whereIn('location_non_functional.machine_id', $machines);
+        }
+
+        $model->groupBy($groupBy);
+
+        $model              = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/vend/error/data",
+     *     summary="Reports Vend Error",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function vend_errorData($machines)
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+
+        $model              = LocationNonFunctional::select(DB::raw("location_non_functional.*"), "machine.machine_name");
+        $model->where("location_non_functional.is_deleted", 0);
+
+        if ($client_id > 0) {
+            $model->whereIn("location_non_functional.machine_id", $machines);
+        }
+
+        if ($machine_id && $machine_id > 0) {
+            $model->where("location_non_functional.id", $machine_id);
+        }
+
+        if (in_array($type, ["all_errors", "machine"]) && $search != "") {
+            $model->where(function ($query) use ($search) {
+                $query->where("location_non_functional.machine_name", "like", "$search%");
+                $query->orWhere("location_non_functional.error_code", "like", "$search%");
+            });
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereDate("location_non_functional.timestamp", ">=", $start_date);
+            $model->whereDate("location_non_functional.timestamp", "<=", $end_date);
+        }
+
+        switch ($type) {
+            case 'machine':
+                $model->where("location_non_functional.machine_id", $value);
+                break;
+            case 'errors':
+                $model->where("location_non_functional.error_code", $value);
+                break;
+            default:
+                $model->where("location_non_functional.machine_id", $value);
+                break;
+        }
+
+        if ($client_id > 0) {
+            $model          = $model->whereIn('location_non_functional.machine_id', $machines);
+        }
+
+        if ($type === "machine") {
+            $model              = $model->orderBy("machine.machine_name", "ASC");
+        } else {
+            $model              = $model->orderBy("location_non_functional.error_code", "ASC");
+        }
+
+        $model              = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/feedback",
+     *     summary="Reports Feedback Latest",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function feedback()
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+
+        $select = $groupBy = "";
+
+        switch ($type) {
+            case 'machine':
+                $select     = "feedback.machine_id,machine.machine_name";
+                $groupBy    = "feedback.machine_id";
+                break;
+            case 'product':
+                $select     = "feedback.product_id,feedback.product_name";
+                $groupBy    = "feedback.product_id";
+                break;
+            case 'feedback_type':
+                $select     = "feedback.complaint_type,feedback.complaint";
+                $groupBy    = "feedback.complaint_type";
+                break;
+            case 'customer':
+                $select     = "feedback.customer_name";
+                $groupBy    = "feedback.customer_name";
+                break;
+            case 'location':
+                $select     = "feedback.location";
+                $groupBy    = "feedback.location";
+                break;
+            default:
+                $select = "feedback.timestamp";
+                $groupBy = "DATE(feedback.timestamp)";
+                break;
+        }
+
+        $model              = Feedback::selectRaw($select);
+        $model->leftJoin("product", "product.id", "=", "feedback.product_id");
+        $model->leftJoin("machine", "machine.id", "=", "feedback.machine_id");
+        $model->leftJoin("client", "client.id", "=", "feedback.client_id");
+        $model->where("feedback.is_deleted", 0);
+        $model->whereNotNull("feedback.transaction_id");
+
+        if ($client_id > 0) {
+            $model->where("feedback.client_id", $client_id);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search, $type) {
+                if ($type == "machine") {
+                    $query->where('feedback.machine_name', 'like', $search . '%');
+                } else if ($type == "product") {
+                    $query->where('feedback.product_name', 'like', $search . '%');
+                } else if ($type == "feedback_type") {
+                    $query->where('feedback.complaint', 'like', $search . '%');
+                } else {
+                    $query->where('feedback.machine_name', 'like', $search . '%');
+                    $query->orWhere('feedback.customer_name', 'like', $search . '%');
+                }
+            });
+        }
+
+        if ($machine_id && $machine_id > 0) {
+            $model->where("feedback.machine_id", $machine_id);
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereDate('feedback.timestamp', ">=", $start_date);
+            $model->whereDate('feedback.timestamp', "<=", $end_date);
+        }
+        if ($this->client_id > 0) {
+            $model->whereIn("feedback.machine_id", $machines);
+        }
+        $model->groupBy($groupBy);
+        if ($type === "location") {
+            $model->orderBy('machine.machine_address', "DESC");
+        } else if ($type === "most_recent") {
+            $model->orderBy('feedback.feedback_id', "DESC");
+        } else if ($type === "time_past") {
+            $model->orderBy('feedback.feedback_id', "ASC");
+        } else if ($type === "customer") {
+            $model->orderBy('feedback.customer_name', "DESC");
+        } else if ($type === "feedback_type") {
+            $model->orderBy('feedback.feedback', "DESC");
+        } else if ($type === "machine") {
+            $model->orderBy('feedback.machine_name', "DESC");
+        } else if ($type === "product") {
+            $model->orderBy('feedback.product_name', "DESC");
+        }
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/feedback/data",
+     *     summary="Latest Reports Feedback Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=196),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function feedbackData()
+    {
+        $client_id          = $this->client_id;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $machine_id         = $this->request->machine_id;
+        $type               = $this->request->type;
+        $search             = $this->request->search;
+
+        $model              = Feedback::select("feedback.*", "machine.machine_address", "product.product_name as product_name", "machine.machine_name as machine_name", "client.client_name as client_name");
+        $model->leftJoin("product", "product.id", "=", "feedback.product_id");
+        $model->leftJoin("machine", "machine.id", "=", "feedback.machine_id");
+        $model->leftJoin("client", "client.id", "=", "feedback.client_id");
+        $model->where("feedback.is_deleted", 0);
+        $model->whereNotNull("feedback.transaction_id");
+
+        if ($client_id > 0) {
+            $model->where("feedback.client_id", $client_id);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where('feedback.machine_name', 'like', $search . '%');
+                $query->orWhere('feedback.product_name', 'like', $search . '%');
+                $query->orWhere('feedback.complaint', 'like', $search . '%');
+                $query->orWhere('feedback.customer_name', 'like', $search . '%');
+            });
+        }
+
+        if ($machine_id && $machine_id > 0) {
+            $model->where("feedback.machine_id", $machine_id);
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereDate('feedback.timestamp', ">=", $start_date);
+            $model->whereDate('feedback.timestamp', "<=", $end_date);
+        }
+        if ($this->client_id > 0) {
+            $model->whereIn("feedback.machine_id", $machines);
+        }
+
+        switch ($type) {
+            case 'machine':
+                $model->where("feedback.machine_id", $value);
+                break;
+            case 'product':
+                $model->where("feedback.product_id", $value);
+                break;
+            case 'feedback_type':
+                $model->where("feedback.complaint_type", $value);
+                break;
+            case 'customer':
+                $model->where("feedback.customer_name", $value);
+                break;
+            case 'location':
+                $model->where("feedback.location", $value);
+                break;
+            default:
+                $model->whereRaw("DATE(feedback.timestamp) = '$value'");
+                break;
+        }
+
+        if ($type === "location") {
+            $model->orderBy('machine.machine_address', "DESC");
+        } else if ($type === "most_recent") {
+            $model->orderBy('feedback.feedback_id', "DESC");
+        } else if ($type === "time_past") {
+            $model->orderBy('feedback.feedback_id', "ASC");
+        } else if ($type === "customer") {
+            $model->orderBy('feedback.customer_name', "DESC");
+        } else if ($type === "feedback_type") {
+            $model->orderBy('feedback.feedback', "DESC");
+        } else if ($type === "machine") {
+            $model->orderBy('feedback.machine_name', "DESC");
+        } else if ($type === "product") {
+            $model->orderBy('feedback.product_name', "DESC");
+        }
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/email",
+     *     summary="Latest Reports Email",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function getEmail()
+    {
+        $client_id  = $this->client_id;
+        $type       = $this->request->type;
+        $search     = $this->request->search;
+        $start_date = $this->request->start_date;
+        $end_date   = $this->request->end_date;
+        switch ($type) {
+            case 'type':
+                $select     = "type";
+                $groupBy    = "type";
+                break;
+            case 'frequency':
+                $select     = "frequency";
+                $groupBy    = "frequency";
+                break;
+            default:
+                $select = "timestamp";
+                $groupBy = "DATE(timestamp)";
+                break;
+        }
+        $model      = ReportEmail::selectRaw($select)->whereDate("timestamp", ">=", $start_date)->whereDate("timestamp", "<=", $end_date);
+
+        if ($client_id > 0) {
+            $model->where("client_id", $client_id);
+        }
+
+        if (!empty($search)) {
+            $model->where("email", "like", "%$search%");
+        }
+
+        if (!empty($type)) {
+            $model->where($type, $type);
+        }
+
+        $model->groupBy($groupBy);
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/email/data",
+     *     summary="Latest Reports Email Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="value", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function getEmailData()
+    {
+        $client_id  = $this->client_id;
+        $type       = $this->request->type;
+        $value      = $this->request->value;
+        $search     = $this->request->search;
+        $start_date = $this->request->start_date;
+        $end_date   = $this->request->end_date;
+
+        $model      = ReportEmail::whereDate("timestamp", ">=", $start_date)->whereDate("timestamp", "<=", $end_date);
+
+        if ($client_id > 0) {
+            $model->where("client_id", $client_id);
+        }
+
+        if (!empty($search)) {
+            $model->where("email", "like", "%$search%");
+        }
+
+        if (!empty($type)) {
+            $model->where($type, $type);
+        }
+
+        switch ($type) {
+            case 'type':
+                $model->where("type", $value);
+                break;
+            case 'frequency':
+                $model->where("frequency", $value);
+                break;
+            default:
+                $model->whereRaw("DATE(timestamp)='$value'");
+                break;
+        }
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/staff",
+     *     summary="Latest Reports Staff",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function staff($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        $select = $groupBy = "";
+        switch ($type) {
+            case 'machine':
+                $select     = "employee_transaction.machine_id,employee_transaction.machine_name";
+                $groupBy    = "employee_transaction.machine_id";
+                break;
+            case 'product':
+                $select     = "employee_transaction.product_id,employee_transaction.product_name";
+                $groupBy    = "employee_transaction.product_id";
+                break;
+            case 'employee':
+                $select     = "employee_transaction.employee_id,employee_transaction.employee_name";
+                $groupBy    = "employee_transaction.employee_id";
+                break;
+            default:
+                $select = "employee_transaction.timestamp";
+                $groupBy = "DATE(employee_transaction.timestamp)";
+                break;
+        }
+
+        $model          = EmployeeTransaction::selectRaw($select);
+
+        $model->leftJoin("client", "client.id", "=", "employee_transaction.client_id");
+
+        $model->leftJoin("product", function ($join) {
+            $join->on("product.id", "=", "employee_transaction.product_id");
+            $join->on("product.client_id", "=", "employee_transaction.client_id");
+        });
+
+        $model->where("employee_transaction.is_deleted", 0);
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("employee_transaction.transaction_id", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.employee_id", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.employee_full_name", "LIKE", "%$search%");
+                $query->orWhere("employee_transaction.product_id", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.product_name", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.machine_name", "LIKE", "$search%");
+            });
+        }
+
+        if ($client_id > 0) {
+            $model->whereIn("employee_transaction.machine_id", $machines);
+        }
+
+        if ($machine_id > 0) {
+            $model->where("employee_transaction.machine_id", $machine_id);
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereDate("employee_transaction.timestamp", ">=", $start_date);
+            $model->whereDate("employee_transaction.timestamp", "<=", $end_date);
+        }
+
+        $model->groupBy($groupBy);
+
+        if ($type === "machine") {
+            $model->orderBy("machine_name", "DESC");
+        } else if ($type === "product") {
+            $model->orderBy("product_name", "DESC");
+        } else if ($type === "employee") {
+            $model->orderBy("employee_full_name", "DESC");
+        } else {
+            $model->orderBy("timestamp", "DESC");
+        }
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/staff/data",
+     *     summary="Latest Reports Staff Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="value", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function staffData($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $value          = $this->request->value;
+        $search         = $this->request->search;
+
+        $model          = EmployeeTransaction::select("employee_transaction.machine_id", "employee_transaction.id", "employee_transaction.transaction_id", "employee_transaction.job_number", "employee_transaction.cost_center", "employee_transaction.employee_id", "employee_transaction.employee_full_name", "employee_transaction.product_id", "employee_transaction.product_name", "client.client_name as client_name", "product.product_sku as product_sku", "employee_transaction.machine_name", "employee_transaction.pickup_or_return", "employee_transaction.timestamp");
+
+        $model->leftJoin("client", "client.id", "=", "employee_transaction.client_id");
+
+        $model->leftJoin("product", function ($join) {
+            $join->on("product.id", "=", "employee_transaction.product_id");
+            $join->on("product.client_id", "=", "employee_transaction.client_id");
+        });
+
+        $model->where("employee_transaction.is_deleted", 0);
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("employee_transaction.transaction_id", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.employee_id", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.employee_full_name", "LIKE", "%$search%");
+                $query->orWhere("employee_transaction.product_id", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.product_name", "LIKE", "$search%");
+                $query->orWhere("employee_transaction.machine_name", "LIKE", "$search%");
+            });
+        }
+
+        if ($client_id > 0) {
+            $model->whereIn("employee_transaction.machine_id", $machines);
+        }
+
+        if ($machine_id > 0) {
+            $model->where("employee_transaction.machine_id", $machine_id);
+        }
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereDate("employee_transaction.timestamp", ">=", $start_date);
+            $model->whereDate("employee_transaction.timestamp", "<=", $end_date);
+        }
+
+        switch ($type) {
+            case 'machine':
+                $model->where("employee_transaction.machine_id", $value);
+                break;
+            case 'product':
+                $model->where("employee_transaction.product_id", $value);
+                break;
+            case 'employee':
+                $model->where("employee_transaction.employee_id", $value);
+                break;
+            default:
+                $model->whereRaw("DATE(employee_transaction.timestamp)='$value'");
+                break;
+        }
+
+        $model->groupBy("employee_transaction.id");
+
+        if ($type === "machine") {
+            $model->orderBy("machine_name", "DESC");
+        } else if ($type === "product") {
+            $model->orderBy("product_name", "DESC");
+        } else if ($type === "employee") {
+            $model->orderBy("employee_full_name", "DESC");
+        } else {
+            $model->orderBy("timestamp", "DESC");
+        }
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/service",
+     *     summary="Latest Reports Service",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function service($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+        switch ($type) {
+            case 'machine':
+                $select     = "service_report.machine_id,service_report.machine_name";
+                $groupBy    = "service_report.machine_id";
+                break;
+            case 'product':
+                $select     = "service_report.product_id,service_report.product_name";
+                $groupBy    = "service_report.product_id";
+                break;
+            default:
+                $select = "service_report.created_at";
+                $groupBy = "DATE(service_report.created_at)";
+                break;
+        }
+
+        $model          = ServiceReport::selectRaw($select)->whereDate("created_at", ">=", $start_date)->whereDate("created_at", "<=", $end_date);
+
+        if (!empty($machine_id)) {
+            $model = $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model = $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where("service_report.machine_name", "like", "$search%");
+            $model->where("service_report.product_name", "like", "$search%");
+        }
+
+        $model->groupBy($groupBy)->orderBy("created_at", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/service/data",
+     *     summary="Latest Reports Service Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function serviceData($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        $model          = ServiceReport::whereDate("created_at", ">=", $start_date)->whereDate("created_at", "<=", $end_date);
+
+        if (!empty($machine_id)) {
+            $model = $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model = $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where("service_report.machine_name", "like", "$search%");
+            $model->where("service_report.product_name", "like", "$search%");
+        }
+
+        switch ($type) {
+            case 'machine':
+                $model->where("service_report.machine_id", $value);
+                break;
+            case 'product':
+                $model->where("service_report.product_id", $value);
+                break;
+            default:
+                $model->whereRaw("DATE(service_report.created_at)='$value'");
+                break;
+        }
+
+        $model->orderBy("created_at", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/receipts",
+     *     summary="Latest Reports Customer",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function receipts($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        switch ($type) {
+            case 'machine':
+                $select     = "receipts.machine_id,machine.machine_name";
+                $groupBy    = "receipts.machine_id";
+                break;
+            case 'customer':
+                $select     = "receipts.name";
+                $groupBy    = "receipts.name";
+                break;
+            default:
+                $select     = "receipts.machine_id,machine.machine_name";
+                $groupBy    = "receipts.machine_id";
+                break;
+        }
+
+        $model          = Receipts::selectRaw($select)->leftJoin("machine", "machine.id", "=", "receipts.machine_id")->whereDate("receipts.created_at", ">=", $start_date)->whereDate("receipts.created_at", "<=", $end_date);
+
+        if (!empty($machine_id)) {
+            $model = $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model = $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where("machine.machine_name", "like", "$search%");
+            $model->where("receipts.product", "like", "$search%");
+        }
+
+        $model->groupBy($groupBy)->orderBy("receipts.created_at", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/receipts/data",
+     *     summary="Latest Reports Customer Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function receiptsData($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        $model          = Receipts::select("receipts.*", "machine.machine_name")->leftJoin("machine", "machine.id", "=", "receipts.machine_id")->whereDate("receipts.created_at", ">=", $start_date)->whereDate("receipts.created_at", "<=", $end_date);
+
+        if (!empty($machine_id)) {
+            $model = $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model = $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where("machine.machine_name", "like", "$search%");
+            $model->where("receipts.product", "like", "$search%");
+        }
+
+        switch ($type) {
+            case 'machine':
+                $model->where("receipts.machine_id", $value);
+                break;
+            case 'customer':
+                $model->where("receipts.name", $value);
+                break;
+            default:
+                $model->where("receipts.machine_id", $value);
+                break;
+        }
+
+        $model->orderBy("receipts.created_at", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/gift",
+     *     summary="Latest Reports Gift",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function gift($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        switch ($type) {
+            case 'machine':
+                $select     = "gift_report.machine_id,machine.machine_name";
+                $groupBy    = "gift_report.machine_id";
+                break;
+            case 'product':
+                $select     = "gift_report.product_id,gift_report.product_name";
+                $groupBy    = "gift_report.product_id";
+                break;
+            case 'customer':
+                $select     = "gift_report.name";
+                $groupBy    = "gift_report.name";
+                break;
+            default:
+                $select     = "gift_report.timestamp";
+                $groupBy    = "DATE(gift_report.timestamp)";
+                break;
+        }
+
+        $model          = GiftReport::selectRaw($select)->leftJoin("machine", "machine.id", "=", "gift_report.machine_id")->whereDate("gift_report.timestamp", ">=", $start_date)->whereDate("gift_report.timestamp", "<=", $end_date);
+
+        if (!empty($machine_id)) {
+            $model = $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model = $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where("machine.machine_name", "like", "$search%");
+            $model->where("gift_report.product", "like", "$search%");
+        }
+
+        $model->groupBy($groupBy)->orderBy("gift_report.timestamp", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/gift/data",
+     *     summary="Latest Reports Gift Data ",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="value", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function giftData($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $value          = $this->request->value;
+        $search         = $this->request->search;
+
+        $model          = GiftReport::select("gift_report.*", "machine.machine_name")->leftJoin("machine", "machine.id", "=", "gift_report.machine_id")->whereDate("gift_report.timestamp", ">=", $start_date)->whereDate("gift_report.timestamp", "<=", $end_date);
+
+        if (!empty($machine_id)) {
+            $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model->whereIn("machine_id", $machines);
+        }
+
+
+        if (!empty($search)) {
+            $model->where("machine.machine_name", "like", "$search%");
+            $model->where("gift_report.product", "like", "$search%");
+        }
+
+        switch ($type) {
+            case 'machine':
+                $model->where("gift_report.machine_id", $value);
+                break;
+            case 'product':
+                $model->where("gift_report.product_id", $value);
+                break;
+            case 'customer':
+                $model->where("gift_report.name", $value);
+                break;
+            default:
+                $model->whereRaw("DATE(gift_report.timestamp)='$value'");
+                break;
+        }
+
+        $model->orderBy("gift_report.timestamp", "DESC");
+
+        $model = $model->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/payment",
+     *     summary="Latest Reports Payment",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function payment()
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        $summary        = Transaction::selectRaw("remote_vend_log.pay_method, COUNT(*) as total_qty, FORMAT(SUM(transactions.amount),2) as total_amount, SUM(IF(transactions.payment_status='SUCCESS',transactions.amount,0)) as ok_amount, SUM(IF(transactions.payment_status='SUCCESS',1,0)) as ok_qty, SUM(IF(transactions.payment_status='FAILED',transactions.amount,0)) as failed_amount, SUM(IF(transactions.payment_status='FAILED',1,0)) as failed_qty");
+        $summary->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
+        $summary->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
+
+        $failedSummary  = Transaction::selectRaw("remote_vend_log.pay_method, FORMAT(SUM(transactions.amount),2) as total_amount, COUNT(*) as qty");
+        $failedSummary->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
+        $failedSummary->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
+
+        $badges        = Transaction::selectRaw("SUM(IF(remote_vend_log.status='2',1,0)) as successfull_vends, SUM(IF(remote_vend_log.status NOT IN ('0','1','2','11'),1,0)) as failed_vends, FORMAT(SUM(transactions.amount),2) as total_payments, FORMAT(SUM(IF(transactions.payment_status='SUCCESS',transactions.amount,0)),2) as successfull_payments, FORMAT(SUM(IF(transactions.payment_status='FAILED',transactions.amount,0)),2) as failed_payments");
+        $badges->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
+        $badges->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
+
+        switch ($type) {
+            case 'machine':
+                $select     = "remote_vend_log.machine_id,remote_vend_log.machine_name";
+                $groupBy    = "remote_vend_log.machine_id";
+                break;
+            case 'product':
+                $select     = "remote_vend_log.product_id,remote_vend_log.product_name";
+                $groupBy    = "remote_vend_log.product_id";
+                break;
+            case 'payment_status':
+                $select     = "transactions.payment_status";
+                $groupBy    = "transactions.payment_status";
+                break;
+            case 'vend_status':
+                $select     = "remote_vend_log.status";
+                $groupBy    = "remote_vend_log.status";
+                break;
+            case 'pay_method':
+                $select     = "remote_vend_log.pay_method";
+                $groupBy    = "remote_vend_log.pay_method";
+                break;
+            default:
+                $select     = "transactions.created_at";
+                $groupBy    = "DATE(transactions.created_at)";
+                break;
+        }
+
+        $model         = Transaction::selectRaw($select);
+        $model->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
+        $model->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
+
+        if ($client_id > 0) {
+            $model->whereIn("remote_vend_log.machine_id", $machines);
+            $badges->whereIn("remote_vend_log.machine_id", $machines);
+            $summary->whereIn("remote_vend_log.machine_id", $machines);
+            $failedSummary->whereIn("remote_vend_log.machine_id", $machines);
+        }
+
+        if ($machine_id > 0) {
+            $model->where("remote_vend_log.machine_id", $machine_id);
+            $badges->where("remote_vend_log.machine_id", $machine_id);
+            $summary->where("remote_vend_log.machine_id", $machine_id);
+            $failedSummary->where("remote_vend_log.machine_id", $machine_id);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("remote_vend_log.machine_name", "LIKE", "$search%");
+                $query->orWhere("remote_vend_log.product_name", "LIKE", "$search%");
+            });
+            $badges->where(function ($query) use ($search) {
+                $query->where("remote_vend_log.machine_name", "LIKE", "$search%");
+                $query->orWhere("remote_vend_log.product_name", "LIKE", "$search%");
+            });
+            $summary->where(function ($query) use ($search) {
+                $query->where("remote_vend_log.machine_name", "LIKE", "$search%");
+                $query->orWhere("remote_vend_log.product_name", "LIKE", "$search%");
+            });
+            $failedSummary->where(function ($query) use ($search) {
+                $query->where("remote_vend_log.machine_name", "LIKE", "$search%");
+                $query->orWhere("remote_vend_log.product_name", "LIKE", "$search%");
+            });
+        }
+        $badges         = $badges->first();
+        $summary        = $summary->groupBy("remote_vend_log.pay_method")->get();
+        $failedSummary  = $failedSummary->groupBy("remote_vend_log.pay_method")->get();
+        $model          = $model->groupBy($groupBy)->orderBy("transactions.id", "DESC")->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model, "Success", [
+            "badges" => $badges,
+            "summary" => $summary,
+            "failedSummary" => $failedSummary
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/payment/data",
+     *     summary="Latest/Reports Payment Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="value", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function paymentData()
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $value          = $this->request->value;
+        $search         = $this->request->search;
+
+        $model         = Transaction::selectRaw("transactions.id, transactions.vend_uuid,transactions.created_at,transactions.amount,transactions.transaction_id,transactions.status,transactions.payment_status,transactions.type,transactions.response,remote_vend_log.machine_id,remote_vend_log.machine_name,remote_vend_log.client_id,remote_vend_log.client_name,remote_vend_log.product_id,remote_vend_log.product_name,remote_vend_log.pay_method,REPLACE(CONCAT(UPPER(LEFT(remote_vend_log.pay_method, 1)), SUBSTRING(remote_vend_log.pay_method, 2)), '_', ' ') as pay_method_name");
+        $model->leftJoin("remote_vend_log", "remote_vend_log.vend_id", "=", "transactions.vend_uuid");
+        $model->whereDate("transactions.created_at", ">=", $start_date)->whereDate("transactions.created_at", "<=", $end_date);
+
+        if ($client_id > 0) {
+            $model->whereIn("remote_vend_log.machine_id", $machines);
+        }
+
+        if ($machine_id > 0) {
+            $model->where("remote_vend_log.machine_id", $machine_id);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("remote_vend_log.machine_name", "LIKE", "$search%");
+                $query->orWhere("remote_vend_log.product_name", "LIKE", "$search%");
+            });
+        }
+        switch ($type) {
+            case 'machine':
+                $model->where("remote_vend_log.machine_id", $value);
+                break;
+            case 'product':
+                $model->where("remote_vend_log.product_id", $value);
+                break;
+            case 'payment_status':
+                $model->where("transactions.payment_status", $value);
+                break;
+            case 'vend_status':
+                $model->where("remote_vend_log.status", $value);
+                break;
+            case 'pay_method':
+                $model->where("remote_vend_log.pay_method", $value);
+                break;
+            default:
+                $model->whereraw("DATE(transactions.created_at),'$value'");
+                break;
+        }
+
+        $model          = $model->orderBy("transactions.id", "DESC")->paginate($this->request->length ?? 50);
+
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/vend/queue",
+     *     summary="Latest Reports Vend Queue",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function vend_queue($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $search         = $this->request->search;
+
+        switch ($type) {
+            case 'machine':
+                $select     = "remote_vend_log.machine_id,remote_vend_log.machine_name";
+                $groupBy    = "remote_vend_log.machine_id";
+                break;
+            case 'product':
+                $select     = "remote_vend_log.product_id,,remote_vend_log.product_name";
+                $groupBy    = "remote_vend_log.product_id";
+                break;
+            case 'status':
+                $select     = "remote_vend_log.status";
+                $groupBy    = "remote_vend_log.status";
+                break;
+            case 'pay_method':
+                $select     = "remote_vend_log.pay_method";
+                $groupBy    = "remote_vend_log.pay_method";
+                break;
+            case 'name':
+                $select     = "remote_vend_log.customer_name";
+                $groupBy    = "remote_vend_log.customer_name";
+                break;
+            default:
+                $select     = "remote_vend_log.created_at";
+                $groupBy    = "DATE(remote_vend_log.created_at)";
+                break;
+        }
+
+        $model          = RemoteVend::selectRaw($select)->where("is_deleted", 0);
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereBetween("created_at", [$start_date, $end_date]);
+        }
+
+        if (!empty($machine_id)) {
+            $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("customer_name", "LIKE", "$search%");
+                $query->orWhere("product_name", "LIKE", "$search%");
+                $query->orWhere("machine_name", "LIKE", "$search%");
+            });
+        }
+
+        $model->groupBy($groupBy)->orderBy("id", "DESC");
+        $model = $model->paginate($this->request->length ?? 50);
+        return $this->controller->sendResponseWithPagination($model);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/vend/queue/data",
+     *     summary="Latest Reports Vend Queue Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date"},              
+     *              @OA\Property(property="start_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=190),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="value", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example="")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function vend_queueData($machines)
+    {
+        $client_id      = $this->client_id;
+        $start_date     = $this->request->start_date;
+        $end_date       = $this->request->end_date;
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $value          = $this->request->value;
+        $search         = $this->request->search;
+
+        $model          = RemoteVend::select("*", DB::raw("TIMESTAMPDIFF(MINUTE,created_at,updated_at) as time_diff"))->where("is_deleted", 0);
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $model->whereBetween("created_at", [$start_date, $end_date]);
+        }
+
+        if (!empty($machine_id)) {
+            $model->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $model->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $model->where(function ($query) use ($search) {
+                $query->where("customer_name", "LIKE", "$search%");
+                $query->orWhere("product_name", "LIKE", "$search%");
+                $query->orWhere("machine_name", "LIKE", "$search%");
+            });
+        }
+
+        switch ($type) {
+            case 'machine':
+                $model->where("remote_vend_log.machine_id", $value);
+                break;
+            case 'product':
+                $model->where("remote_vend_log.product_id", $value);
+                break;
+            case 'status':
+                $model->where("remote_vend_log.status", $value);
+                break;
+            case 'pay_method':
+                $model->where("remote_vend_log.pay_method", $value);
+                break;
+            case 'name':
+                $model->where("remote_vend_log.customer_name", $value);
+                break;
+            default:
+                $model->whereRaw("DATE(remote_vend_log.created_at)='$value'");
+                break;
+        }
+
+        $model->orderBy("id", "DESC");
+        $model = $model->paginate($this->request->length ?? 50);
+        return $this->controller->sendResponseWithPagination($model);
+    }
 }
