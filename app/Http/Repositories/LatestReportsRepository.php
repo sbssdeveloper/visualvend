@@ -828,7 +828,7 @@ class LatestReportsRepository
 
     /**
      * @OA\Post(
-     *     path="/v1/reports/vend/activity",
+     *     path="/v1/latest/reports/vend/activity",
      *     summary="Reports Vend Activity",
      *     tags={"V1"},
      *     @OA\RequestBody(
@@ -957,7 +957,7 @@ class LatestReportsRepository
 
     /**
      * @OA\Post(
-     *     path="/v1/reports/vend/activity/data",
+     *     path="/v1/latest/reports/vend/activity/data",
      *     summary="Reports Vend Activity Data",
      *     tags={"V1"},
      *     @OA\RequestBody(
