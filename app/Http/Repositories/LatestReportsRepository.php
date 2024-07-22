@@ -388,47 +388,6 @@ class LatestReportsRepository
                 $model      = $model->where("machine_product_map.machine_id", $machine_id);
             }
         }
-        if ($type === "empty_aisles") {
-            $topLow         = $topLow->where("machine_product_map.product_quantity", 0);
-            $refill_qty     = $refill_qty->where("machine_product_map.product_quantity", 0);
-            $machines       = $machines->where("machine_product_map.product_quantity", 0);
-            $vended_qty     = $vended_qty->where("sale_report.aisle_remain_qty", 0);
-            if ($refill_type === "sale") {
-                $model      = $model->where("sale_report.aisle_remain_qty", 0);
-            } else {
-                $model      = $model->where("machine_product_map.product_quantity", 0);
-            }
-        } else if ($type === "part_full_aisles") {
-            $topLow         = $topLow->whereRaw("machine_product_map.product_max_quantity - machine_product_map.product_quantity)>0");
-            $refill_qty     = $refill_qty->whereRaw("machine_product_map.product_max_quantity - machine_product_map.product_quantity)>0");
-            $machines      = $machines->whereRaw("machine_product_map.product_max_quantity - machine_product_map.product_quantity)>0");
-            $vended_qty    = $vended_qty->where("sale_report.aisle_remain_qty", ">", 0);
-            if ($refill_type === "sale") {
-                $model      = $model->where("sale_report.aisle_remain_qty", ">", 0);
-            } else {
-                $model      = $model->whereRaw("machine_product_map.product_max_quantity - machine_product_map.product_quantity)>0");
-            }
-        } else if ($type === "full_aisles") {
-            $topLow        = $topLow->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)=0");
-            $refill_qty    = $refill_qty->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)=0");
-            $machines      = $machines->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)=0");
-            $vended_qty    = $vended_qty->whereRaw("(`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)=0");
-            if ($refill_type === "sale") {
-                $model      = $model->whereRaw("(`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)=0");
-            } else {
-                $model      = $model->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)=0");
-            }
-        } else if ($type === "low_stock_aisles") {
-            $topLow         = $topLow->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>0");
-            $refill_qty     = $refill_qty->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>0");
-            $machines       = $machines->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>0");
-            $vended_qty     = $vended_qty->whereRaw("(`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)>0");
-            if ($refill_type === "sale") {
-                $model      = $model->whereRaw("(`machine_product_map`.`product_max_quantity` - `sale_report`.`aisle_remain_qty`)>0");
-            } else {
-                $model      = $model->whereRaw("(`machine_product_map`.`product_max_quantity` - `machine_product_map`.`product_quantity`)>0");
-            }
-        }
 
         $vended_qty      = $vended_qty->whereDate("sale_report.timestamp", ">=", $start_date);
         $vended_qty      = $vended_qty->whereDate("sale_report.timestamp", "<=", $end_date);
@@ -510,5 +469,166 @@ class LatestReportsRepository
 
         $data               = $this->controller->sendResponseWithPagination($model, "Success", $extra);
         return $data;
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/latest/reports/refill/data",
+     *     summary="Mobile Reports Refill Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"start_date","end_date","type"},              
+     *              @OA\Property(property="start_date", type="date", example="2020-01-01"),
+     *              @OA\Property(property="end_date", type="date", example="2024-01-01"),
+     *              @OA\Property(property="machine_id", type="integer", example=""),
+     *              @OA\Property(property="type", type="string", example=""),
+     *              @OA\Property(property="search", type="string", example=""),
+     *              @OA\Property(property="refill_type", type="string", example="sale")
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string"),
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function refillData($machines)
+    {
+        $refills            =  $highest = 0;
+        $model              = null;
+        $product_loc_map = $refilling = $machine_product_map = $sell_quantity =  [];
+        $machine_id         = $this->request->machine_id;
+        $timestamp          = $this->request->timestamp;
+        $start_date         = $this->request->start_date;
+        $end_date           = $this->request->end_date;
+        $refill_type        = $this->request->refill_type ?? "sale";
+        $type               = $this->request->type;
+        $value              = $this->request->value;
+        $search             = $this->request->search;
+
+        if ($timestamp && $timestamp != "") {
+            $start_date     = null;
+            $end_date       = null;
+            $start_date     = date("Y-m-d", strtotime($timestamp)) . " 00:00:00";
+            $end_date       = date("Y-m-d", strtotime($timestamp)) . " 23:59:59";;
+        } else {
+            $start_date     = date("Y-m-d H:i:s", strtotime($start_date));
+            $end_date       = date("Y-m-d H:i:s", strtotime($end_date));
+        }
+
+        if ($refill_type === "sale") {
+            $model          = Sale::select("sale_report.*", DB::raw("(machine_product_map.product_max_quantity - sale_report.aisle_remain_qty) as refill_qty"))->leftJoin('machine_product_map', function ($join) {
+                $join->on("machine_product_map.machine_id", "=", "sale_report.machine_id")
+                    ->on("machine_product_map.product_location", "=", "sale_report.aisle_no")
+                    ->on("machine_product_map.product_id", "=", "sale_report.product_id");
+            })->whereNotNull("sale_report.product_id");
+        } else {
+            $model          = MachineProductMap::select("machine_product_map.machine_id", "machine_product_map.updated_at as timestamp", "machine.machine_name", "machine_product_map.id", "machine_product_map.product_id", "machine_product_map.product_name", "machine_product_map.product_location as aisle_no", "machine_product_map.product_max_quantity", "machine_product_map.product_quantity", DB::raw("(machine_product_map.product_max_quantity - machine_product_map.product_quantity) as refill_qty"))->leftjoin("machine", "machine.id", "=", "machine_product_map.machine_id")->whereNotNull("product_id");
+        }
+        if ($this->client_id > 0) {
+            if ($refill_type === "sale") {
+                $model->where("sale_report.client_id", $this->client_id);
+            } else {
+                $model->where("machine_product_map.client_id", $this->client_id);
+            }
+        }
+        if ($machine_id > 0) {
+            if ($refill_type === "sale") {
+                $model->where("sale_report.machine_id", $machine_id);
+            } else {
+                $model->where("machine_product_map.machine_id", $machine_id);
+            }
+        }
+
+        if ($refill_type === "sale") {
+            $model->whereDate("sale_report.timestamp", ">=", $start_date);
+            $model->whereDate("sale_report.timestamp", "<=", $end_date);
+        }
+
+        if (!empty($search)) {
+            if ($refill_type === "sale") {
+                $model->where(function ($query) {
+                    $query->where("sale_report.product_name", "LIKE", "%$search%");
+                    $query->orWhere("sale_report.machine_name", "LIKE", "%$search%");
+                });
+            } else {
+                $model->where(function ($query) {
+                    $query->where("machine_product_map.product_name", "LIKE", "%$search%");
+                    $query->orWhere("machine.machine_name", "LIKE", "%$search%");
+                });
+            }
+        }
+
+        if ($this->client_id > 0) {
+            if ($refill_type === "sale") {
+                $model->whereIn("sale_report.machine_id", $my_machines);
+            } else {
+                $model->whereIn("machine_product_map.machine_id", $my_machines);
+            }
+        }
+
+        if ($refill_type == "sale") {
+            $model->orderBy("sale_report.id", "DESC");
+        } else {
+            $model->orderBy("machine_product_map.id", "DESC");
+        }
+
+        switch ($type) {
+            case 'machine':
+                if ($refill_type === "sale") {
+                    $model->where("sale_report.machine_id", $value);
+                } else {
+                    $model->where("machine_product_map.machine_id", $value);
+                }
+                break;
+            case 'product':
+                if ($refill_type === "sale") {
+                    $model->where("sale_report.product_id", $value);
+                } else {
+                    $model->where("machine_product_map.product_id", $value);
+                }
+                break;
+            case 'aisle':
+                if ($refill_type === "sale") {
+                    $model->where("sale_report.aisle_no", $value);
+                } else {
+                    $model->where("machine_product_map.product_location", $value);
+                }
+                break;
+            default:
+                if ($refill_type === "sale") {
+                    if ($value === "empty") {
+                        $model->whereRaw("sale_report.aisle_remain_qty=0");
+                    } else if ($value === "partial") {
+                        $model->whereRaw("machine_product_map.product_max_quantity-sale_report.aisle_remain_qty>0");
+                    } else {
+                        $model->whereRaw("machine_product_map.product_max_quantity-sale_report.aisle_remain_qty=0");
+                    }
+                } else {
+                    if ($value === "empty") {
+                        $model->whereRaw("machine_product_map.product_quantity=0");
+                    } else if ($value === "partial") {
+                        $model->whereRaw("machine_product_map.product_max_quantity-machine_product_map.product_quantity>0");
+                    } else {
+                        $model->whereRaw("machine_product_map.product_max_quantity-machine_product_map.product_quantity=0");
+                    }
+                }
+                break;
+        }
+
+        $model             = $model->paginate($this->request->length ?? 10);
+        return $this->controller->sendResponseWithPagination($model, "Success");
     }
 }
