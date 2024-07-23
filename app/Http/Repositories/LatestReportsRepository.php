@@ -879,8 +879,8 @@ class LatestReportsRepository
                 $groupBy    = "sale_report.employee_id";
                 break;
             default:
-                $select = "IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_return";
-                $groupBy    = "IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_return";
+                $select = "IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_returned";
+                $groupBy    = "IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_returned";
                 break;
         }
 
@@ -941,7 +941,7 @@ class LatestReportsRepository
         } else if ($type === "product") {
             $model->orderBy("sale_report.product_name", "ASC");
         } else {
-            $model->orderBy("IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_return", "ASC");
+            $model->orderBy("IF(sale_report.pickup_or_return=-1,'Pickup','Return')", "ASC");
         }
 
         $model              = $model->groupBy($groupBy)->paginate($this->request->length ?? 50);
