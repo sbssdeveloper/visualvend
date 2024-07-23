@@ -934,6 +934,7 @@ class LatestReportsRepository
             $errors->whereDate("location_non_functional.timestamp", "<=", $end_date);
         }
         $errors     = $errors->first();
+        $model              = $model->groupByRaw($groupBy);
         if ($type === "machine") {
             $model->orderBy('sale_report.machine_name', "ASC");
         } else if ($type === "employee") {
@@ -941,16 +942,17 @@ class LatestReportsRepository
         } else if ($type === "product") {
             $model->orderBy("sale_report.product_name", "ASC");
         } else {
-            $model->orderBy("IF(sale_report.pickup_or_return=-1,'Pickup','Return') as pickup_or_return", "ASC");
+            $model->orderByRaw("CASE WHEN sale_report.pickup_or_return=-1 THEN 'Pickup' ELSE 'Return' END", "ASC");
         }
 
-        $model              = $model->groupByRaw($groupBy)->paginate($this->request->length ?? 50);
+        $model              = $model->paginate($this->request->length ?? 50);
 
         $data               = $this->controller->sendResponseWithPagination($model, "Success", [
             "failed"        => $errors->count,
             "cancelled"     => $errors->cancelled,
             "sales"         => number_format($sales->sum("product_price"), 2)
         ]);
+        return $this->controller->sendResponseWithPagination($data);
     }
 
     /**
@@ -1049,7 +1051,7 @@ class LatestReportsRepository
         }
         $model              = $model->groupBy("sale_report.id")->paginate($this->request->length ?? 50);
 
-        return $this->controller->sendResponseWithPagination($data);
+        return $this->controller->sendResponseWithPagination($model);
     }
 
     /**
