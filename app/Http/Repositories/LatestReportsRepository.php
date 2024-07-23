@@ -214,7 +214,7 @@ class LatestReportsRepository
                 break;
         }
 
-        $model              = Sale::select("*", DB::raw("IF(aisle_no IS NULL,'NA',aisle_no) as aisles"), DB::raw("FORMAT(product_price,2) as price"))->with("product");
+        $model              = Sale::select("*", DB::raw("IF(aisle_noo IS NULL,'NA',aisle_no) as aisles"), DB::raw("FORMAT(product_price,2) as price"))->with("product");
 
         $model->where("is_deleted", 0)->where($whereKey, $this->request->value);
 
