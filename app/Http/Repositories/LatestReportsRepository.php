@@ -224,8 +224,6 @@ class LatestReportsRepository
             if (!in_array($this->role, ["Super Admin", "Full Access"])) {
                 $model          = $model->where("id NOT IN (SELECT `sale_id` FROM `hidden_sale_reports` WHERE `user_id`=$this->admin_id)");
             }
-        } else {
-            $model->where("client_id", $this->request->client_id);
         }
 
         if (!empty($search)) {
@@ -235,7 +233,7 @@ class LatestReportsRepository
         }
 
         if (!empty($this->request->start_date) && !empty($this->request->end_date)) {
-            $model          = $model->whereDate('timestamps', '>=', $this->request->start_date)->whereDate('timestamp', '<=', $this->request->end_date);
+            $model          = $model->whereDate('timestamp', '>=', $this->request->start_date)->whereDate('timestamp', '<=', $this->request->end_date);
         }
 
         if ($this->request->type === "machine") {
