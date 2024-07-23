@@ -39,9 +39,9 @@ class LatestReportsController extends LinkedMachineController
             'value'         => 'required'
         ];
         // die("===>".$this->request->auth->client_id);
-        if (!$this->request->auth->client_id || $this->request->auth->client_id <= 0) {
-            $rules["client_id"] = "required";
-        }
+        // if (!$this->request->auth->client_id || $this->request->auth->client_id <= 0) {
+        //     $rules["client_id"] = "required";
+        // }
         $this->validate($this->request, $rules);
         return $this->repo->salesData($this->linked_machines);
     }
