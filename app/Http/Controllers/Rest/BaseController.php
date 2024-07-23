@@ -65,7 +65,7 @@ class BaseController extends Controller
     {
         $response = [
             'success' => true,
-            'data' => $result->items(),
+            'data' => isset($result->items())?$result->items():[],
             'pagination' => [
                 'total' => $result->total(),
                 'lastPage' => $result->lastPage(),
