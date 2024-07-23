@@ -934,7 +934,7 @@ class LatestReportsRepository
             $errors->whereDate("location_non_functional.timestamp", "<=", $end_date);
         }
         $errors     = $errors->first();
-        $model->groupByRaw($groupBy);
+        
         if ($type === "machine") {
             $model->orderBy('sale_report.machine_name', "ASC");
         } else if ($type === "employee") {
@@ -944,7 +944,7 @@ class LatestReportsRepository
         } else {
             $model->orderByRaw("CASE WHEN sale_report.pickup_or_return=-1 THEN 'Pickup' ELSE 'Return' END ASC");
         }
-
+        $model->groupByRaw($groupBy);
         $model              = $model->paginate($this->request->length ?? 50);
         print_r($model);
         die;
