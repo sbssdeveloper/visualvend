@@ -946,8 +946,6 @@ class LatestReportsRepository
         }
         $model->groupByRaw($groupBy);
         $model              = $model->paginate($this->request->length ?? 50);
-        print_r($model);
-        die;
 
         $data               = $this->controller->sendResponseWithPagination($model, "Success", [
             "failed"        => $errors->count,
