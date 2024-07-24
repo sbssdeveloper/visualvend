@@ -946,7 +946,7 @@ class LatestReportsRepository
         }
         $model->groupByRaw($groupBy);
         // \DB::enableQueryLog();
-        $model              = $model->get()->toArray();//->paginate($this->request->length ?? 50);
+        $model              = $model->paginate($this->request->length ?? 50);
         print_r($model);
         die;
         // dd(\DB::getQueryLog());
