@@ -945,9 +945,9 @@ class LatestReportsRepository
             $model->orderByRaw("CASE WHEN sale_report.pickup_or_return=-1 THEN 'Pickup' ELSE 'Return' END ASC");
         }
         $model->groupByRaw($groupBy);
-        \DB::enableQueryLog();
+        // \DB::enableQueryLog();
         $model              = $model->paginate($this->request->length ?? 50);
-        dd(\DB::getQueryLog());
+        // dd(\DB::getQueryLog());
 
         $data               = $this->controller->sendResponseWithPagination($model, "Success", [
             "failed"        => $errors->count,
