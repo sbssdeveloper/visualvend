@@ -2113,7 +2113,7 @@ class LatestReportsRepository
             $model->where("service_report.product_name", "like", "$search%");
         }
 
-        $model->groupBy($groupBy)->orderBy("created_at", "DESC");
+        $model->groupByRaw($groupBy)->orderBy("created_at", "DESC");
 
         $model = $model->paginate($this->request->length ?? 50);
 
