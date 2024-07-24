@@ -926,12 +926,12 @@ class LatestReportsRepository
         }
 
         if ($start_date && !empty($start_date) && $end_date && !empty($end_date)) {
-            $sales->where("sale_report.timestamp", ">=", $start_date);
-            $sales->where("sale_report.timestamp", "<=", $end_date);
-            $model->where("sale_report.timestamp", ">=", $start_date);
-            $model->where("sale_report.timestamp", "<=", $end_date);
-            $errors->where("location_non_functional.timestamp", ">=", $start_date);
-            $errors->where("location_non_functional.timestamp", "<=", $end_date);
+            $sales->whereDate("sale_report.timestamp", ">=", $start_date);
+            $sales->whereDate("sale_report.timestamp", "<=", $end_date);
+            $model->whereDate("sale_report.timestamp", ">=", $start_date);
+            $model->whereDate("sale_report.timestamp", "<=", $end_date);
+            $errors->whereDate("location_non_functional.timestamp", ">=", $start_date);
+            $errors->whereDate("location_non_functional.timestamp", "<=", $end_date);
         }
         $errors     = $errors->first();
         
@@ -944,7 +944,7 @@ class LatestReportsRepository
         } else {
             // $model->orderByRaw("CASE WHEN sale_report.pickup_or_return=-1 THEN 'Pickup' ELSE 'Return' END ASC");
         }
-        $model->groupByRaw($groupBy);
+        // $model->groupByRaw($groupBy);
         $model              = $model->paginate($this->request->length ?? 50);
 
         $data               = $this->controller->sendResponseWithPagination($model, "Success", [
