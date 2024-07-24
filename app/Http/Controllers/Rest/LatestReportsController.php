@@ -161,7 +161,8 @@ class LatestReportsController extends LinkedMachineController
     {
         $this->validate($this->request, [
             'start_date' => 'required|date',
-            'end_date' => 'required|date'
+            'end_date' => 'required|date',
+            'type' => 'required|in:type,frequency',
         ]);
         return $this->repo->getEmail();
     }
@@ -170,7 +171,8 @@ class LatestReportsController extends LinkedMachineController
     {
         $this->validate($this->request, [
             'start_date' => 'required|date',
-            'end_date' => 'required|date'
+            'end_date' => 'required|date',
+            'type' => 'required|in:type,frequency',
         ]);
         return $this->repo->getEmailData();
     }
