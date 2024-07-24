@@ -946,10 +946,15 @@ class LatestReportsRepository
         }
         $model->groupByRaw($groupBy);
         // \DB::enableQueryLog();
-        $model              = $model->paginate($this->request->length ?? 50);
+        $response              = $model->paginate($this->request->length ?? 50);
         // dd(\DB::getQueryLog());
-
-        $data               = $this->controller->sendResponseWithPagination($model, "Success");
+        print_r($response->items());
+        die;
+        $data               = $this->controller->sendResponseWithPagination($response, "Success", [
+            "failed"        => $errors->count,
+            "cancelled"     => $errors->cancelled,
+            "sales"         => number_format($sales->sum("product_price"), 2)
+        ]);
         return $this->controller->sendResponseWithPagination($data);
     }
 
