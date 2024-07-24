@@ -949,11 +949,7 @@ class LatestReportsRepository
         $model              = $model->paginate($this->request->length ?? 50);
         // dd(\DB::getQueryLog());
 
-        $data               = $this->controller->sendResponseWithPagination($model, "Success", [
-            "failed"        => $errors->count,
-            "cancelled"     => $errors->cancelled,
-            "sales"         => number_format($sales->sum("product_price"), 2)
-        ]);
+        $data               = $this->controller->sendResponseWithPagination($model, "Success");
         return $this->controller->sendResponseWithPagination($data);
     }
 
