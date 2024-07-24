@@ -1392,6 +1392,7 @@ class LatestReportsRepository
         $end_date           = $this->request->end_date;
         $machine_id         = $this->request->machine_id;
         $type               = $this->request->type;
+        $value              = $this->request->value;
         $search             = $this->request->search;
 
         $model              = LocationNonFunctional::select(DB::raw("location_non_functional.*"), "machine.machine_name");
