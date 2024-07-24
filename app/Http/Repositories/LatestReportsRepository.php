@@ -1918,7 +1918,7 @@ class LatestReportsRepository
             $model->whereDate("employee_transaction.timestamp", "<=", $end_date);
         }
 
-        $model->groupBy($groupBy);
+        $model->groupByRaw($groupBy);
 
         if ($type === "machine") {
             $model->orderBy("machine_name", "DESC");
