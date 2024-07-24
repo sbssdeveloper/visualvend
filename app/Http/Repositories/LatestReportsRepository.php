@@ -928,13 +928,13 @@ class LatestReportsRepository
         if ($start_date && !empty($start_date) && $end_date && !empty($end_date)) {
             $sales->whereDate("sale_report.timestamp", ">=", $start_date);
             $sales->whereDate("sale_report.timestamp", "<=", $end_date);
-            $model->whereDate("sale_report.timestamp", ">=", $start_date);
-            $model->whereDate("sale_report.timestamp", "<=", $end_date);
+            // $model->whereRaw("sale_report.timestamp>='$start_date'");
+            // $model->whereRaw("sale_report.timestamp<='$end_date'");
             $errors->whereDate("location_non_functional.timestamp", ">=", $start_date);
             $errors->whereDate("location_non_functional.timestamp", "<=", $end_date);
         }
         $errors     = $errors->first();
-        
+
         if ($type === "machine") {
             $model->orderBy('sale_report.machine_name', "ASC");
         } else if ($type === "employee") {
@@ -948,7 +948,7 @@ class LatestReportsRepository
         \DB::enableQueryLog();
         $model              = $model->paginate($this->request->length ?? 50);
         dd(\DB::getQueryLog());
-        
+
         $data               = $this->controller->sendResponseWithPagination($model, "Success", [
             "failed"        => $errors->count,
             "cancelled"     => $errors->cancelled,
