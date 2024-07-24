@@ -879,7 +879,7 @@ class LatestReportsRepository
                 $groupBy    = "sale_report.employee_id";
                 break;
             default:
-                $select = "IF(sale_report.pickup_or_return=-1,'Pickup','Return') AS pickup_or_return";
+                $select = "IF(sale_report.pickup_or_return1=-1,'Pickup','Return') AS pickup_or_return";
                 $groupBy    = "CASE WHEN sale_report.pickup_or_return=-1 THEN 'Pickup' ELSE 'Return' END";
                 break;
         }
