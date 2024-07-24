@@ -1553,7 +1553,7 @@ class LatestReportsRepository
         if ($this->client_id > 0) {
             $model->whereIn("feedback.machine_id", $machines);
         }
-        $model->groupBy($groupBy);
+        $model->groupByRaw($groupBy);
         if ($type === "location") {
             $model->orderBy('machine.machine_address', "DESC");
         } else if ($type === "most_recent") {
