@@ -928,8 +928,8 @@ class LatestReportsRepository
         if ($start_date && !empty($start_date) && $end_date && !empty($end_date)) {
             $sales->whereDate("sale_report.timestamp", ">=", $start_date);
             $sales->whereDate("sale_report.timestamp", "<=", $end_date);
-            // $model->whereRaw("sale_report.timestamp>='$start_date'");
-            // $model->whereRaw("sale_report.timestamp<='$end_date'");
+            $model->whereDate("sale_report.timestamp", ">=", $start_date);
+            $model->whereDate("sale_report.timestamp", "<=", $end_date);
             $errors->whereDate("location_non_functional.timestamp", ">=", $start_date);
             $errors->whereDate("location_non_functional.timestamp", "<=", $end_date);
         }
@@ -945,17 +945,12 @@ class LatestReportsRepository
             $model->orderByRaw("CASE WHEN sale_report.pickup_or_return=-1 THEN 'Pickup' ELSE 'Return' END ASC");
         }
         $model->groupByRaw($groupBy);
-        // \DB::enableQueryLog();
         $response              = $model->paginate($this->request->length ?? 50);
-        // dd(\DB::getQueryLog());
-        print_r($response->items());
-        die;
-        $data               = $this->controller->sendResponseWithPagination($response, "Success", [
+        return $this->controller->sendResponseWithPagination($response, "Success", [
             "failed"        => $errors->count,
             "cancelled"     => $errors->cancelled,
             "sales"         => number_format($sales->sum("product_price"), 2)
         ]);
-        return $this->controller->sendResponseWithPagination($data);
     }
 
     /**
