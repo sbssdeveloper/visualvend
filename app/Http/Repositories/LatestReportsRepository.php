@@ -1755,7 +1755,7 @@ class LatestReportsRepository
             $model->where($type, $type);
         }
 
-        $model->groupBy($groupBy);
+        $model->groupByRaw($groupBy);
 
         $model = $model->paginate($this->request->length ?? 50);
 
