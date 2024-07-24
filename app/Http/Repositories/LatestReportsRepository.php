@@ -1825,7 +1825,6 @@ class LatestReportsRepository
                 $model->where("frequency", $value);
                 break;
             default:
-                $model->whereRaw("DATE(timestamp)='$value'");
                 break;
         }
 
