@@ -1396,6 +1396,7 @@ class LatestReportsRepository
         $search             = $this->request->search;
 
         $model              = LocationNonFunctional::select(DB::raw("location_non_functional.*"), "machine.machine_name");
+        $model->leftJoin("machine", "machine.id","=","location_non_functional.machine_id");
         $model->where("location_non_functional.is_deleted", 0);
 
         if ($client_id > 0) {
