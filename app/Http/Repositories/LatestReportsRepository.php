@@ -879,7 +879,7 @@ class LatestReportsRepository
                 $groupBy    = "sale_report.employee_id";
                 break;
             default:
-                $select = "IF(sale_report.pickup_or_return1=-1,'Pickup','Return') AS pickup_or_return";
+                $select = "IF(sale_report.pickup_or_return=-1,'Pickup','Return') AS pickup_or_return";
                 $groupBy    = "CASE WHEN sale_report.pickup_or_return=-1 THEN 'Pickup' ELSE 'Return' END";
                 break;
         }
@@ -926,12 +926,12 @@ class LatestReportsRepository
         }
 
         if ($start_date && !empty($start_date) && $end_date && !empty($end_date)) {
-            $sales->whereDate("sale_report.timestamp", ">=", $start_date);
-            $sales->whereDate("sale_report.timestamp", "<=", $end_date);
-            $model->whereDate("sale_report.timestamp", ">=", $start_date);
-            $model->whereDate("sale_report.timestamp", "<=", $end_date);
-            $errors->whereDate("location_non_functional.timestamp", ">=", $start_date);
-            $errors->whereDate("location_non_functional.timestamp", "<=", $end_date);
+            $sales->where("sale_report.timestamp", ">=", $start_date);
+            $sales->where("sale_report.timestamp", "<=", $end_date);
+            $model->where("sale_report.timestamp", ">=", $start_date);
+            $model->where("sale_report.timestamp", "<=", $end_date);
+            $errors->where("location_non_functional.timestamp", ">=", $start_date);
+            $errors->where("location_non_functional.timestamp", "<=", $end_date);
         }
         $errors     = $errors->first();
         
