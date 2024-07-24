@@ -2159,6 +2159,7 @@ class LatestReportsRepository
         $end_date       = $this->request->end_date;
         $machine_id     = $this->request->machine_id;
         $type           = $this->request->type;
+        $value          = $this->request->value;
         $search         = $this->request->search;
 
         $model          = ServiceReport::whereDate("created_at", ">=", $start_date)->whereDate("created_at", "<=", $end_date);
