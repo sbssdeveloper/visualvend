@@ -6,3 +6,7 @@ Homestead.yaml
 .phpunit.result.cache
 storage/*
 composer.lock
+
+Dockerfile
+/nginx
+docker-compose.yml

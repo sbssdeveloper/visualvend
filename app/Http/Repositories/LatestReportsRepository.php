@@ -1613,6 +1613,7 @@ class LatestReportsRepository
         $end_date           = $this->request->end_date;
         $machine_id         = $this->request->machine_id;
         $type               = $this->request->type;
+        $value              = $this->request->value;
         $search             = $this->request->search;
 
         $model              = Feedback::select("feedback.*", "machine.machine_address", "product.product_name as product_name", "machine.machine_name as machine_name", "client.client_name as client_name");
