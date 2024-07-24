@@ -2313,6 +2313,7 @@ class LatestReportsRepository
         $end_date       = $this->request->end_date;
         $machine_id     = $this->request->machine_id;
         $type           = $this->request->type;
+        $value          = $this->request->value;
         $search         = $this->request->search;
 
         $model          = Receipts::select("receipts.*", "machine.machine_name")->leftJoin("machine", "machine.id", "=", "receipts.machine_id")->whereDate("receipts.created_at", ">=", $start_date)->whereDate("receipts.created_at", "<=", $end_date);
@@ -2424,7 +2425,7 @@ class LatestReportsRepository
             $model->where("gift_report.product", "like", "$search%");
         }
 
-        $model->groupBy($groupBy)->orderBy("gift_report.timestamp", "DESC");
+        $model->groupByRaw($groupBy)->orderBy("gift_report.timestamp", "DESC");
 
         $model = $model->paginate($this->request->length ?? 50);
         return $this->controller->sendResponseWithPagination($model);
@@ -2630,7 +2631,7 @@ class LatestReportsRepository
         $badges         = $badges->first();
         $summary        = $summary->groupBy("remote_vend_log.pay_method")->get();
         $failedSummary  = $failedSummary->groupBy("remote_vend_log.pay_method")->get();
-        $model          = $model->groupBy($groupBy)->orderBy("transactions.id", "DESC")->paginate($this->request->length ?? 50);
+        $model          = $model->groupByRaw($groupBy)->orderBy("transactions.id", "DESC")->paginate($this->request->length ?? 50);
 
         return $this->controller->sendResponseWithPagination($model, "Success", [
             "badges" => $badges,
@@ -2816,7 +2817,7 @@ class LatestReportsRepository
             });
         }
 
-        $model->groupBy($groupBy)->orderBy("id", "DESC");
+        $model->groupByRaw($groupBy)->orderBy("id", "DESC");
         $model = $model->paginate($this->request->length ?? 50);
         return $this->controller->sendResponseWithPagination($model);
     }
