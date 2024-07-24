@@ -2085,16 +2085,16 @@ class LatestReportsRepository
         $search         = $this->request->search;
         switch ($type) {
             case 'machine':
-                $select     = "service_report.machine_id,service_report.machine_name";
-                $groupBy    = "service_report.machine_id";
+                $select     = "service_reports.machine_id,service_reports.machine_name";
+                $groupBy    = "service_reports.machine_id";
                 break;
             case 'product':
-                $select     = "service_report.product_id,service_report.product_name";
-                $groupBy    = "service_report.product_id";
+                $select     = "service_reports.product_id,service_reports.product_name";
+                $groupBy    = "service_reports.product_id";
                 break;
             default:
-                $select = "service_report.created_at";
-                $groupBy = "DATE(service_report.created_at)";
+                $select = "service_reports.created_at";
+                $groupBy = "DATE(service_reports.created_at)";
                 break;
         }
 
@@ -2109,8 +2109,8 @@ class LatestReportsRepository
         }
 
         if (!empty($search)) {
-            $model->where("service_report.machine_name", "like", "$search%");
-            $model->where("service_report.product_name", "like", "$search%");
+            $model->where("service_reports.machine_name", "like", "$search%");
+            $model->where("service_reports.product_name", "like", "$search%");
         }
 
         $model->groupByRaw($groupBy)->orderBy("created_at", "DESC");
@@ -2172,19 +2172,19 @@ class LatestReportsRepository
         }
 
         if (!empty($search)) {
-            $model->where("service_report.machine_name", "like", "$search%");
-            $model->where("service_report.product_name", "like", "$search%");
+            $model->where("service_reports.machine_name", "like", "$search%");
+            $model->where("service_reports.product_name", "like", "$search%");
         }
 
         switch ($type) {
             case 'machine':
-                $model->where("service_report.machine_id", $value);
+                $model->where("service_reports.machine_id", $value);
                 break;
             case 'product':
-                $model->where("service_report.product_id", $value);
+                $model->where("service_reports.product_id", $value);
                 break;
             default:
-                $model->whereRaw("DATE(service_report.created_at)='$value'");
+                $model->whereRaw("DATE(service_reports.created_at)='$value'");
                 break;
         }
 
