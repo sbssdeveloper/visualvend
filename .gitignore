@@ -7,6 +7,6 @@ Homestead.yaml
 storage/*
 composer.lock
 
-Dockerfile
-/nginx
-docker-compose.yml
+# Dockerfile
+# /nginx
+# docker-compose.yml
