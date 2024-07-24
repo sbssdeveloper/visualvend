@@ -1814,18 +1814,7 @@ class LatestReportsRepository
         }
 
         if (!empty($type)) {
-            $model->where($type, $type);
-        }
-
-        switch ($type) {
-            case 'type':
-                $model->where("type", $value);
-                break;
-            case 'frequency':
-                $model->where("frequency", $value);
-                break;
-            default:
-                break;
+            $model->where($type, $value);
         }
 
         $model = $model->paginate($this->request->length ?? 50);
