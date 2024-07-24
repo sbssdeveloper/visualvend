@@ -942,11 +942,13 @@ class LatestReportsRepository
         } else if ($type === "product") {
             $model->orderBy("sale_report.product_name", "ASC");
         } else {
-            // $model->orderByRaw("CASE WHEN sale_report.pickup_or_return=-1 THEN 'Pickup' ELSE 'Return' END ASC");
+            $model->orderByRaw("CASE WHEN sale_report.pickup_or_return=-1 THEN 'Pickup' ELSE 'Return' END ASC");
         }
-        // $model->groupByRaw($groupBy);
+        $model->groupByRaw($groupBy);
+        \DB::enableQueryLog();
         $model              = $model->paginate($this->request->length ?? 50);
-
+        dd(\DB::getQueryLog());
+        
         $data               = $this->controller->sendResponseWithPagination($model, "Success", [
             "failed"        => $errors->count,
             "cancelled"     => $errors->cancelled,
