@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @OA\Tag(
@@ -81,7 +82,7 @@ class BaseController extends Controller
             ]
         ];
 
-        if ($extra && count($extra) > 0) {            
+        if ($extra && count($extra) > 0) {
             $response = array_merge($response, $extra);
         }
         return response()->json($response, 200);
@@ -293,10 +294,10 @@ class BaseController extends Controller
 
         if ($validator->fails()) {
             // Format errors as a string
-            print_r($this->sendError( implode(', ', $validator->errors()->all())));
-            die;
+            $errorString = implode(', ', $validator->errors()->all());
 
-            // return implode(', ', $validator->errors()->all());
+            // Throw ValidationException with custom response
+            throw new ValidationException($validator, response()->json(['error' => $errorString], 422));
         }
 
         return null; // Return null if validation passes
