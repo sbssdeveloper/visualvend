@@ -58,7 +58,7 @@ class MachineUserRepository
     {
         $search = $this->request->search;
         $status = $this->request->status;
-        $model  = MachineUser::class;
+        $model  = MachineUser::select("*");
 
         if (!empty($search)) {
             $model->where(function ($query) use ($search) {
