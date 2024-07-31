@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Firebase\JWT\JWT;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * @OA\Tag(
@@ -284,5 +285,17 @@ class BaseController extends Controller
         Mail::to($to)->send($object);
 
         return $message;
+    }
+
+    public function validate($request, array $rules, array $messages = [], array $customAttributes = [])
+    {
+        $validator = Validator::make($request->all(), $rules, $messages, $customAttributes);
+
+        if ($validator->fails()) {
+            // Format errors as a string
+            return implode(', ', $validator->errors()->all());
+        }
+
+        return null; // Return null if validation passes
     }
 }
