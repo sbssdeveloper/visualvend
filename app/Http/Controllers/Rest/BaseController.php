@@ -293,7 +293,9 @@ class BaseController extends Controller
 
         if ($validator->fails()) {
             // Format errors as a string
-            return $this->sendError( implode(', ', $validator->errors()->all()));
+            print_r($this->sendError( implode(', ', $validator->errors()->all())));
+            die;
+
             // return implode(', ', $validator->errors()->all());
         }
 
