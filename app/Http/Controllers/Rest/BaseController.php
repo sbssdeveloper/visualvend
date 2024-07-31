@@ -297,7 +297,7 @@ class BaseController extends Controller
             $errorString = implode(', ', $validator->errors()->all());
             
             // Throw ValidationException with custom response
-            throw new ValidationException($validator, response()->json(['error' => $errorString], 422));
+            throw new ValidationException($validator, response()->json(['error' => $errorString,'msg' => $errorString,"message"=>$errorString], 422));
         }
 
         return $validator->validated();
