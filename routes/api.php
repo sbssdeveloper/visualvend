@@ -1,5 +1,14 @@
 <?php
 
+$router->get('/test-db', function () {
+    try {
+        \DB::connection()->getPdo();
+        return 'Database connection is working!';
+    } catch (\Exception $e) {
+        return 'Could not connect to the database. Please check your configuration. error:' . $e->getMessage();
+    }
+});
+
 $router->group(['prefix' => 's3'], function () use ($router) {
     $router->get('media/{type}/{filename}', 'S3BucketController@fetchUrl');
     $router->group(['middleware' => 'jwt'], function () use ($router) {

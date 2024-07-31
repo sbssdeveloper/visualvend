@@ -20,7 +20,7 @@ COPY . .
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
 # Install PHP dependencies
-RUN composer install
+# RUN composer install
 
 # Install PHP dependencies
 RUN cd /var/www && composer update
