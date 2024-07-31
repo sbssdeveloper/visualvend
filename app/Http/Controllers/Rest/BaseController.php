@@ -295,11 +295,11 @@ class BaseController extends Controller
         if ($validator->fails()) {
             // Format errors as a string
             $errorString = implode(', ', $validator->errors()->all());
-
+            
             // Throw ValidationException with custom response
             throw new ValidationException($validator, response()->json(['error' => $errorString], 422));
         }
 
-        return null; // Return null if validation passes
+        return $validator->validated();
     }
 }
