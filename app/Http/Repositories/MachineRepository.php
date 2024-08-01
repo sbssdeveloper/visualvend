@@ -126,8 +126,6 @@ class MachineRepository
                 HappyHours::where("machine_id", $id)->delete();
                 PlanogramData::where("machine_id", $id)->delete();
                 HappyHoursData::where("machine_id", $id)->delete();
-                TemporaryHappyHours::where("machine_id", $id)->delete();
-                TemporaryPlanogramData::where("machine_id", $id)->delete();
                 $admins = User::whereRaw("FIND_IN_SET(?, machines)", [$id])->get();
                 if (count($admins)) {
                     foreach ($admins as $admin) {
