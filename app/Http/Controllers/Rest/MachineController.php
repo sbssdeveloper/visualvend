@@ -236,4 +236,8 @@ class MachineController extends LinkedMachineController
         $this->validate($request, $rules);
         return $this->repo->refillInfo($request);
     }
+
+    public function remove($id){
+        return $this->repo->remove($id);
+    }
 }
