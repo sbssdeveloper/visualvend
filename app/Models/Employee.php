@@ -8,7 +8,7 @@ class Employee extends Model
 {
     protected $table = 'employee';
     protected $fillable = ['*'];
-
+    public  $timestamps = false;
     public static function dashboardInfo($auth)
     {
         $model = self::select("id")->where("is_deleted", 0);

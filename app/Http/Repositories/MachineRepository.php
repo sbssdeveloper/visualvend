@@ -7,11 +7,17 @@ use App\Models\AdvertisementImage;
 use App\Models\AssignedAdvertisement;
 use App\Models\Employee;
 use App\Models\EmployeeGroup;
+use App\Models\HappyHours;
+use App\Models\HappyHoursData;
 use App\Models\Machine;
 use App\Models\MachineAssignCategory;
 use App\Models\MachineInitialSetup;
 use App\Models\MachineProductMap;
 use App\Models\MachineUser;
+use App\Models\Planogram;
+use App\Models\PlanogramData;
+use App\Models\TemporaryHappyHours;
+use App\Models\TemporaryPlanogramData;
 use App\Models\User;
 use Carbon\Carbon;
 use DB;
@@ -102,20 +108,26 @@ class MachineRepository
     public function remove($id)
     {
         // echo $id;
-        $model = Machine::where("id", $id);
+        $model = Machine::where("id", $id)->first();
         if ($model) {
             DB::beginTransaction();
             try {
                 $model->is_deleted = 1;
                 $model->delete_user_id = request()->auth->client_id;
                 $model->deleted_at = Carbon::now();
-                $model->username = "useless_now";
+                $model->machine_username = "useless_now";
                 $model->save();
                 MachineProductMap::where("machine_id", $id)->delete();
                 MachineAssignCategory::where("machine_id", $id)->delete();
                 AssignedAdvertisement::where("machine_id", $id)->delete();
                 AdvertisementImage::where("machine_id", $id)->delete();
                 MachineInitialSetup::where("id", $id)->delete();
+                Planogram::where("machine_id", $id)->delete();
+                HappyHours::where("machine_id", $id)->delete();
+                PlanogramData::where("machine_id", $id)->delete();
+                HappyHoursData::where("machine_id", $id)->delete();
+                TemporaryHappyHours::where("machine_id", $id)->delete();
+                TemporaryPlanogramData::where("machine_id", $id)->delete();
                 $admins = User::whereRaw("FIND_IN_SET(?, machines)", [$id])->get();
                 if (count($admins)) {
                     foreach ($admins as $admin) {
