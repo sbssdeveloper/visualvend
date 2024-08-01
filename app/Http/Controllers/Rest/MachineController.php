@@ -170,8 +170,8 @@ class MachineController extends LinkedMachineController
             "machine_row"                   => "required|integer|min:1,max:16",
             "machine_column"                => "required|integer|min:1,max:16",
             "machine_address"               => "required|string",
-            "machine_latitude"              => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
-            "machine_longitude"             => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
+            "machine_latitude"              => "required",
+            "machine_longitude"             => "required",
             "machine_is_single_category"    => "required|in:0,1",
             'machine_username'              => ["required", $this->rule],
         ];
@@ -192,8 +192,8 @@ class MachineController extends LinkedMachineController
             "machine_row"                   => "required|integer|min:1,max:16",
             "machine_column"                => "required|integer|min:1,max:16",
             "machine_address"               => "required|string",
-            "machine_latitude"              => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
-            "machine_longitude"             => ["required", 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
+            "machine_latitude"              => "required",
+            "machine_longitude"             => "required",
             "machine_is_single_category"    => "required|in:0,1"
         ];
 

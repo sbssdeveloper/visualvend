@@ -8,6 +8,7 @@ class EmployeeGroup extends Model
 {
     protected $table = 'employee_group';
     protected $fillable = ['*'];
+    public  $timestamps = false;
 
     public function machines()
     {
