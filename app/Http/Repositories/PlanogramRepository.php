@@ -609,17 +609,25 @@ class PlanogramRepository
                 $select = "machine_id";
                 break;
             default:
-                $select = "machine_id,status";
+                $select = "status";
                 break;
         }
 
-        $planogram  = Planogram::selectRaw($select)->with(["machine" => function ($select) {
-            $select->select("machine_name", "id");
-        }]);
+        $planogram  = Planogram::selectRaw($select);
 
-        $happy_hours = HappyHours::selectRaw($select)->with(["machine" => function ($select) {
-            $select->select("machine_name", "id");
-        }]);
+        if ($type == "machine") {
+            $planogram->with(["machine" => function ($select) {
+                $select->select("machine_name", "id");
+            }]);
+        }
+
+        $happy_hours = HappyHours::selectRaw($select);
+
+        if ($type == "machine") {
+            $happy_hours->with(["machine" => function ($select) {
+                $select->select("machine_name", "id");
+            }]);
+        }
 
         if ($machine_id > 0) {
             $planogram->where("machine_id", $machine_id);
@@ -632,16 +640,18 @@ class PlanogramRepository
         }
 
         if (!empty($search)) {
-            $planogram->where(function ($query) use ($search) {
-                $query->whereHas("machine", function ($hasQuery) use ($search) {
-                    $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+            if ($type == "machine") {
+                $planogram->where(function ($query) use ($search) {
+                    $query->whereHas("machine", function ($hasQuery) use ($search) {
+                        $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+                    });
                 });
-            });
-            $happy_hours->where(function ($query) use ($search) {
-                $query->whereHas("machine", function ($hasQuery) use ($search) {
-                    $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+                $happy_hours->where(function ($query) use ($search) {
+                    $query->whereHas("machine", function ($hasQuery) use ($search) {
+                        $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+                    });
                 });
-            });
+            }
         } else {
             $planogram->whereHas("machine", function ($query) {
                 $query->where("is_deleted", 0);
@@ -652,8 +662,8 @@ class PlanogramRepository
             });
         }
 
-        $planogram->groupBy($type=="machine"?"machine_id":"status")->orderBy("id", "DESC");
-        $happy_hours->groupBy($type=="machine"?"machine_id":"status")->orderBy("id", "DESC");
+        $planogram->groupBy($type == "machine" ? "machine_id" : "status")->orderBy("id", "DESC");
+        $happy_hours->groupBy($type == "machine" ? "machine_id" : "status")->orderBy("id", "DESC");
         $model = $planogram->union($happy_hours)->paginate($this->request->length ?? 50);
         return $this->controller->sendResponseWithPagination($model, "Success");
     }
@@ -666,6 +676,8 @@ class PlanogramRepository
      *     @OA\RequestBody(
      *          required=true,
      *          @OA\JsonContent(
+     *              @OA\Property(property="type", type="integer", default=""),
+     *              @OA\Property(property="value", type="integer", default=""),
      *              @OA\Property(property="machine_id", type="integer", default=""),
      *              @OA\Property(property="search", type="string", default=""),
      *          )
@@ -685,7 +697,7 @@ class PlanogramRepository
      * )
      */
 
-     public function mobileListData($machines)
+    public function mobileListData($machines)
     {
         $client_id  = $this->request->auth->client_id;
         $machine_id = $this->request->machine_id;
@@ -701,10 +713,10 @@ class PlanogramRepository
             $select->select("machine_name", "id");
         }]);
 
-        if ($type==="machine") {
+        if ($type === "machine") {
             $planogram->where("machine_id", $value);
             $happy_hours->where("machine_id", $value);
-        }else{
+        } else {
             $planogram->where("status", $value);
             $happy_hours->where("status", $value);
         }
