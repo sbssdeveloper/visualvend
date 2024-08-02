@@ -606,10 +606,10 @@ class PlanogramRepository
         $select             = "";
         switch ($type) {
             case 'machine':
-                $select = "machine_id,";
+                $select = "machine_id";
                 break;
             default:
-                $select = "status";
+                $select = "machine_id,status";
                 break;
         }
 
@@ -652,10 +652,10 @@ class PlanogramRepository
             });
         }
 
-        $planogram->orderBy("id", "DESC");
-        $happy_hours->orderBy("id", "DESC");
+        $planogram->groupBy($type=="machine"?"machine_id":"status")->orderBy("id", "DESC");
+        $happy_hours->groupBy($type=="machine"?"machine_id":"status")->orderBy("id", "DESC");
         $model = $planogram->union($happy_hours)->paginate($this->request->length ?? 50);
-        $data               = $this->controller->sendResponseWithPagination($model, "Success");
+        return $this->controller->sendResponseWithPagination($model, "Success");
     }
 
     /**

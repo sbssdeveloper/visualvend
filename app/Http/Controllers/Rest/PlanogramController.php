@@ -129,7 +129,7 @@ class PlanogramController extends Controller
         $rules = [
             'type'   => 'required|in:live,happy_hours',
             'uuid'   => "required|exists:$table,uuid",
-            'status' => $type == 'live'?"required|in:Active":"required|in:Active,Inactive"
+            'status' => $type == 'live' ? "required|in:Active" : "required|in:Active,Inactive"
         ];
 
         $this->validate($request, $rules);
@@ -139,6 +139,10 @@ class PlanogramController extends Controller
 
     public function mobileList(Request $request)
     {
+        $rules = [
+            'type'   => 'required|in:machine,status'
+        ];
+        $this->validate($request, $rules);
         return $this->repo->mobileList($request);
     }
 
