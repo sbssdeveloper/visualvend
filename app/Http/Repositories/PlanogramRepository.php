@@ -567,4 +567,176 @@ class PlanogramRepository
             return $this->controller->sendError($e->getMessage());
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/mobile/list",
+     *     summary="Planogram Mobile List",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              @OA\Property(property="machine_id", type="integer", default=""),
+     *              @OA\Property(property="search", type="string", default=""),
+     *          )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function mobileList($machines)
+    {
+        $client_id  = $this->request->auth->client_id;
+        $machine_id = $this->request->machine_id;
+        $search     = $this->request->search;
+        $type       = $this->request->type;
+
+        $select             = "";
+        switch ($type) {
+            case 'machine':
+                $select = "machine_id,";
+                break;
+            default:
+                $select = "status";
+                break;
+        }
+
+        $planogram  = Planogram::selectRaw($select)->with(["machine" => function ($select) {
+            $select->select("machine_name", "id");
+        }]);
+
+        $happy_hours = HappyHours::selectRaw($select)->with(["machine" => function ($select) {
+            $select->select("machine_name", "id");
+        }]);
+
+        if ($machine_id > 0) {
+            $planogram->where("machine_id", $machine_id);
+            $happy_hours->where("machine_id", $machine_id);
+        }
+
+        if ($client_id > 0) {
+            $planogram->whereIn("machine_id", $machines);
+            $happy_hours->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $planogram->where(function ($query) use ($search) {
+                $query->whereHas("machine", function ($hasQuery) use ($search) {
+                    $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+                });
+            });
+            $happy_hours->where(function ($query) use ($search) {
+                $query->whereHas("machine", function ($hasQuery) use ($search) {
+                    $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+                });
+            });
+        } else {
+            $planogram->whereHas("machine", function ($query) {
+                $query->where("is_deleted", 0);
+            });
+
+            $happy_hours->whereHas("machine", function ($query) {
+                $query->where("is_deleted", 0);
+            });
+        }
+
+        $planogram->orderBy("id", "DESC");
+        $happy_hours->orderBy("id", "DESC");
+        $model = $planogram->union($happy_hours)->paginate($this->request->length ?? 50);
+        $data               = $this->controller->sendResponseWithPagination($model, "Success");
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/mobile/list/data",
+     *     summary="Planogram Mobile List Data",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              @OA\Property(property="machine_id", type="integer", default=""),
+     *              @OA\Property(property="search", type="string", default=""),
+     *          )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+     public function mobileListData($machines)
+    {
+        $client_id  = $this->request->auth->client_id;
+        $machine_id = $this->request->machine_id;
+        $search     = $this->request->search;
+        $type       = $this->request->type;
+        $value      = $this->request->value;
+
+        $planogram  = Planogram::select(DB::raw("DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s') as date"), "uuid",  DB::raw("'Indefinite' as start_date"), DB::raw("'Indefinite' as end_date"), "parent_uuid", "machine_id", "name", "status", "age_verify", DB::raw("0 as duration"),  DB::raw("1 as is_default"),  DB::raw("'live' as planogram_type"))->with(["machine" => function ($select) {
+            $select->select("machine_name", "id");
+        }]);
+
+        $happy_hours = HappyHours::select(DB::raw("DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s') as date"), "uuid", "start_date", "end_date", "parent_uuid", "machine_id", "name", "status", "age_verify", DB::raw("TIMESTAMPDIFF(HOUR,happy_hours.start_date,happy_hours.end_date) as duration"), DB::raw("0 as is_default"), DB::raw("'happy_hours' as planogram_type"))->with(["machine" => function ($select) {
+            $select->select("machine_name", "id");
+        }]);
+
+        if ($type==="machine") {
+            $planogram->where("machine_id", $value);
+            $happy_hours->where("machine_id", $value);
+        }else{
+            $planogram->where("status", $value);
+            $happy_hours->where("status", $value);
+        }
+
+        if ($client_id > 0) {
+            $planogram->whereIn("machine_id", $machines);
+            $happy_hours->whereIn("machine_id", $machines);
+        }
+
+        if (!empty($search)) {
+            $planogram->where(function ($query) use ($search) {
+                $query->where("name", "like", "$search%")->orWhereHas("machine", function ($hasQuery) use ($search) {
+                    $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+                });
+            });
+            $happy_hours->where(function ($query) use ($search) {
+                $query->where("name", "like", "$search%")->orWhereHas("machine", function ($hasQuery) use ($search) {
+                    $hasQuery->where("machine_name", "like", "$search%")->where("is_deleted", 0);
+                });
+            });
+        } else {
+            $planogram->whereHas("machine", function ($query) {
+                $query->where("is_deleted", 0);
+            });
+
+            $happy_hours->whereHas("machine", function ($query) {
+                $query->where("is_deleted", 0);
+            });
+        }
+
+        $planogram->orderBy("id", "DESC");
+        $happy_hours->orderBy("id", "DESC");
+        $model = $planogram->union($happy_hours)->paginate($this->request->length ?? 50);
+        return $this->controller->sendResponseWithPagination($model, "Success");
+    }
 }

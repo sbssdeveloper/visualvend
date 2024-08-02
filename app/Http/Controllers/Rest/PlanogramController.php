@@ -136,4 +136,31 @@ class PlanogramController extends Controller
 
         return $this->repo->status();
     }
+
+    public function mobileList(Request $request)
+    {
+        ['type' => $type] = $request->only("type");
+        $table = $type == 'live' ? 'planogram' : 'happy_hours';
+        $rules = [
+            'type'   => 'required|in:live,happy_hours',
+            'uuid'   => "required|exists:$table,uuid",
+            'status' => $type == 'live'?"required|in:Active":"required|in:Active,Inactive"
+        ];
+
+        $this->validate($request, $rules);
+
+        return $this->repo->mobileList($request);
+    }
+
+    public function mobileListData(Request $request)
+    {
+        $rules = [
+            'type'   => 'required|in:machine,status',
+            'value'   => "required"
+        ];
+
+        $this->validate($request, $rules);
+
+        return $this->repo->mobileListData($request);
+    }
 }

@@ -111,6 +111,8 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
             $router->post('view',               'PlanogramController@view');
             $router->post('delete',             'PlanogramController@delete');
             $router->post('status/update',      'PlanogramController@status');
+            $router->post('mobile/list',        'PlanogramController@mobileList');
+            $router->post('mobile/list/data',   'PlanogramController@mobileListData');
         });
 
         /****************************WEBPORTAL******************************/
