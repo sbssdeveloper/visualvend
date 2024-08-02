@@ -312,8 +312,8 @@ class S3BucketController extends Controller
                 ]);
                 $s3Request = $this->s3Client->createPresignedRequest($cmd, '+20 minutes');
                 $presignedUrl = (string) $s3Request->getUri();
-                
-                $urls[$key] = ["url" => $presignedUrl, "filename" => $filename];                
+
+                $urls[$key] = ["url" => $presignedUrl, "filename" => $filename];
             }
         }
         return response()->json($urls);
