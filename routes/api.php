@@ -148,5 +148,9 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
             $router->post('vend/queue',         'LatestReportsController@vend_queue');
             $router->post('vend/queue/data',    'LatestReportsController@vend_queueData');
         });
+
+        /****************************MACHINE APK******************************/
+        $router->post('apk/list',              'ApkController@list');
+        $router->post('apk/update',            'ApkController@update');
     });
 });
