@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Rest;
 
+use DB;
 use App\Http\Controllers\Controller;
 use App\Http\Repositories\PlanogramRepository;
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ class PlanogramController extends Controller
     public function __construct(PlanogramRepository $repo)
     {
         $this->repo = $repo;
+        DB::statement("SET SQL_MODE=''");
     }
 
     public function list(Request $request)
