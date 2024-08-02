@@ -578,6 +578,7 @@ class PlanogramRepository
      *          @OA\JsonContent(
      *              @OA\Property(property="machine_id", type="integer", default=""),
      *              @OA\Property(property="search", type="string", default=""),
+     *              @OA\Property(property="type", type="string", default=""),
      *          )
      *     ),
      *     @OA\Parameter(
