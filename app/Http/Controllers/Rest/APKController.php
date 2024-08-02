@@ -2,20 +2,23 @@
 
 namespace App\Http\Controllers\Rest;
 
-use App\Models\APK;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Repositories\ApkRepository;
 
-class APKController extends BaseController
+class ApkController extends BaseController
 {
     public $request = null;
-    public function __construct(Request $request)
+    public $apk = null;
+
+    public function __construct(Request $request, ApkRepository $apk)
     {
-        parent::__construct($request);
         $this->request = $request;
+        $this->apk = $apk;
     }
 
-    public function list(Request $request, APK $apk){
-        return $this->sendResponse("Success", $apk->list($request));
+    public function list()
+    {
+        return $this->sendResponse("Success", $this->apk->list($this->request));
     }
 }
