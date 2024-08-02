@@ -151,5 +151,6 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
         /****************************MACHINE APK******************************/
         $router->post('apk/list',              'ApkController@list');
+        $router->post('apk/update',            'ApkController@update');
     });
 });

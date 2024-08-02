@@ -16,8 +16,18 @@ class ApkController extends BaseController
         $this->apk = $apk;
     }
 
+
     public function list()
     {
         return $this->sendResponse("Success", $this->apk->list($this->request));
+    }
+
+    public function update()
+    {
+        $this->validate($this->request, [
+            'name'    => 'required',
+            'path'      => 'required',
+        ]);
+        return $this->apk->update($this->request);
     }
 }

@@ -43,4 +43,9 @@ class ApkRepository
             ->get();
         return $model;
     }
+    public function update()
+    {
+        echo 'here...';
+        die;
+    }
 }
