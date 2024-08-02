@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Rest;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use App\Http\Repositories\ApkRepository;
 
 class ApkController extends BaseController

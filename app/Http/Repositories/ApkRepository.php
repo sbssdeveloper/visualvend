@@ -35,8 +35,8 @@ class ApkRepository
      *     )
      * )
      */
-    
-    public function list($request)
+
+    public function list()
     {
         $model = Apk::select("id", "created_at", "updated_at", "name", "path", "version")
             ->whereNotNull("name")
