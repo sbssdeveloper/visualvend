@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Rest;
 
 use App\Http\Repositories\ClientRepository;
 use App\Models\Client;
+use App\Rules\ClientPhoneRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -47,15 +48,17 @@ class ClientController extends BaseController
 
     public function listing(Request $request)
     {
-        if ($request->auth->client_id > 0) abort(401);
+        if ($request->auth->client_id > 0)
+            abort(401);
         return $this->repo->listing($request);
     }
 
     public function info(Request $request)
     {
-        if ($request->auth->client_id > 0) abort(401);
+        if ($request->auth->client_id > 0)
+            abort(401);
         $rules = [
-            "client_id"     => "required|exists:client,id"
+            "client_id" => "required|exists:client,id"
         ];
 
         $this->validate($request, $rules);
@@ -65,13 +68,14 @@ class ClientController extends BaseController
 
     public function update(Request $request)
     {
-        if ($request->auth->client_id > 0) abort(401);
+        if ($request->auth->client_id > 0)
+            abort(401);
         $rules = [
-            "client_id"                     => "required|exists:client,id",
-            "client_name"                   => "required|string|min:4|max:20",
-            "business_registration_number"  => "required|string|min:4|max:20",
+            "client_id" => "required|exists:client,id",
+            "client_name" => "required|string|min:4|max:20",
+            "business_registration_number" => "required|string|min:4|max:20",
             // "client_email"                  => "required|email",
-            "client_address"                => "required|string|min:10|max:50",
+            "client_address" => "required|string|min:10|max:50",
         ];
 
         $this->validate($request, $rules);
@@ -79,17 +83,18 @@ class ClientController extends BaseController
         return $this->repo->update($request);
     }
 
-    public function create(Request $request)
+    public function create(Request $request, ClientPhoneRule $rule)
     {
-        if ($request->auth->client_id > 0) abort(401);
+        if ($request->auth->client_id > 0)
+            abort(401);
         $rules = [
-            "client_name"                   => "required|string|min:4|max:20",
-            "client_code"                   => "required|string|min:4|max:20|unique:client,client_code",
-            "business_registration_number"  => "required|string|min:4|max:50",
-            "client_email"                  => "required|email",
-            "client_phone"                  => "required|unique:client,client_phone",
-            "client_address"                => "required|string|min:4|max:100",
-            "password"                      => "required_if:enable_portal,1|confirmed|min:4",
+            "client_name" => "required|string|min:4|max:20|unique:client,client_name",
+            "client_code" => "required|string|min:4|max:20|unique:client,client_code",
+            "business_registration_number" => "required|string|min:4|max:50",
+            "client_email" => "required|email|unique:client,client_email",
+            "client_phone" => ["required", $rule],
+            "client_address" => "required|string|min:4|max:100",
+            "password" => "required_if:enable_portal,1|confirmed|min:4",
         ];
 
         $this->validate($request, $rules);

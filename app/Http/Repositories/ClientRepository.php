@@ -3,7 +3,10 @@
 namespace App\Http\Repositories;
 
 use App\Http\Controllers\Rest\BaseController;
+use App\Models\Admin;
 use App\Models\Client;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class ClientRepository
 {
@@ -140,11 +143,45 @@ class ClientRepository
 
     public function create($request)
     {
-        $clients = $request->only();
+        $clients                                = $request->only("client_code", "client_name", "business_registration_number", "client_address", "client_email", "client_phone");
+        $clients["role"]                        = "Full Access";
+        $clients["client_username"]             =  $clients["client_name"];
+        $clients["created_by"]                  =  $request->auth->firstname;
+        $clients["enable_mail_sale_report"]     =  $request->report_sale;
+        $clients["enable_mail_refill"]          =  $request->report_refill;
+        $clients["enable_mail_non_functional"]  =  $request->report_vend_error;
+        $clients["enable_mail_feedback"]        =  $request->report_feedback;
+        $clients["enable_mail_ad"]              =  $request->report_media_ad;
+        $clients["enable_mail_report"]          =  $request->report_staff;
+        $clients["enable_mail_e_receipt"]       =  $request->report_e_receipt;
+        $clients["enable_mail_gift"]            =  $request->report_gift_vend;
+        $clients["status"]                      =  "I";
+        $clients["client_password"]             =  Hash::make($request->password);
+        DB::beginTransaction();
         try {
-            // $client = Client::create($clients);
+            $client = Client::create($clients);
+            if ($request->enable_portal == 1) {
+                $exploded_name = explode(" ", $clients["client_name"]);
+                $admin = [
+                    'mobilenumber' => $clients["client_phone"],
+                    'firstname' => $exploded_name[0],
+                    'lastname' => isset($exploded_name[1]) ? $exploded_name[1] : "",
+                    'role' => 'Full Access',
+                    'organization' => $clients["client_name"],
+                    'emailid' => $clients["client_email"],
+                    'password' => $clients["client_password"],
+                    'client_id' => $client->id,
+                    'username' => $clients["client_code"],
+                    'upt_no' => "+87810" . $clients["client_phone"],
+                    'menus' => $request->menus,
+                    'reports' => $request->reports
+                ];
+                Admin::create($admin);
+            }
+            DB::commit();
             return $this->controller->sendSuccess("Client created successfully.");
-        } catch (\Throwable $th) {
+        } catch (\Exception $th) {
+            DB::rollback();
             return $this->controller->sendError($th->getMessage());
         }
     }
