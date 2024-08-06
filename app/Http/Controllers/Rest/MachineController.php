@@ -7,6 +7,7 @@ use App\Http\Repositories\MachineRepository;
 use App\Http\Requests\MachineConfigurationRequest;
 use App\Models\Admin;
 use App\Models\Machine;
+use App\Models\MachineProductMap;
 use App\Rules\MachineUserRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -237,7 +238,19 @@ class MachineController extends LinkedMachineController
         return $this->repo->refillInfo($request);
     }
 
-    public function remove($id){
+    public function remove($id)
+    {
         return $this->repo->remove($id);
+    }
+
+
+    public function productsList(Request $request, $machine_id = null)
+    {
+        if ($machine_id) {
+            $request->merge(['machine_id' => $machine_id]);
+        }
+        
+        $this->validate($request, ['machine_id' => 'required||exists:machine,id']);
+        return $this->repo->machineProducts($request);
     }
 }
