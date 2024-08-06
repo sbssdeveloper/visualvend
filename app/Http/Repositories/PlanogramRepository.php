@@ -2,6 +2,7 @@
 
 namespace App\Http\Repositories;
 
+use App\Models\HappyHoursData;
 use DB;
 use Encrypt;
 use App\Http\Controllers\Rest\BaseController;
@@ -554,7 +555,7 @@ class PlanogramRepository
                     PlanogramData::where("plano_uuid", $this->request->uuid)->get()->makeHidden(['id', 'plano_uuid'])->toArray()
                 );
                 MachineAssignProduct::insert(
-                    MachineProductMap::select(DB::raw("id as product_map_id"), "machine_id", "category_id", "product_id", "product_price", "product_location", "product_quantity", "product_max_quantity", "show_order", "s2s", "aisles_included", "vend_quantity", "bundle_includes", "bundle_price", "currency")->where("machine_id", $machine_id)->get()->toArray()
+                    MachineProductMap::select(DB::raw("id as product_map_id"), "machine_id", "category_id", "product_id", "product_price", "product_location", "product_quantity", "product_max_quantity", "show_order", "s2s", "aisles_included", "vend_quantity", "bundle_includes", "bundle_price", "currency")->where("machine_id", $data->machine_id)->get()->toArray()
                 );
             }
             $plano::where("status", "Active")->update(["status" => $this->request->type == "live" ? "Backup" : "Inactive"]);

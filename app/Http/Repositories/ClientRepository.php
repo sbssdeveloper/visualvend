@@ -140,10 +140,10 @@ class ClientRepository
 
     public function create($request)
     {
-        $clients = $request->all();
+        $clients = $request->only();
         try {
-            
-            return $this->controller->sendSuccess("Client updated successfully.");
+            // $client = Client::create($clients);
+            return $this->controller->sendSuccess("Client created successfully.");
         } catch (\Throwable $th) {
             return $this->controller->sendError($th->getMessage());
         }
