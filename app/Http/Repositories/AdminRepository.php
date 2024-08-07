@@ -138,7 +138,7 @@ class AdminRepository
      *         required=true,
      *         @OA\JsonContent(
      *              type="object",
-     *              required={"firstname", "lastname","role", "password"},             
+     *              required={"id", "firstname", "lastname","role", "password"},             
      *              @OA\Property(property="id", type="integer", example=""),
      *              @OA\Property(property="firstname", type="string", example=""),
      *              @OA\Property(property="lastname", type="string", example=""),
@@ -167,7 +167,7 @@ class AdminRepository
     {
         $params = $this->request->only('firstname', 'lastname', 'role', 'menus', 'machines', 'reports', 'show_data_after');
 
-        if(!empty($this->request->password)){
+        if (!empty($this->request->password)) {
             $params["password"] = Hash::make($this->request->password);
         }
 
@@ -220,8 +220,43 @@ class AdminRepository
      * )
      */
 
-     public function remove($id){
-        Admin::where("id",$id)->delete();
+    public function remove($id)
+    {
+        Admin::where("id", $id)->delete();
         return $this->controller->sendSuccess("Web user deleted successfully.");
-     }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/admin/status/update",
+     *     summary="Admin Status Update",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *              type="object",
+     *              required={"id", "status"},             
+     *              @OA\Property(property="id", type="integer", example=""),
+     *              @OA\Property(property="status", type="string", enum={"0","1",""})
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function statusUpdate()
+    {
+        Admin::where("id", $this->request->id)->update(["status" => $this->request->status]);
+        return $this->controller->sendSuccess("Web user updated successfully.");
+    }
 }

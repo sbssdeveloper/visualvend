@@ -39,6 +39,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('admin/list',             'AdminController@list');
         $router->post('admin/create',           'AdminController@create');
         $router->post('admin/update',           'AdminController@update');
+        $router->post('admin/status/update',    'AdminController@statusUpdate');
         $router->delete('admin/delete/{id}',    'AdminController@remove');
 
         /****************************MACHINE******************************/

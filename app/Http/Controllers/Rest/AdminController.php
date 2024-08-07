@@ -55,4 +55,15 @@ class AdminController extends Controller
     {
         return $this->repo->remove($id);
     }
+
+    public function statusUpdate(Request $request)
+    {
+        $rules = [
+            "id" => "required|exists:admin,id",
+            "status" => "required"
+        ];
+
+        $this->validate($request, $rules);
+        return $this->repo->statusUpdate();
+    }
 }
