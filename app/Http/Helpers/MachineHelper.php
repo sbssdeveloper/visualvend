@@ -267,7 +267,7 @@ class MachineHelper
                 if (($request->auth->client_id <= 0 && ($existingMachine->machine_client_id != $request->client_id)) || ($request->auth->client_id > 0)) {
                     $client_id = $request->auth->client_id <= 0 ? $request->client_id : $request->auth->client_id;
                     $empGrp = EmployeeGroup::with("machines")->leftJoin("employee_group_machines", "employee_group_machines.uuid", "=", "employee_group.uuid")->where("machine_id", $request->machine_id)->groupBy("employee_group.id")->get();
-                    print_r($empGrp);
+                    // print_r($empGrp);
                     foreach ($empGrp as $empGrpValue) {
                         $uuid = (string) Encrypt::uuid();
                         EmployeeGroup::insert([
@@ -277,7 +277,7 @@ class MachineHelper
                             "created_by"        => $request->auth->client_id <= 0 ? $request->auth->name : "Admin",
                         ]);
                         $groupVal = [];
-                        print_r($empGrpValue->machines);
+                        print_r(gettype($empGrpValue->machines));
                         die;
                         if(count($empGrpValue->machines)){
                             foreach ($empGrpValue->machines as $grpValue) {
