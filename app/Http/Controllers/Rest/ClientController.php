@@ -12,7 +12,7 @@ class ClientController extends BaseController
 {
     public $admin_logged_in;
     public $repo;
-    public function __construct(ClientRepository $repo)
+    public function __construct(ClientRepository $repo, Request $request)
     {
         $this->admin_logged_in = $request->auth->admin ?? "client";
         $this->repo = $repo;
