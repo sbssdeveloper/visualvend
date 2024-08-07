@@ -8,6 +8,7 @@ use DB;
 use Encrypt;
 use App\Models\Machine;
 use App\Models\Admin;
+use App\Models\EmployeeGroup;
 use App\Models\EmployeeGroupMachines;
 use App\Models\MachineUser;
 use App\Models\MachineInitialSetup;
