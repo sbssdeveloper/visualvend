@@ -8,6 +8,7 @@ use DB;
 use Encrypt;
 use App\Models\Machine;
 use App\Models\Admin;
+use App\Models\EmployeeGroup;
 use App\Models\EmployeeGroupMachines;
 use App\Models\MachineUser;
 use App\Models\MachineInitialSetup;
@@ -211,13 +212,14 @@ class MachineHelper
             "machine_client_id"             => $client_id,
             "machine_row"                   => $existingMachine->machine_row,
             "machine_column"                => $existingMachine->machine_column,
-            "machine_address"               => $existingMachine->machine_address,
-            "machine_latitude"              => $existingMachine->machine_latitude,
-            "machine_longitude"             => $existingMachine->machine_longitude,
+            "machine_address"               => !empty($request->machine_address) ? $request->machine_address : $existingMachine->machine_address,
+            "machine_latitude"              => !empty($request->machine_latitude) ? $request->machine_latitude : $existingMachine->machine_latitude,
+            "machine_longitude"             => !empty($request->machine_longitude) ? $request->machine_longitude : $existingMachine->machine_longitude,
             "machine_is_single_category"    => $existingMachine->machine_is_single_category
         ];
         DB::beginTransaction();
         try {
+            DB::statement("SET SQL_MODE=''");
             if ($request->need_clone_config_setting == 1) {
                 $data = $this->configClone($data, $existingMachine);
             }
@@ -235,24 +237,24 @@ class MachineHelper
                 // ADMIN CAN DO THIS
                 if ($request->auth->client_id <= 0 && ($existingMachine->machine_client_id != $request->client_id)) {
 
-                    DB::insert("INSERT INTO product (client_id, product_id, product_sku, product_batch_no, product_batch_expiray_date, product_grading_no, product_name, product_caption, product_size_amount, product_size_unit, product_package_type, product_price, product_description, more_info_text, product_age_verify_required, product_age_verify_minimum, product_image, product_image_thumbnail, product_more_info_image, product_more_info_image_thumbnail, product_tax_rate) SELECT ?, product_id, product_sku, product_batch_no, product_batch_expiray_date, product_grading_no, product_name, product_caption, product_size_amount, product_size_unit, product_package_type, product_price, product_description, more_info_text, product_age_verify_required, product_age_verify_minimum, product_image, product_image_thumbnail, product_more_info_image, product_more_info_image_thumbnail, product_tax_rate FROM product WHERE product_id IN (SELECT DISTINCT(product_id) FROM machine_product_map WHERE machine_id=?)", [$request->client_id, $request->machine_id]); // INSERT NEW PRODUCT
+                    DB::insert("INSERT INTO product (client_id, product_id, product_sku, product_batch_no, product_batch_expiray_date, product_grading_no, product_name, product_caption, product_size_amount, product_size_unit, product_package_type, product_price, product_description, more_info_text, product_age_verify_required, product_age_verify_minimum, product_image, product_image_thumbnail, product_more_info_image, product_more_info_image_thumbnail, product_tax_rate) SELECT ? as client_id, product_id, product_sku, product_batch_no, product_batch_expiray_date, product_grading_no, product_name, product_caption, product_size_amount, product_size_unit, product_package_type, product_price, product_description, more_info_text, product_age_verify_required, product_age_verify_minimum, product_image, product_image_thumbnail, product_more_info_image, product_more_info_image_thumbnail, product_tax_rate FROM product WHERE product_id IN (SELECT DISTINCT(product_id) FROM machine_product_map WHERE machine_id=?)", [$request->client_id, $request->machine_id]); // INSERT NEW PRODUCT
                 }
 
-                DB::insert("INSERT INTO machine_product_map (client_id, machine_id, category_id, product_id, product_name, product_price, product_image, product_image_thumbnail, product_more_info_image, product_detail_image, ad_primary_landscape, ad_secondary_landscape, ad_primary_portrait, ad_secondary_portrait, product_more_info_video, product_detail_video, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, machine_sub_id, container_type, currency) SELECT ?,?  category_id, product_id, product_name, product_price, product_image, product_image_thumbnail, product_more_info_image, product_detail_image, ad_primary_landscape, ad_secondary_landscape, ad_primary_portrait, ad_secondary_portrait, product_more_info_video, product_detail_video, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, machine_sub_id, container_type, currency FROM machine_product_map WHERE machine_id=?", [$client_id, $machine_id, $request->machine_id]); // INSERT NEW machine_product_map
+                DB::insert("INSERT INTO machine_product_map (client_id, machine_id, category_id, product_id, product_name, product_price, product_image, product_image_thumbnail, product_more_info_image, product_detail_image, ad_primary_landscape, ad_secondary_landscape, ad_primary_portrait, ad_secondary_portrait, product_more_info_video, product_detail_video, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, machine_sub_id, container_type, currency) SELECT ? as client_id,? as machine_id,  category_id, product_id, product_name, product_price, product_image, product_image_thumbnail, product_more_info_image, product_detail_image, ad_primary_landscape, ad_secondary_landscape, ad_primary_portrait, ad_secondary_portrait, product_more_info_video, product_detail_video, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, machine_sub_id, container_type, currency FROM machine_product_map WHERE machine_id=?", [$client_id, $machine_id, $request->machine_id]); // INSERT NEW machine_product_map
 
                 DB::insert("INSERT INTO machine_assign_product (product_map_id, machine_id, category_id, product_id, product_price, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, currency) SELECT id, machine_id, category_id, product_id, product_price, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, currency FROM machine_product_map WHERE machine_id=?", [$machine_id]); // INSERT NEW machine_assign_product
 
                 $plano_uuid = (string) Encrypt::uuid();
                 DB::insert("INSERT INTO planogram (uuid, client_id, machine_id, name, status, age_verify, is_uploaded) values (?, ?, ?, ?, 'Active','Y','Y')", [$plano_uuid, $client_id, $machine_id, $existingMachine->machine_name]);  // INSERT NEW planogram
 
-                DB::insert("INSERT INTO planogram_data (plano_uuid, client_id, machine_id, category_id, product_id, product_name, product_price, product_image, product_image_thumbnail, product_more_info_image, product_detail_image, ad_primary_landscape, ad_secondary_landscape, ad_primary_portrait, ad_secondary_portrait, product_more_info_video, product_detail_video, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, machine_sub_id, container_type, currency) SELECT ?, client_id, machine_id, category_id, product_id, product_name, product_price, product_image, product_image_thumbnail, product_more_info_image, product_detail_image, ad_primary_landscape, ad_secondary_landscape, ad_primary_portrait, ad_secondary_portrait, product_more_info_video, product_detail_video, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, machine_sub_id, container_type, currency FROM machine_product_map WHERE machine_id=?", [$plano_uuid, $machine_id]);    // INSERT NEW planogram_data
+                DB::insert("INSERT INTO planogram_data (plano_uuid, client_id, machine_id, category_id, product_id, product_name, product_price, product_image, product_image_thumbnail, product_more_info_image, product_detail_image, ad_primary_landscape, ad_secondary_landscape, ad_primary_portrait, ad_secondary_portrait, product_more_info_video, product_detail_video, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, machine_sub_id, container_type, currency) SELECT ? as plano_uuid, client_id, machine_id, category_id, product_id, product_name, product_price, product_image, product_image_thumbnail, product_more_info_image, product_detail_image, ad_primary_landscape, ad_secondary_landscape, ad_primary_portrait, ad_secondary_portrait, product_more_info_video, product_detail_video, product_location, product_quantity, product_max_quantity, show_order, s2s, aisles_included, vend_quantity, bundle_includes, bundle_price, machine_sub_id, container_type, currency FROM machine_product_map WHERE machine_id=?", [$plano_uuid, $machine_id]);    // INSERT NEW planogram_data
             }
 
             if ($request->need_clone_media_ad) {
                 if ($request->auth->client_id <= 0 && ($existingMachine->machine_client_id != $request->client_id)) {
                     DB::insert("INSERT INTO advertisement (ads_path, ads_name, ads_resolution, orientation, client_id) SELECT ads_path, ads_name, ads_resolution, orientation, ? FROM advertisement WHERE client_id=? AND CONCAT(ads_path,'__',ads_name) NOT IN (SELECT DISTINCT(CONCAT(ads_path,'__',ads_name)) as ad_name FROM advertisement WHERE client_id=?)", [$client_id, $existingMachine->machine_client_id, $client_id]);     // INSERT NEW advertisement
                 }
-                $assigned = AssignedAdvertisement::makeHidden(['id', "advertisement_id", "client_id", "machine_id"])->where("machine_id", $request->machine_id)->get()->toArray();
+                $assigned = AssignedAdvertisement::select("*")->makeHidden(['id', "advertisement_id", "client_id", "machine_id"])->where("machine_id", $request->machine_id)->get()->toArray();
                 foreach ($assigned as $value) {
                     $fetchAd = Advertisement::where('ads_path', $value["ads_path"])->where('ads_name', $value["ads_name"])->first();
                     if ($fetchAd) {
@@ -264,7 +266,7 @@ class MachineHelper
             if ($request->need_clone_people) {
                 if (($request->auth->client_id <= 0 && ($existingMachine->machine_client_id != $request->client_id)) || ($request->auth->client_id > 0)) {
                     $client_id = $request->auth->client_id <= 0 ? $request->client_id : $request->auth->client_id;
-                    $empGrp = EmployeeGroup::with("group")->leftJoin("employee_group_machines", "employee_group_machines.uuid", "=", "employee_group.uuid")->where("machine_id", $request->machine_id)->groupBy("employee_group.id")->get();
+                    $empGrp = EmployeeGroup::select("employee_group.group_name")->with("machines")->leftJoin("employee_group_machines", "employee_group_machines.uuid", "=", "employee_group.uuid")->where("machine_id", $request->machine_id)->groupBy("employee_group.id")->get();
                     foreach ($empGrp as $empGrpValue) {
                         $uuid = (string) Encrypt::uuid();
                         EmployeeGroup::insert([
@@ -274,10 +276,12 @@ class MachineHelper
                             "created_by"        => $request->auth->client_id <= 0 ? $request->auth->name : "Admin",
                         ]);
                         $groupVal = [];
-                        foreach ($empGrpValue->group as $grpValue) {
-                            $groupVal[] = ["uuid" => $uuid, "machine_id" => $machine_id, "machine_name" => $request->machine_name];
+                        if (count($empGrpValue->machines)) {
+                            foreach ($empGrpValue->machines as $grpValue) {
+                                $groupVal[] = ["uuid" => $uuid, "machine_id" => $machine_id, "machine_name" => $request->machine_name];
+                            }
+                            EmployeeGroupMachines::insert($groupVal);
                         }
-                        EmployeeGroupMachines::insert($groupVal);
                     }
                 }
             }

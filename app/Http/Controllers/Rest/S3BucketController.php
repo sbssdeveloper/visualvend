@@ -54,13 +54,13 @@ class S3BucketController extends Controller
     public function getPresignedUrl(Request $request)
     {
         $rules = [
-            'type'      => 'required|in:image,video,file',
+            'type' => 'required|in:image,video,file',
             'extension' => 'required|in:jpeg,jpg,png,csv,xlsx'
         ];
         $this->validate($request, $rules);
-        $filename       = (string) Encrypt::uuid();
-        $filename       .= "." . $request->extension;
-        $key            = "$request->type/$filename";
+        $filename = (string) Encrypt::uuid();
+        $filename .= "." . $request->extension;
+        $key = "$request->type/$filename";
 
         $cmd = $this->s3Client->getCommand('PutObject', [
             'Bucket' => env('S3_BUCKET'),
@@ -105,13 +105,13 @@ class S3BucketController extends Controller
     public function deleteFile(Request $request)
     {
         $rules = [
-            'filename'  => 'required',
-            'type'      => 'required|in:image,video,file'
+            'filename' => 'required',
+            'type' => 'required|in:image,video,file'
         ];
 
         $this->validate($request, $rules);
 
-        $key        = "$request->type/$request->filename";
+        $key = "$request->type/$request->filename";
 
         try {
             $this->s3Client->deleteObject([
@@ -155,12 +155,12 @@ class S3BucketController extends Controller
     public function fileExists(Request $request)
     {
         $rules = [
-            'filename'  => 'required',
-            'type'      => 'required|in:image,video,file'
+            'filename' => 'required',
+            'type' => 'required|in:image,video,file'
         ];
         $this->validate($request, $rules);
 
-        $key        = "$request->type/$filename";
+        $key = "$request->type/$filename";
 
         try {
             $result = $this->s3Client->headObject([
@@ -207,13 +207,13 @@ class S3BucketController extends Controller
     public function getFileUrl(Request $request)
     {
         $rules = [
-            'filename'  => 'required',
-            'type'      => 'required|in:image,video,file'
+            'filename' => 'required',
+            'type' => 'required|in:image,video,file'
         ];
 
         $this->validate($request, $rules);
 
-        $key        = "$request->type/$request->filename";
+        $key = "$request->type/$request->filename";
         try {
             $cmd = $this->s3Client->getCommand('GetObject', [
                 'Bucket' => env('S3_BUCKET'),
@@ -241,10 +241,10 @@ class S3BucketController extends Controller
      * )
      */
 
-    public function fetchUrl($type, $filename)
+    public function fetchUrl($type, $filename, $apk = null)
     {
 
-        $key        = "$type/$filename";
+        $key = "$type/$filename";
         try {
             $cmd = $this->s3Client->getCommand('GetObject', [
                 'Bucket' => env('S3_BUCKET'),
@@ -295,16 +295,16 @@ class S3BucketController extends Controller
     public function getPresignedMultipleUrls(Request $request)
     {
         $rules = [
-            'type'      => 'required|in:image,video,file',
-            'data'      => 'required|array'
+            'type' => 'required|in:image,video,file',
+            'data' => 'required|array'
         ];
         $urls = [];
         $this->validate($request, $rules);
         foreach ($request->data as $key => $value) {
             if (in_array($value, ["png", "jpeg", "jpg"])) {
-                $filename       = (string) Encrypt::uuid();
-                $filename       .= "." . $value;
-                $path            = "$request->type/$filename";
+                $filename = (string) Encrypt::uuid();
+                $filename .= "." . $value;
+                $path = "$request->type/$filename";
                 $cmd = $this->s3Client->getCommand('PutObject', [
                     'Bucket' => env('S3_BUCKET'),
                     'Key' => $path,
@@ -352,6 +352,10 @@ class S3BucketController extends Controller
 
             case 'csv':
                 return 'text/csv';
+                break;
+
+            case 'apk':
+                return 'application/apk';
                 break;
 
             default:

@@ -1,13 +1,13 @@
 <?php
 
-$router->get('/test-db', function () {
-    try {
-        \DB::connection()->getPdo();
-        return 'Database connection is working!';
-    } catch (\Exception $e) {
-        return 'Could not connect to the database. Please check your configuration. error:' . $e->getMessage();
-    }
-});
+// $router->get('/test-db', function () {
+//     try {
+//         \DB::connection()->getPdo();
+//         return 'Database connection is working!';
+//     } catch (\Exception $e) {
+//         return 'Could not connect to the database. Please check your configuration. error:' . $e->getMessage();
+//     }
+// });
 
 $router->group(['prefix' => 's3'], function () use ($router) {
     $router->get('media/{type}/{filename}', 'S3BucketController@fetchUrl');
@@ -35,6 +35,13 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         /****************************DASHBOARD******************************/
         $router->post('info',                   'DashboardController@info');
 
+        /****************************ADMIN******************************/
+        $router->post('admin/list',             'AdminController@list');
+        $router->post('admin/create',           'AdminController@create');
+        $router->post('admin/update',           'AdminController@update');
+        $router->post('admin/status/update',    'AdminController@statusUpdate');
+        $router->delete('admin/delete/{id}',    'AdminController@remove');
+
         /****************************MACHINE******************************/
         $router->get('machine/list[/{cid}]',    'MachineController@dropdownList');
         $router->post('machine/list',           'MachineController@list');
@@ -44,6 +51,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->delete('machine/delete/{id}', 'MachineController@remove');
         $router->post('machine/clone',          'MachineController@cloning');
         $router->post('machine/configuration',  'MachineController@configure');
+        $router->get('machine/products/list',   'MachineController@productsList');
         $router->post('machine/products/reset', 'MachineController@reset');
         $router->post('machine/refill/info',    'MachineController@refillInfo');
 
@@ -78,6 +86,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->get('client/list',             'ClientController@dropdownList');
         $router->post('client/list',            'ClientController@listing');
         $router->post('client/info',            'ClientController@info');
+        $router->post('client/create',          'ClientController@create');
         $router->post('client/update',          'ClientController@update');
 
         /****************************USER******************************/
@@ -152,8 +161,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         /****************************MACHINE APK******************************/
         $router->post('apk/list',              'ApkController@list');
         $router->post('apk/update',            'ApkController@update');
-
         /****************************STAFF******************************/
-        $router->post('staff/list',              'StaffController@list');
+        $router->post('staff/list',            'StaffController@list');
     });
 });

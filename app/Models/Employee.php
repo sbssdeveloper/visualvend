@@ -9,6 +9,7 @@ class Employee extends Model
     protected $table = 'employee';
     protected $fillable = ['*'];
     public  $timestamps = false;
+
     public static function dashboardInfo($auth)
     {
         $model = self::select("id")->where("is_deleted", 0);
@@ -21,5 +22,9 @@ class Employee extends Model
         $response["inactive"]   = 0;
         $response["offline"]    = $model;
         return ['staff' => $response];
+    }
+
+    public function employee_machines(){
+        return $this->hasMany(EmployeeMachine::class, 'uuid', 'uuid');
     }
 }

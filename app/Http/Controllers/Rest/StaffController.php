@@ -2,23 +2,21 @@
 
 namespace App\Http\Controllers\Rest;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Http\Repositories\StaffRepository;
 
-class StaffController extends BaseController
+
+class StaffController extends Controller
 {
-    public $request = null;
-    public $staff = null;
+    public $repo = null;
 
-    public function __construct(Request $request, StaffRepository $staff)
+    public function __construct(StaffRepository $repo)
     {
-        $this->request = $request;
-        $this->staff = $staff;
+        $this->repo = $repo;
     }
-
 
     public function list()
     {
-        return $this->staff->list($this->request);
+        return $this->repo->list();
     }
 }
