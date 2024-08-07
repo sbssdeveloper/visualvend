@@ -219,6 +219,7 @@ class MachineHelper
         ];
         DB::beginTransaction();
         try {
+            DB::statement("SET SQL_MODE=''");
             if ($request->need_clone_config_setting == 1) {
                 $data = $this->configClone($data, $existingMachine);
             }
