@@ -276,10 +276,12 @@ class MachineHelper
                             "created_by"        => $request->auth->client_id <= 0 ? $request->auth->name : "Admin",
                         ]);
                         $groupVal = [];
-                        foreach ($empGrpValue->machines as $grpValue) {
-                            $groupVal[] = ["uuid" => $uuid, "machine_id" => $machine_id, "machine_name" => $request->machine_name];
+                        if(count($empGrpValue->machines)){
+                            foreach ($empGrpValue->machines as $grpValue) {
+                                $groupVal[] = ["uuid" => $uuid, "machine_id" => $machine_id, "machine_name" => $request->machine_name];
+                            }
+                            EmployeeGroupMachines::insert($groupVal);
                         }
-                        EmployeeGroupMachines::insert($groupVal);
                     }
                 }
             }
