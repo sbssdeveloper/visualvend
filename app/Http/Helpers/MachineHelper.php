@@ -211,9 +211,9 @@ class MachineHelper
             "machine_client_id"             => $client_id,
             "machine_row"                   => $existingMachine->machine_row,
             "machine_column"                => $existingMachine->machine_column,
-            "machine_address"               => $existingMachine->machine_address,
-            "machine_latitude"              => $existingMachine->machine_latitude,
-            "machine_longitude"             => $existingMachine->machine_longitude,
+            "machine_address"               => !empty($request->machine_address) ? $request->machine_address : $existingMachine->machine_address,
+            "machine_latitude"              => !empty($request->machine_latitude) ? $request->machine_latitude : $existingMachine->machine_latitude,
+            "machine_longitude"             => !empty($request->machine_longitude) ? $request->machine_longitude : $existingMachine->machine_longitude,
             "machine_is_single_category"    => $existingMachine->machine_is_single_category
         ];
         DB::beginTransaction();
