@@ -215,8 +215,6 @@ class MachineRepository
     {
         $machine_id = $request->machine_id;
         $model = MachineProductMap::where("machine_id", $machine_id)->where("product_location", "<>", "")->where("product_id", "<>", "")->get();
-        print_r($model->toArray());
-        die;
         return $this->controller->sendResponse("Success",$model);
     }
 }
