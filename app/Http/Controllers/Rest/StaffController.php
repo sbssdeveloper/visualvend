@@ -14,7 +14,7 @@ class StaffController extends Controller
     {
         $this->repo = $repo;
     }
-    
+
     public function list()
     {
         return $this->repo->list();

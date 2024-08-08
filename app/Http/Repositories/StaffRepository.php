@@ -78,7 +78,7 @@ class StaffRepository
         } else {
             $model->orderBy("id", "DESC");
         }
-        $model = $model->paginate($this->request->length??50);
+        $model = $model->paginate($this->request->length ?? 50);
         return $this->controller->sendResponseWithPagination($model);
     }
 }
