@@ -163,8 +163,8 @@ class PlanogramController extends Controller
     public function export(Request $request)
     {
         $rules = [
-            'type'   => 'required|in:planogram,happy_hours',
-            'value'   => "required"
+            'type'          => 'required|in:planogram,happy_hours',
+            'machine_id'    => "required"
         ];
 
         $this->validate($request, $rules);
