@@ -787,7 +787,7 @@ class PlanogramRepository
         $linkedAisles   = $finalData = [];
         $machine_id     = $this->request->machine_id;
         $type           = $this->request->type;
-        $model          = Machine::select("machine_client_id", "machine_is_single_category")->where("id", $machine_id)->row();
+        $model          = Machine::select("machine_client_id", "machine_is_single_category")->where("id", $machine_id)->first();
         $mapModel       = MachineProductMap::where('machine_id', $machine_id)->whereRaw("product_id <>''")->whereRaw("product_location <>''");
 
         if (!$type || $type === "planogram") {
