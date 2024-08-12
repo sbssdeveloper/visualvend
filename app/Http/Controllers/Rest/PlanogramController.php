@@ -159,4 +159,16 @@ class PlanogramController extends Controller
 
         return $this->repo->mobileListData($request);
     }
+
+    public function export(Request $request)
+    {
+        $rules = [
+            'type'   => 'required|in:planogram,happy_hours',
+            'value'   => "required"
+        ];
+
+        $this->validate($request, $rules);
+
+        return $this->repo->export($request);
+    }
 }

@@ -13,6 +13,7 @@ use App\Models\MachineAssignProduct;
 use App\Models\MachineProductMap;
 use App\Models\Planogram;
 use App\Models\PlanogramData;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
@@ -752,5 +753,137 @@ class PlanogramRepository
         $happy_hours->orderBy("id", "DESC");
         $model = $planogram->union($happy_hours)->paginate($this->request->length ?? 50);
         return $this->controller->sendResponseWithPagination($model, "Success");
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/planogram/export",
+     *     summary="Planogram Export",
+     *     tags={"V1"},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              @OA\Property(property="type", type="string", default=""),
+     *              @OA\Property(property="machine_id", type="integer", default="")
+     *          )
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ2aXN1YWx2ZW5kLWp3dCIsInN1YiI6eyJjbGllbnRfaWQiOi0xLCJhZG1pbl9pZCI6NX0sImlhdCI6MTcxOTU1ODk3NywiZXhwIjoxNzI0NzQyOTc3fQ.clotIfYAWfTd8uE304UeUN5wNScJrs-vVxNH2gv04K8",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+    public function export()
+    {
+        $linkedAisles   = $finalData = [];
+        $machine_id     = $this->request->machine_id;
+        $type           = $this->request->type;
+        $model          = Machine::select("machine_client_id", "machine_is_single_category")->where("id", $machine_id)->row();
+        $mapModel       = MachineProductMap::where('machine_id', $machine_id)->whereRaw("product_id <>''")->whereRaw("product_location <>''");
+
+        if (!$type || $type === "planogram") {
+            $mapModel->orderByRaw("CAST(product_location AS UNSIGNED) ASC");
+        }
+        $mapModel     = $mapModel->get()->toArray();
+
+        if (count($mapModel)) {
+            $planogram = [];
+            foreach ($mapModel as $key => $value) {
+                $product_id                 = $value["product_id"];
+                if (isset($planogram[$product_id])) {
+                    $planogram[$product_id] .= "," . $value["product_location"];
+                } else {
+                    $planogram[$product_id]  = $value["product_location"];
+                }
+            }
+            foreach ($mapModel as $key => $value) {
+                $plano_id                   = $value["id"];
+                $product_id                 = $value["product_id"];
+                $product_location           = $value["product_location"];
+                $category_id                = $value["category_id"];
+                $product_quantity           = $value["product_quantity"];
+                $product_max_quantity       = $value["product_max_quantity"];
+                $product_location           = $value["product_location"];
+                $product_price              = $value["product_price"];
+                if (empty($product_price) || ((float)$product_price < 0)) {
+                    $local_product          = Product::select("product_price")->where("product_id", $product_id)->where("client_id", $model->machine_client_id)->where("is_deleted", "0")->first();
+                    if ($local_product) {
+                        $product_price      = preg_replace('#[^0-9\.,]#', '', $local_product->product_price);;
+                    }
+                }
+                $aisles_included            = isset($planogram[$product_id]) ? $planogram[$product_id] : "";
+                $vend_quantity              = $value["vend_quantity"] > 0 ? $value["vend_quantity"] : 1;
+                $bundle_includes            = $value["bundle_includes"];
+                $bundle_price               = preg_replace('#[^0-9\.,]#', '', $value["bundle_price"]);
+                if (empty($bundle_price) || (float)$bundle_price <= 0) {
+                    $bundle_price           = $product_price;
+                }
+                $product_image              = $value["product_image"];
+                if (empty($product_image)) {
+                    $product_image              = "ngapp/assets/img/default_product.png";
+                }
+                $product_image_thumbnail        = $value["product_image_thumbnail"];
+                if (empty($product_image_thumbnail)) {
+                    $product_image_thumbnail    = $product_image;
+                }
+                $product_more_info_image        = $value["product_more_info_image"];
+                if (empty($product_more_info_image)) {
+                    $product_more_info_image    = "ngapp/assets/img/default_product.png";
+                }
+                $product_detail_image           = $value["product_detail_image"];
+                if (empty($product_detail_image)) {
+                    $product_detail_image       = "ngapp/assets/img/default_product.png";
+                }
+                $product_more_info_video    = $value["product_more_info_video"];
+                $product_detail_video       = $value["product_detail_video"];
+                $s2s                        = $value["s2s"];
+
+                if (isset($linkedAisles[$product_id])) {
+                    $linkedAisles[$product_id] = $linkedAisles[$product_id] . "," . $value["product_location"];
+                } else {
+                    $linkedAisles[$product_id] = $value["product_location"];
+                }
+                $finalData[$key]                = [
+                    "id"                        => $plano_id,
+                    "machine_is_single_category" => $model->machine_is_single_category,
+                    "product_id"                 => $product_id,
+                    "product_location"           => $product_location,
+                    "category_id"                => $category_id,
+                    "product_quantity"           => $product_quantity,
+                    "product_max_quantity"       => $product_max_quantity,
+                    "product_location"           => $product_location,
+                    "product_price"              => $product_price,
+                    "aisles_included"            => $aisles_included,
+                    "vend_quantity"              => $vend_quantity,
+                    "bundle_includes"            => $bundle_includes,
+                    "bundle_price"               => $bundle_price,
+                    "product_image"              => $product_image,
+                    "product_image_thumbnail"    => $product_image_thumbnail,
+                    "product_more_info_image"    => $product_more_info_image,
+                    "product_detail_image"       => $product_detail_image,
+                    "product_more_info_video"    => $product_more_info_video,
+                    "product_detail_video"       => $product_detail_video,
+                    "s2s"                        => $s2s
+                ];
+            }
+
+            foreach ($finalData as $key => $value) {
+                $product_id         = $value["product_id"];
+                if (isset($linkedAisles[$product_id])) {
+                    $finalData[$key]["aisles_included"] = $linkedAisles[$product_id];
+                }
+            }
+        }
+
+        return $this->controller->sendResponse("Success", $finalData);
     }
 }

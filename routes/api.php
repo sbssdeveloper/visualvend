@@ -122,6 +122,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
             $router->post('status/update',      'PlanogramController@status');
             $router->post('mobile/list',        'PlanogramController@mobileList');
             $router->post('mobile/list/data',   'PlanogramController@mobileListData');
+            $router->post('export',             'PlanogramController@export');
         });
 
         /****************************WEBPORTAL******************************/
