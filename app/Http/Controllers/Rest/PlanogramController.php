@@ -44,11 +44,16 @@ class PlanogramController extends Controller
     public function upload(Request $request)
     {
         $rules = [
-            'file'                      => 'required|file|max:10240|mimes:xlsx',
             'type'                      => 'required|in:live,happy_hours',
             'start_date'                => 'required_if:type,happy_hours',
             'end_date'                  => 'required_if:type,happy_hours'
         ];
+        
+        if ($request->hasFile('file')) {
+            $rules['file'] = 'required|file|max:10240|mimes:xlsx';
+        } else {
+            $rules['file'] = 'required';
+        }
 
         $multi_plano   = $request->multi_plano;
         if ((bool) $multi_plano == TRUE) {
