@@ -47,7 +47,7 @@ class Planogram extends Model
                 unlink($path . "/" . $file);
             }
         } else {
-            $file = $this->planogram_data($request->file);
+            $fileContent = $this->planogram_data($request->file);
             $uuid = Encrypt::uuid();
             $tempFilePath = tempnam(sys_get_temp_dir(), $uuid) . '.xlsx';
 
