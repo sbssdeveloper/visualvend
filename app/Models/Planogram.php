@@ -61,6 +61,7 @@ class Planogram extends Model
             if (file_exists($tempFilePath)) {
                 unlink($tempFilePath);
             }
+            dd($sheet_data);
         }
 
 
