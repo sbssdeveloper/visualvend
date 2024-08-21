@@ -31,11 +31,11 @@ class Planogram extends Model
     public function uploadFile($request)
     {
         $sheet_data = [];
+        $path = storage_path("uploads/xlsx");
+        if (!file_exists($path)) {
+            mkdir($path, $mode = 0777, true);
+        }
         if ($request->hasFile("file")) {
-            $path = storage_path("uploads/xlsx");
-            if (!file_exists($path)) {
-                mkdir($path, $mode = 0777, true);
-            }
             $file = Encrypt::uuid() . '.xlsx';
             $request->file->move($path, $file);
             $reader = new XlsxReader();
@@ -47,9 +47,9 @@ class Planogram extends Model
                 unlink($path . "/" . $file);
             }
         } else {
-            $fileContent = $this->planogram_data($request->file);
+            $fileContent = $this->uploaded_planogram($request->file);
             $uuid = Encrypt::uuid();
-            $tempFilePath = tempnam(sys_get_temp_dir(), $uuid) . '.xlsx';
+            $tempFilePath = tempnam($path, $uuid) . '.xlsx';
 
             // Write the file content to the temporary file
             file_put_contents($tempFilePath, $fileContent);
