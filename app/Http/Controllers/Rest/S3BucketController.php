@@ -160,7 +160,7 @@ class S3BucketController extends Controller
         ];
         $this->validate($request, $rules);
 
-        $key = "$request->type/$filename";
+        $key = "$request->type/$request->filename";
 
         try {
             $result = $this->s3Client->headObject([
