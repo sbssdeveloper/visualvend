@@ -69,7 +69,7 @@ class DashboardController extends LinkedMachineController
         $auth           = $request->auth;
         $machine_ids    = $this->linked_machines;
         $params         = compact("auth", 'machine_ids', 'request');
-        $vend_sales     = RemoteVend::recentVend($params);
+        $vend_sales     = ["vend_sales" => RemoteVend::recentVend($params)];
         $response = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale7, $vend_sales);
         return  $this->sendResponse("Success", $response);
     }
