@@ -190,16 +190,16 @@ class Sale extends Model
         $admin_id  = $request->auth->admin_id;
 
         // Subquery for generating the last 7 days without year
-        $dates = DB::table(DB::raw('(SELECT DATE_FORMAT(CURDATE(), "%m-%d") as date 
-                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 1 DAY, "%m-%d")
-                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 2 DAY, "%m-%d")
-                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 3 DAY, "%m-%d")
-                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 4 DAY, "%m-%d")
-                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 5 DAY, "%m-%d")
-                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 6 DAY, "%m-%d")) as dates'));
+        $dates = DB::table(DB::raw('(SELECT DATE_FORMAT(CURDATE(), "%d/%m") as date 
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 1 DAY, "%d/%m")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 2 DAY, "%d/%m")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 3 DAY, "%d/%m")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 4 DAY, "%d/%m")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 5 DAY, "%d/%m")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 6 DAY, "%d/%m")) as dates'));
 
         // Sales subquery
-        $sales = self::selectRaw("DATE_FORMAT(`timestamp`, '%m-%d') as date, SUM(product_price) as total_sale")
+        $sales = self::selectRaw("DATE_FORMAT(`timestamp`, '%d/%m') as date, SUM(product_price) as total_sale")
             ->where('is_deleted', '0')
             ->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()');
 
