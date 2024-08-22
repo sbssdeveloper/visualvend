@@ -63,8 +63,8 @@ class DashboardController extends LinkedMachineController
         $feedback = Feedback::dashboardInfo($request, $this->linked_machines);
         $locNFn   = LocationNonFunctional::dashboardInfo($request, $this->linked_machines);
         $feedInfo = Feed::dashboardInfo($request, $this->linked_machines);
-        $sale15   = Sale::sales15days($request, $this->linked_machines);
-        $response = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale15);
+        $sale7    = Sale::sales7days($request, $this->linked_machines);
+        $response = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale7);
         return  $this->sendResponse("Success",$response);
     }
 }

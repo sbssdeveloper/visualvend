@@ -159,7 +159,7 @@ class Sale extends Model
         $client_id          = $request->auth->client_id;
         $admin_id           = $request->auth->admin_id;
 
-        $model = self::selectRaw("DATE(`timestamp`) as date, FORMAT(SUM(product_price),2) as total_sale")->where('is_deleted', '0')->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 60 DAY) AND NOW()');
+        $model = self::selectRaw("DATE(`timestamp`) as date, FORMAT(SUM(product_price),2) as total_sale")->where('is_deleted', '0')->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 15 DAY) AND NOW()');
 
         if ($client_id > 0) {
             if (count($machines) > 0) {
@@ -180,5 +180,34 @@ class Sale extends Model
             $array[$value["date"]] = $value["total_sale"];
         }
         return ['15_days_sales' => $array];
+    }
+
+    public static function sales7days($request, $machines)
+    {
+        $role               = $request->auth->role;
+        $client_id          = $request->auth->client_id;
+        $admin_id           = $request->auth->admin_id;
+
+        $model = self::selectRaw("DATE(`timestamp`) as date, FORMAT(SUM(product_price),2) as total_sale")->where('is_deleted', '0')->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()');
+
+        if ($client_id > 0) {
+            if (count($machines) > 0) {
+                $model =  $model->whereIn("machine_id", $machines);
+            } else {
+                $model =  $model->whereIn("machine_id", ["no_machine"]);
+            }
+            $model = $model->where("client_id", $client_id);
+        }
+
+        if ($client_id > 0 && !in_array($role, ["Super Admin", "Full Access"])) {
+            $model          = $model->whereRaw("`sale_report`.`id` NOT IN (SELECT `sale_id` FROM `hidden_sale_reports` WHERE `user_id`=$admin_id)");
+        }
+
+        $model = $model->groupBy("date")->get()->toArray();
+        $array = [];
+        foreach ($model as $value) {
+            $array[$value["date"]] = $value["total_sale"];
+        }
+        return ['7_days_sales' => $array];
     }
 }
