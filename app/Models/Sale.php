@@ -184,30 +184,56 @@ class Sale extends Model
 
     public static function sales7days($request, $machines)
     {
-        $role               = $request->auth->role;
-        $client_id          = $request->auth->client_id;
-        $admin_id           = $request->auth->admin_id;
+        $role      = $request->auth->role;
+        $client_id = $request->auth->client_id;
+        $admin_id  = $request->auth->admin_id;
 
-        $model = self::selectRaw("DATE(`timestamp`) as date, FORMAT(SUM(product_price),2) as total_sale")->where('is_deleted', '0')->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()');
+        // Subquery for generating the last 7 days
+        $dates = DB::table(DB::raw('(SELECT CURDATE() as date 
+                                UNION ALL SELECT CURDATE() - INTERVAL 1 DAY
+                                UNION ALL SELECT CURDATE() - INTERVAL 2 DAY
+                                UNION ALL SELECT CURDATE() - INTERVAL 3 DAY
+                                UNION ALL SELECT CURDATE() - INTERVAL 4 DAY
+                                UNION ALL SELECT CURDATE() - INTERVAL 5 DAY
+                                UNION ALL SELECT CURDATE() - INTERVAL 6 DAY) as dates'));
 
+        // Sales subquery
+        $sales = self::selectRaw("DATE(`timestamp`) as date, SUM(product_price) as total_sale")
+            ->where('is_deleted', '0')
+            ->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()');
+
+        // Apply client and machine filters if applicable
         if ($client_id > 0) {
             if (count($machines) > 0) {
-                $model =  $model->whereIn("machine_id", $machines);
+                $sales = $sales->whereIn("machine_id", $machines);
             } else {
-                $model =  $model->whereIn("machine_id", ["no_machine"]);
+                $sales = $sales->whereIn("machine_id", ["no_machine"]);
             }
-            $model = $model->where("client_id", $client_id);
+            $sales = $sales->where("client_id", $client_id);
         }
 
+        // Apply hidden sales filter if applicable
         if ($client_id > 0 && !in_array($role, ["Super Admin", "Full Access"])) {
-            $model          = $model->whereRaw("`sale_report`.`id` NOT IN (SELECT `sale_id` FROM `hidden_sale_reports` WHERE `user_id`=$admin_id)");
+            $sales = $sales->whereRaw("`sale_report`.`id` NOT IN (SELECT `sale_id` FROM `hidden_sale_reports` WHERE `user_id`=$admin_id)");
         }
 
-        $model = $model->groupBy("date")->get()->toArray();
+        // Group by date
+        $sales = $sales->groupBy("date");
+
+        // Perform left join to ensure all dates are included
+        $query = $dates->leftJoinSub($sales, 'sales', function ($join) {
+            $join->on('dates.date', '=', 'sales.date');
+        })
+            ->selectRaw('dates.date, IFNULL(sales.total_sale, 0) as total_sale')
+            ->orderBy('dates.date', 'ASC')
+            ->get();
+
+        // Convert to array format expected in the return value
         $array = [];
-        foreach ($model as $value) {
-            $array[$value["date"]] = $value["total_sale"];
+        foreach ($query as $value) {
+            $array[$value->date] = round((float)$value->total_sale, 2);
         }
+
         return ['7_days_sales' => $array];
     }
 }
