@@ -11,6 +11,7 @@ use App\Models\LocationNonFunctional;
 use App\Models\Machine;
 use App\Models\MachineUser;
 use App\Models\Product;
+use App\Models\RemoteVend;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -64,7 +65,12 @@ class DashboardController extends LinkedMachineController
         $locNFn   = LocationNonFunctional::dashboardInfo($request, $this->linked_machines);
         $feedInfo = Feed::dashboardInfo($request, $this->linked_machines);
         $sale7    = Sale::sales7days($request, $this->linked_machines);
-        $response = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale7);
-        return  $this->sendResponse("Success",$response);
+
+        $auth           = $request->auth;
+        $machine_ids    = $this->linked_machines;
+        $params         = compact("auth", 'machine_ids', 'request');
+        $vend_sales     = RemoteVend::recentVend($params);
+        $response = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale7, $vend_sales);
+        return  $this->sendResponse("Success", $response);
     }
 }
