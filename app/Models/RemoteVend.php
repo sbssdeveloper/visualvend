@@ -54,7 +54,8 @@ class RemoteVend extends Model
 
         $model->card_sales          = number_format($model->card_sales ?? 0, 2);
         $model->mobile_payments     = number_format($model->mobile_payments ?? 0, 2);
-        $model->total               = $model->card_sales_count+$model->mobile_payments_count;
+        $model->total_payments      = $model->card_sales + $model->mobile_payments;
+        $model->total               = $model->card_sales_count + $model->mobile_payments_count;
         // 
         return $model;
     }
