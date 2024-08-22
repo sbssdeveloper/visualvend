@@ -189,17 +189,17 @@ class Sale extends Model
         $client_id = $request->auth->client_id;
         $admin_id  = $request->auth->admin_id;
 
-        // Subquery for generating the last 7 days
-        $dates = DB::table(DB::raw('(SELECT CURDATE() as date 
-                                UNION ALL SELECT CURDATE() - INTERVAL 1 DAY
-                                UNION ALL SELECT CURDATE() - INTERVAL 2 DAY
-                                UNION ALL SELECT CURDATE() - INTERVAL 3 DAY
-                                UNION ALL SELECT CURDATE() - INTERVAL 4 DAY
-                                UNION ALL SELECT CURDATE() - INTERVAL 5 DAY
-                                UNION ALL SELECT CURDATE() - INTERVAL 6 DAY) as dates'));
+        // Subquery for generating the last 7 days without year
+        $dates = DB::table(DB::raw('(SELECT DATE_FORMAT(CURDATE(), "%m-%d") as date 
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 1 DAY, "%m-%d")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 2 DAY, "%m-%d")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 3 DAY, "%m-%d")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 4 DAY, "%m-%d")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 5 DAY, "%m-%d")
+                                UNION ALL SELECT DATE_FORMAT(CURDATE() - INTERVAL 6 DAY, "%m-%d")) as dates'));
 
         // Sales subquery
-        $sales = self::selectRaw("DATE(`timestamp`) as date, SUM(product_price) as total_sale")
+        $sales = self::selectRaw("DATE_FORMAT(`timestamp`, '%m-%d') as date, SUM(product_price) as total_sale")
             ->where('is_deleted', '0')
             ->whereRaw('timestamp BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()');
 
@@ -218,7 +218,7 @@ class Sale extends Model
             $sales = $sales->whereRaw("`sale_report`.`id` NOT IN (SELECT `sale_id` FROM `hidden_sale_reports` WHERE `user_id`=$admin_id)");
         }
 
-        // Group by date
+        // Group by formatted date
         $sales = $sales->groupBy("date");
 
         // Perform left join to ensure all dates are included
