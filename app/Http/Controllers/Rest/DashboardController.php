@@ -9,6 +9,7 @@ use App\Models\Feed;
 use App\Models\Feedback;
 use App\Models\LocationNonFunctional;
 use App\Models\Machine;
+use App\Models\MachineProductMap;
 use App\Models\MachineUser;
 use App\Models\Product;
 use App\Models\RemoteVend;
@@ -70,7 +71,8 @@ class DashboardController extends LinkedMachineController
         $machine_ids    = $this->linked_machines;
         $params         = compact("auth", 'machine_ids', 'request');
         $vend_sales     = ["vend_sales" => RemoteVend::recentVend($params)];
-        $response = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale7, $vend_sales);
+        $response       = array_merge($machines, $products, $staff, $users, $sales, $refill, $feedback, $locNFn, $feedInfo, $sale7, $vend_sales);
+        $response["stock_level"]  = MachineProductMap::stocks($params);
         return  $this->sendResponse("Success", $response);
     }
 }
