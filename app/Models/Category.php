@@ -24,7 +24,7 @@ class Category extends Model
         }
         $model = $model->get();
         if ($model->isEmpty()) {
-            return array("category_id" => "no_category", "category_name" => "No Category");
+            return [["category_id" => "no_category", "category_name" => "No Category"]];
         }
         return $model;
     }
