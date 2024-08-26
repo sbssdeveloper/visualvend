@@ -23,6 +23,9 @@ class Category extends Model
             $model = $model->where("client_id", $cid);
         }
         $model = $model->get();
+        if ($model->isEmpty()) {
+            return array("category_id" => "no_category", "category_name" => "No Category");
+        }
         return $model;
     }
 
