@@ -278,7 +278,6 @@ class ProductController extends LinkedMachineController
             'product_name'              => 'required|string',
             'product_id'                => ['required', $rule],
             'product_price'             => 'required|numeric',
-            'discount_price'            => 'required|numeric',
             'product_description'       => 'required|string|max:255',
             'product_image'             => 'required|string|max:45',
             'product_more_info_image'   => 'required|string|max:45'
@@ -311,7 +310,6 @@ class ProductController extends LinkedMachineController
             'uuid'                      => 'required|exists:product,uuid',
             'product_name'              => 'required|string',
             'product_price'             => 'required|numeric',
-            'discount_price'            => 'required|numeric',
             'product_description'       => 'required|string|max:255'
         ];
         
