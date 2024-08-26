@@ -41,6 +41,7 @@ class Category extends Model
                 $query->orWhere("category_id", "LIKE", "{$request->search}%");
             });
         }
+        $model = $model->orWhere("category_id", "no_category");
         if ($request->has("sort") && !empty($request->sort)) {
             if ($request->sort == "recent") {
                 $model = $model->orderBy("id", "desc");
