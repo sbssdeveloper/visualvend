@@ -81,9 +81,6 @@ class Machine extends Model
         }
 
         $model  = $model->select('id')->get();
-        print_r($model);
-        print_r($machines);
-        die;
         $response["total"]          = count($model);
         $response['connected']      = 0;
         $response['fluctuating']    = 0;

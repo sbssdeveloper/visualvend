@@ -56,6 +56,8 @@ class DashboardController extends LinkedMachineController
 
     public function info(Request $request)
     {
+        print_r($this->linked_machines);
+        die;
         $machines = Machine::dashboardInfo($request->auth, $this->linked_machines);
         $products = Product::dashboardInfo($request->auth);
         $staff    = Employee::dashboardInfo($request->auth);
