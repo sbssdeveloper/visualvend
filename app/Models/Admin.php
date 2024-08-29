@@ -14,6 +14,12 @@ class Admin extends Model
         if ($auth->client_id == -1) {
             return "all";
         }
-        return self::where("id",$auth->id)->select(["machines"])->first();
+        $machines = self::where("id", $auth->id)->select(["machines"])->first();
+        if ($machines) {
+            $machines = explode(",", $machines->machines);
+        }else{
+            $machines = [];
+        }
+        return $machines;
     }
 }
