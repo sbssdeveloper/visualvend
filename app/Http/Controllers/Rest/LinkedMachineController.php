@@ -19,7 +19,8 @@ class LinkedMachineController extends BaseController
         if (method_exists($userMachines, 'toArray')) {
             $userMachines = $userMachines->toArray();
         }
-        return $userMachines ?? [];
+        $this->linked_machines = $userMachines ?? [];
+        // return $userMachines ?? [];
         // });
     }
 }
