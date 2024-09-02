@@ -194,7 +194,7 @@ class PaymentsController extends BaseController
                 } else if (isset($json[0]["code"])) {
                     $model->items()[$key]->error = str_replace('_', ' ', $json[0]["code"]);
                 } else {
-                    $model->items()[$key]->error = "Unknown";
+                    $model->items()[$key]->error = "ERROR";
                 }
             }
             unset($model->items()[$key]->response);
