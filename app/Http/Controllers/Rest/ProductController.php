@@ -471,6 +471,13 @@ class ProductController extends LinkedMachineController
      *     path="/v1/product/list",
      *     summary="Products Dropdown list",
      *     tags={"V1"},
+     * *    @OA\Parameter(
+     *         name="client_id",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="number"),
+     *         description="Client ID"
+     *     ),
      *     @OA\Parameter(
      *         name="X-Auth-Token",
      *         in="header",
