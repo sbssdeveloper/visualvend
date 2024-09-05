@@ -215,7 +215,7 @@ class MachineRepository
     {
         $machine_id = $request->machine_id;
         $model = MachineProductMap::where("machine_id", $machine_id)->where("product_location", "<>", "")->where("product_id", "<>", "")->get();
-        return $this->controller->sendResponse("Success",$model);
+        return $this->controller->sendResponse("Success", $model);
     }
 
     /**
@@ -248,6 +248,19 @@ class MachineRepository
     {
         $id = $request->id;
         $model = MachineProductMap::where("id", $id)->get();
-        return $this->controller->sendResponse("Success",$model);
+        return $this->controller->sendResponse("Success", $model);
+    }
+
+    public function productUpdate($request)
+    {
+        $id = $request->id;
+        $product_id = $request->product_id;
+        $product_quantity = $request->product_quantity;
+        $product_max_quantity = $request->product_max_quantity;
+        $model = MachineProductMap::leftJoin("product", function ($join) {
+            $join->on("product.product_id", "=", "machine_product_map.product_id")
+                ->on("product.client_id", "=", "machine_product_map.client_id");
+        })->where("id", $id)->update(["machine_product_map.product_id" => $product_id, "machine_product_map.product_quantity" => $product_quantity, "machine_product_map.product_max_quantity" => $product_max_quantity, "machine_product_map.product_image" => "product.product_image", "machine_product_map.product_more_info_image" => "product.product_more_info_image"]);
+        return $this->controller->sendResponse("Success", $model);
     }
 }

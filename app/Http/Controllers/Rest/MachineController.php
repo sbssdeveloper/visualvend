@@ -262,4 +262,17 @@ class MachineController extends LinkedMachineController
         $this->validate($request, ['id' => 'required||exists:machine_product_map,id']);
         return $this->repo->productInfo($request);
     }
+
+    public function productUpdate(Request $request)
+    {
+        $rules = [
+            "id"                            => 'required|exists:machine_product_map,id', // selected machine id            
+            "product_id"                    => "required|string|min:4,max:30",
+            "product_quantity"              => "required",
+            "product_max_quantity"          => "required"
+        ];
+
+        $this->validate($request, $rules);
+        return $this->repo->productUpdate($request);
+    }
 }

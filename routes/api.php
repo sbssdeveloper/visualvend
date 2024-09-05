@@ -53,6 +53,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('machine/configuration',  'MachineController@configure');
         $router->get('machine/products/list',   'MachineController@productsList');
         $router->get('machine/product/info',    'MachineController@productInfo');
+        $router->post('machine/product/update', 'MachineController@productUpdate');
         $router->post('machine/products/reset', 'MachineController@reset');
         $router->post('machine/refill/info',    'MachineController@refillInfo');
 
