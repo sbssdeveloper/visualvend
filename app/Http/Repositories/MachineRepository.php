@@ -249,7 +249,9 @@ class MachineRepository
         $id = $request->id;
         $model = MachineProductMap::where("id", $id)->first();
         if($model){
-            $model->machine_name = Machine::select("machine_name")->where("id",$model->machine_id)->first()->machine_name;
+            $extra= Machine::select("machine_name")->where("id",$model->machine_id)->first();
+            $model->machine_name = $extra->machine_name;
+            $model->client_id = $extra->machine_client_id;
         }
         return $this->controller->sendResponse("Success", $model);
     }
