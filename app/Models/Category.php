@@ -31,16 +31,19 @@ class Category extends Model
 
     public function list($request)
     {
-        $model = self::select("category_id", "category_name", "category_image", "client_id")->whereNotNull("category_name")->where("category_id","!=","no_category");
+        $model = self::select("category_id", "category_name", "category_image", "client_id")->whereNotNull("category_name")->where("category_id", "!=", "no_category");
+
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
         }
+
         if ($request->has("search") && !empty($request->search)) {
             $model = $model->where(function ($query) use ($request) {
                 $query->where("category_name", "LIKE", "{$request->search}%");
                 $query->orWhere("category_id", "LIKE", "{$request->search}%");
             });
         }
+
         if ($request->has("sort") && !empty($request->sort)) {
             if ($request->sort == "recent") {
                 $model = $model->orderBy("id", "desc");
@@ -48,7 +51,8 @@ class Category extends Model
                 $model = $model->orderBy("category_name", "ASC");
             }
         }
-        $model = $model->paginate($request->length);
+
+        $model = $model->paginate($request->length ?? 50);
         return $model;
     }
 
