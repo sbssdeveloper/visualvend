@@ -191,6 +191,8 @@ class Product extends Model
 
         if ($request->auth->client_id > 0) {
             $model->where("client_id", $request->auth->client_id);
+        }else{
+            $model->where("client_id",$request->client_id);
         }
         $model->orderBy("product_name", "ASC");
         return ($model = $model->get());

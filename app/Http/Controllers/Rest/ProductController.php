@@ -270,7 +270,7 @@ class ProductController extends LinkedMachineController
         $required_if = $request->auth->client_id > 0 ? 1 : 0;
         $this->validate($request, ['file' => 'required|mimes:xlsx,xls|max:10240', "client_id" => "required_if:$required_if,1"]);
         return $product->bulkUpdate($request, $controller);
-    }    
+    }
 
     public function create(Request $request, ProductClientRule $rule, RequestHelper $requestHelper)
     {
@@ -301,7 +301,7 @@ class ProductController extends LinkedMachineController
             DB::rollback();
             return $this->sendError($e->getMessage());
         }
-    }    
+    }
 
     public function update(Request $request, RequestHelper $requestHelper)
     {
@@ -312,17 +312,17 @@ class ProductController extends LinkedMachineController
             'product_price'             => 'required|numeric',
             'product_description'       => 'required|string|max:255'
         ];
-        
+
         $this->validate($request, $rules);
         extract($requestHelper->productUpdateRequest($request));
         try {
             Product::where("uuid", $request->uuid)->update($product);
             ProductAssignCategory::where("uuid", $request->uuid)->delete();
-            if(isset($product_assign_category) && count($product_assign_category)>0){
+            if (isset($product_assign_category) && count($product_assign_category) > 0) {
                 ProductAssignCategory::insert($product_assign_category);
             }
             ProductImage::where("uuid", $request->uuid)->delete();
-            if(isset($product_images) && count($product_images)>0){
+            if (isset($product_images) && count($product_images) > 0) {
                 ProductImage::insert($product_images);
             }
             return $this->sendSuccess('Product updated successfully');
@@ -485,9 +485,13 @@ class ProductController extends LinkedMachineController
      * )
      */
 
-     public function productsListDropdown(Request $request, Product $product)
-     {
-         $this->validate($request, ['sort' => 'required']);
-         return $this->sendResponse('Image updated successfully',$product->productsListDropdown($request));
-     }
+    public function productsListDropdown(Request $request, $id = null)
+    {
+        if ($request->auth->client_id <= 0) {
+            $request->merge(['client_id' => $id]);
+            $this->validate($request, ['client_id' => 'required']);
+        }
+        $product = new Product();
+        return $this->sendResponse('Image updated successfully', $product->productsListDropdown($request));
+    }
 }
