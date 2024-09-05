@@ -249,8 +249,17 @@ class MachineController extends LinkedMachineController
         if ($machine_id) {
             $request->merge(['machine_id' => $machine_id]);
         }
-        
+
         $this->validate($request, ['machine_id' => 'required||exists:machine,id']);
         return $this->repo->machineProducts($request);
+    }
+
+    public function productInfo(Request $request, $id = null)
+    {
+        if ($id) {
+            $request->merge(['id' => $id]);
+        }
+        $this->validate($request, ['id' => 'required||exists:machine_product_map,id']);
+        return $this->repo->productInfo($request);
     }
 }

@@ -217,4 +217,37 @@ class MachineRepository
         $model = MachineProductMap::where("machine_id", $machine_id)->where("product_location", "<>", "")->where("product_id", "<>", "")->get();
         return $this->controller->sendResponse("Success",$model);
     }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/machine/product/info",
+     *     summary="Machine Product Info",
+     *     tags={"V1"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="number"),
+     *         description="ID"
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function productInfo($request)
+    {
+        $id = $request->id;
+        $model = MachineProductMap::where("id", $id)->get();
+        return $this->controller->sendResponse("Success",$model);
+    }
 }

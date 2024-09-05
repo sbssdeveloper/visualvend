@@ -52,6 +52,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('machine/clone',          'MachineController@cloning');
         $router->post('machine/configuration',  'MachineController@configure');
         $router->get('machine/products/list',   'MachineController@productsList');
+        $router->get('machine/product/info',    'MachineController@productInfo');
         $router->post('machine/products/reset', 'MachineController@reset');
         $router->post('machine/refill/info',    'MachineController@refillInfo');
 
