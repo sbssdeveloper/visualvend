@@ -93,7 +93,7 @@ class CategoryController extends BaseController
 
     public function list(Request $request, Category $category)
     {
-        return $this->sendResponse("Success", $category->list($request));
+        return $this->sendResponseWithPagination("Success", $category->list($request));
     }
 
     /**
