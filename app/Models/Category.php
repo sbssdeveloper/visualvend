@@ -49,7 +49,6 @@ class Category extends Model
             }
         }
         $model = $model->paginate($request->length);
-        dd($model);
         return $model;
     }
 
