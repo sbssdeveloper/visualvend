@@ -247,11 +247,11 @@ class MachineRepository
     public function productInfo($request)
     {
         $id = $request->id;
-        $model = MachineProductMap::where("id", $id)->first()->toArray();
+        $model = MachineProductMap::where("id", $id)->first();
         if($model){
             $extra= Machine::select("machine_name","machine_client_id")->where("id",$model->machine_id)->first();
-            $model["machine_name"] = $extra->machine_name;
-            $model["client_id"] = $extra->machine_client_id;            
+            $model->machine_name = $extra->machine_name;
+            
         }
         return $this->controller->sendResponse("Success", $model);
     }

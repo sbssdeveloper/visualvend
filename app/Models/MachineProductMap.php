@@ -10,7 +10,7 @@ class MachineProductMap extends Model
 {
     protected $table = 'machine_product_map';
     protected $fillable = ['*'];
-    protected $hidden = ['client_id'];
+    // protected $hidden = ['client_id'];
     public $timestamps = ["updated_at"];
 
     public function machine()
