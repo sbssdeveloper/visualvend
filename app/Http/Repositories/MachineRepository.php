@@ -247,7 +247,10 @@ class MachineRepository
     public function productInfo($request)
     {
         $id = $request->id;
-        $model = MachineProductMap::where("id", $id)->get();
+        $model = MachineProductMap::where("id", $id)->first();
+        if($model){
+            $model->machine_name = Machine::select("machine_name")->where("id",$model->machine_id)->first()->machine_name;
+        }
         return $this->controller->sendResponse("Success", $model);
     }
 
