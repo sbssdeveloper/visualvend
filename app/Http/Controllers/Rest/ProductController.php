@@ -465,4 +465,29 @@ class ProductController extends LinkedMachineController
         $this->validate($request, ['sort' => 'required']);
         return $this->sendResponseWithPagination($product->allActiveProducts($request), "Success");
     }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/product/list",
+     *     summary="Products Dropdown list",
+     *     tags={"V1"},
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success with api information."
+     *     )
+     * )
+     */
+
+     public function productsListDropdown(Request $request, Product $product)
+     {
+         $this->validate($request, ['sort' => 'required']);
+         return $this->sendResponse('Image updated successfully',$product->productsListDropdown($request));
+     }
 }

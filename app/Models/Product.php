@@ -158,14 +158,14 @@ class Product extends Model
 
     public function allActiveProducts($request)
     {
-        $model = self::with('images','assigned_categories')->where("is_deleted", 0);
+        $model = self::with('images', 'assigned_categories')->where("is_deleted", 0);
 
-        if($request->category_id){
-            $model = $model->whereHas('assigned_categories', function ($query) use ($request){
+        if ($request->category_id) {
+            $model = $model->whereHas('assigned_categories', function ($query) use ($request) {
                 $query->where('category_id', $request->category_id);
             });
         }
-        
+
         if ($request->auth->client_id > 0) {
             $model = $model->where("client_id", $request->auth->client_id);
         }
@@ -183,6 +183,17 @@ class Product extends Model
             $model = $model->orderBy("id", "DESC");
         }
         return ($model = $model->paginate($request->length ?? 100));
+    }
+
+    public function productsListDropdown($request)
+    {
+        $model = self::select("product_id", "product_name")->where("is_deleted", 0);
+
+        if ($request->auth->client_id > 0) {
+            $model->where("client_id", $request->auth->client_id);
+        }
+        $model->orderBy("product_name", "ASC");
+        return ($model = $model->get());
     }
 
     public function deleteSingle($request)
