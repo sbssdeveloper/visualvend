@@ -13,7 +13,7 @@ class Planogram extends Model
     protected $fillable = ['*'];
     protected $s3Client;
 
-    public function __construct(S3Client $s3Client)
+    public function __construct(S3Client $s3Client = null)
     {
         $this->s3Client = $s3Client;
     }
