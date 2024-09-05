@@ -409,7 +409,7 @@ class PlanogramRepository
         try {
             MachineProductMap::where("machine_id", $machine_id)->delete();
             MachineAssignProduct::where("machine_id", $machine_id)->delete();
-            Planogram::where("machine_id", $machine_id)->where("status", "Active")->update(["status" => "Backup"]);
+            $updatedRows = Planogram::where("machine_id", $machine_id)->where("status", "Active")->update(["status" => "Backup"]);
             DB::commit();
             return $this->controller->sendSuccess("Planogram reset successfully.");
         } catch (\Exception $e) {
