@@ -260,7 +260,13 @@ class MachineRepository
         $model = MachineProductMap::leftJoin("product", function ($join) {
             $join->on("product.product_id", "=", "machine_product_map.product_id")
                 ->on("product.client_id", "=", "machine_product_map.client_id");
-        })->where("id", $id)->update(["machine_product_map.product_id" => $product_id, "machine_product_map.product_quantity" => $product_quantity, "machine_product_map.product_max_quantity" => $product_max_quantity, "machine_product_map.product_image" => "product.product_image", "machine_product_map.product_more_info_image" => "product.product_more_info_image"]);
+        })->where("machine_product_map.id", $id)->update([
+            "machine_product_map.product_id" => $product_id,
+            "machine_product_map.product_quantity" => $product_quantity,
+            "machine_product_map.product_max_quantity" => $product_max_quantity,
+            "machine_product_map.product_image" => DB::raw("product.product_image"),
+            "machine_product_map.product_more_info_image" => DB::raw("product.product_more_info_image")
+        ]);
         return $this->controller->sendResponse("Success", $model);
     }
 }
