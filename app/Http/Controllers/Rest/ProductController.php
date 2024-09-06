@@ -495,7 +495,9 @@ class ProductController extends LinkedMachineController
     public function productsListDropdown(Request $request, $client_id = null)
     {
         if ($request->auth->client_id <= 0) {
-            $request->merge(['client_id' => $client_id]);
+            if($client_id){
+                $request->merge(['client_id' => $client_id]);
+            }
             $this->validate($request, ['client_id' => 'required']);
         }
         $product = new Product();
