@@ -62,7 +62,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
         /****************************Product******************************/
         $router->post('product/list',           'ProductController@allActiveProducts');
-        $router->get('product/list',            'ProductController@productsListDropdown');
+        $router->get('product/list[/{client_id}]', 'ProductController@productsListDropdown');
         $router->post('product/assigned',       'ProductController@assignedList');
         $router->post('product/unassigned',     'ProductController@unAssignedList');
         $router->post('product/archive',        'ProductController@archivedList');

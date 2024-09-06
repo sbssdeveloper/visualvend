@@ -427,7 +427,7 @@ class ProductController extends LinkedMachineController
                     "image" => $request->image
                 ]);
             }
-            return $this->sendResponse('Image updated successfully');
+            return $this->sendSuccess('Image updated successfully');
         }
     }
 
