@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Aws\S3\S3Client;
+use App\Http\Helpers\WasabiHelper;
 use Encrypt;
 use XlsxReader;
 use Illuminate\Database\Eloquent\Model;
@@ -11,12 +11,6 @@ class Planogram extends Model
 {
     protected $table = "planogram";
     protected $fillable = ['*'];
-    protected $s3Client;
-
-    public function __construct(S3Client $s3Client = null)
-    {
-        $this->s3Client = $s3Client;
-    }
 
     public function machine()
     {
@@ -47,7 +41,7 @@ class Planogram extends Model
                 unlink($path . "/" . $file);
             }
         } else {
-            $fileContent = $this->uploaded_planogram($request->file);
+            $fileContent = WasabiHelper::uploaded_planogram($request->file);
             $uuid = Encrypt::uuid();
             $tempFilePath = tempnam($path, $uuid) . '.xlsx';
 
@@ -67,30 +61,5 @@ class Planogram extends Model
 
 
         return $sheet_data;
-    }
-
-    public function uploaded_planogram($filename)
-    {
-
-        $key = "file/$filename";
-        try {
-            $cmd = $this->s3Client->getCommand('GetObject', [
-                'Bucket' => env('S3_BUCKET'),
-                'Key' => $key,
-            ]);
-
-            $request = $this->s3Client->createPresignedRequest($cmd, '+20 minutes');
-            $get_url = (string) $request->getUri();
-            // $extension = pathinfo($filename, PATHINFO_EXTENSION);
-            $contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-            header('Content-Type: ' . $contentType);
-            $file = file_get_contents($get_url);
-            // echo $file;
-            return $file;
-        } catch (\Exception $e) {
-            return "error";
-            // return response()->json(['error' => $e->getMessage()], 500);
-        }
     }
 }
