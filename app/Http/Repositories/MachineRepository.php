@@ -248,12 +248,54 @@ class MachineRepository
     {
         $id = $request->id;
         $model = MachineProductMap::where("id", $id)->first();
-        if($model){
-            $extra= Machine::select("machine_name","machine_client_id")->where("id",$model->machine_id)->first();
+        if ($model) {
+            $extra = Machine::select("machine_name", "machine_client_id")->where("id", $model->machine_id)->first();
             $model->machine_name = $extra->machine_name;
-            
         }
         return $this->controller->sendResponse("Success", $model);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/machine/mapped/aisles",
+     *     summary="Machine Mapped Aisles",
+     *     tags={"V1"},
+     *     @OA\Parameter(
+     *         name="machine_id",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="number"),
+     *         description="machine_id"
+     *     ),
+     *     @OA\Parameter(
+     *         name="X-Auth-Token",
+     *         in="header",
+     *         required=true,
+     *         description="Authorization token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success."
+     *     )
+     * )
+     */
+
+    public function mappedAisles($request)
+    {
+        $machine_id     = $request->machine_id;
+        $data           = [];
+        $aisles         = MachineProductMap::select('product_location', 'id')
+            ->where('machine_id', $machine_id)
+            ->orderByRaw('CAST(product_location AS UNSIGNED) ASC')
+            ->get();
+
+        // Loop through the aisles and assign to data array
+        foreach ($aisles as $value) {
+            $data["product_location"] = $value->id;
+        }
+
+        return $this->controller->sendResponse("Success", $data);
     }
 
     /**
