@@ -298,40 +298,6 @@ class MachineRepository
         return $this->controller->sendResponse("Success", $data);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/v1/machine/product/update",
-     *     summary="Machine Product Update",
-     *     tags={"V1"},
-     *     @OA\RequestBody(
-     *          required=true,
-     *          @OA\JsonContent(
-     *              @OA\Property(property="id", type="integer")
-     *          ),
-     *          @OA\JsonContent(
-     *              @OA\Property(property="product_id", type="string")
-     *          ),
-     *          @OA\JsonContent(
-     *              @OA\Property(property="product_quantity", type="integer")
-     *          ),
-     *          @OA\JsonContent(
-     *              @OA\Property(property="product_max_quantity", type="integer")
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *         name="X-Auth-Token",
-     *         in="header",
-     *         required=true,
-     *         description="Authorization token",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Success with api information."
-     *     )
-     * )
-     */
-
     public function productUpdate($request)
     {
         $id = $request->id;
