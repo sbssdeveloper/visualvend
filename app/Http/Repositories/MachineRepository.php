@@ -292,7 +292,7 @@ class MachineRepository
 
         // Loop through the aisles and assign to data array
         foreach ($aisles as $value) {
-            $data["product_location"] = $value->id;
+            $data[$value->product_location] = $value->id;
         }
 
         return $this->controller->sendResponse("Success", $data);
