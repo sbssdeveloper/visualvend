@@ -143,12 +143,23 @@ class PaymentsController extends BaseController
         $type       = $request->type;
         $pay_type   = $request->pay_type;
         $pay_method = $request->pay_method;
+        $badge_type = $request->badge_type ?? null;
         $search     = $request->search;
         $start_date = $request->start_date;
         $end_date   = $request->end_date;
 
         $model      = Transaction::selectRaw("IF(pay_method='pay at machine','pay_at_machine',pay_method) as pay_method,remote_vend_log.aisle_number, transactions.amount, transactions.payment_status, machine_id,machine_name,product_id,product_name,transactions.created_at, transactions.response, CASE WHEN response LIKE '%VISA%' THEN 'VISA' WHEN response LIKE '%MASTERCARD%' THEN 'MASTERCARD' WHEN response LIKE '%AMEX%' THEN 'AMEX' ELSE NULL END as card_type, error_log, client_name, remote_vend_log.status as vend_status")->leftJoin('remote_vend_log', 'remote_vend_log.vend_id', '=', 'transactions.vend_uuid');
         // ->whereIn("pay_status", ["pay_to_card", "google_pay", "pay_at_machine", "paypal", "after_pay", "apple_pay", "pay at machine"])
+
+        if (!empty($badge_type) && in_array($badge_type, ["tvtp", "svsp", "fvsp", "fvfp"])) {
+            if ($badge_type === "svsp") {
+                $model->where("remote_vend_log.status", '2');
+            } else if ($badge_type === "fvsp") {
+                $model->whereNotIn("remote_vend_log.status", ['0', '1', '2', '11'])->where("transactions.payment_status", 'SUCCESS');
+            } else if ($badge_type === "fvfp") {
+                $model->where("transactions.payment_status", 'FAILED');
+            }
+        }
 
         if (!empty($search)) {
             $model  = $model->where(function ($query) use ($search) {
@@ -171,6 +182,7 @@ class PaymentsController extends BaseController
         if ($machine_id > 0) {
             $model  = $model->where("remote_vend_log.machine_id", $machine_id);
         }
+
         if (in_array($type, ["success", "error"])) {
             if ($type === "success") {
                 $model  = $model->where("transactions.payment_status", "SUCCESS");
@@ -178,6 +190,7 @@ class PaymentsController extends BaseController
                 $model  = $model->where("transactions.payment_status", "FAILED");
             }
         }
+
         if (in_array($pay_type, ["card", "mobile"])) {
             if ($pay_type === "card") {
                 $model  = $model->where("pay_method", "pay_to_card");
@@ -185,6 +198,7 @@ class PaymentsController extends BaseController
                 $model  = $model->whereIn("pay_method", ['google_pay', 'after_pay', 'apple_pay', 'paypal']);
             }
         }
+
         $model = $model->paginate($request->length ?? 10);
         foreach ($model->items() as $key => $value) {
             if ($value->payment_status !== "SUCCESS" && parent::isJson($value->response)) {
