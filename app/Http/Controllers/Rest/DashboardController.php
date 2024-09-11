@@ -59,7 +59,7 @@ class DashboardController extends LinkedMachineController
         $machines = Machine::dashboardInfo($request, $this->linked_machines);
         $products = Product::dashboardInfo($request->auth);
         $staff    = Employee::dashboardInfo($request->auth);
-        $users    = MachineUser::dashboardInfo($request->auth, $this->linked_machines);
+        $users    = MachineUser::dashboardInfo($request, $this->linked_machines);
         $sales    = Sale::dashboardInfo($request, $this->linked_machines);
         $refill   = Sale::recentRefill($request, $this->linked_machines);
         $feedback = Feedback::dashboardInfo($request, $this->linked_machines);

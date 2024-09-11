@@ -11,17 +11,20 @@ class MachineUser extends Model
     public  $timestamps = false;
 
     protected $appends = ['name'];
-    
+
     public function getNameAttribute()
     {
         return ucfirst($this->firstname) . ' ' . ucfirst($this->lastname);
     }
 
-    public static function dashboardInfo($auth, $machines)
+    public static function dashboardInfo($request, $machines)
     {
         $model = self::select('user.status', 'user.activated_on')->where("is_deactivated", 0);
-        if ($auth->client_id > 0) {
-            $model  = $model->leftJoin("machine", "machine.machine_username", "=", "user.username")->whereIn("machine.id", $machines);
+        if ($request->auth->client_id > 0) {
+            $model->leftJoin("machine", "machine.machine_username", "=", "user.username")->whereIn("machine.id", $machines);
+        }
+        if($request->machine_id>0){
+            $model->where("machine.id", $request->machine_id);
         }
         $model      = $model->groupBy("user.id")->get();
         $response["total"]      = count($model);
@@ -37,5 +40,4 @@ class MachineUser extends Model
         }
         return ['machine_users' => $response];
     }
-    
 }
