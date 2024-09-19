@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\RemoteVend;
 
 use App\Http\Controllers\Rest\BaseController;
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Machine;
+use App\Models\MachineAssignCategory;
 use Illuminate\Http\Request;
 
 class RV_CategoryController extends BaseController
@@ -39,8 +41,14 @@ class RV_CategoryController extends BaseController
     public function list(Request $request)
     {
         $this->validate($request, ["machine_id" => 'required|exists:machine,id']);
-        $model = Machine::where("id", $request->machine_id)->row();
-        $categorys = $model->categorys()->get();
-        print_r($categorys);
+        $model      = Machine::select("machine_client_id")->where("id", $request->machine_id)->row();
+        $category   = Category::class;
+        if ($request->type == "machine") {
+            $category = $category::whereIn("category_id", MachineAssignCategory::where('machine_id', $request->machine_id)->pluck('category_id'));
+        } else {
+            $category = $category::where("client_id", $model->machine_client_id);
+        }
+        $category = $category->get()->makeHidden("id,client_id");
+        return parent::sendResponse("Success", $category);
     }
 }
