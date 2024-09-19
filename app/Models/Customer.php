@@ -15,7 +15,7 @@ class Customer extends Model
     protected static function boot()
     {
         parent::boot();
-
+        die("HERE");
         // Before creating a new model, generate a UUID
         static::creating(function ($model) {
             // Check if uuid is not already set (to avoid overriding in cases like seeding)
