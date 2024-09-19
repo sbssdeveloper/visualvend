@@ -15,6 +15,7 @@ class CustomerController extends BaseController
 
     public function test(){
         echo "TEST";
+        die;
     }
     /**
      * @OA\Post(
