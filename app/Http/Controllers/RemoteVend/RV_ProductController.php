@@ -20,7 +20,7 @@ class RV_ProductController extends BaseController
      *         required=true,
      *         @OA\Schema(type="number"),
      *         description="Machine ID"
-     *     )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success with api information."
