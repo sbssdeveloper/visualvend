@@ -9,7 +9,8 @@ use Encrypt;
 class Customer extends Model
 {
     protected $table = 'customers';
-    protected $fillable = ['*'];
+    // protected $fillable = ['*'];
+    protected $guarded = ['id'];
     public $timestamps = false;
 
     protected static function boot()
