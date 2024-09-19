@@ -52,7 +52,7 @@ class RV_CategoryController extends BaseController
                 $query->where("client_id", $model->machine_client_id)->orWhere("category_id","no_category");
             });
         }
-        $category = $category->get()->makeHidden("id,client_id");
+        $category = $category->get()->select('category_id','category_name','category_image');
         return parent::sendResponse("Success", $category);
     }
 }
