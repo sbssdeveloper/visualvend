@@ -12,16 +12,11 @@ class CustomerController extends BaseController
     {
         $this->middleware('pub', ['except' => ['login', 'signup']]);
     }
-
-    public function test(){
-        echo "TEST";
-        die;
-    }
     /**
      * @OA\Post(
      *     path="/remote/vend/signup",
      *     summary="Signup Customer",
-     *     tags={"Quizee"},
+     *     tags={"Remote Vend"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
