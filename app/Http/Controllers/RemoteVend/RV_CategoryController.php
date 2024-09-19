@@ -44,9 +44,13 @@ class RV_CategoryController extends BaseController
         $model      = Machine::select("machine_client_id")->where("id", $request->machine_id)->first();
         $category   = Category::class;
         if ($request->type == "machine") {
-            $category = $category::whereIn("category_id", MachineAssignCategory::where('machine_id', $request->machine_id)->pluck('category_id'));
+            $category = $category::where(function ($query) use($request) {
+                $query->whereIn("category_id", MachineAssignCategory::where('machine_id', $request->machine_id)->pluck('category_id'))->orWhere("category_id","no_category");
+            });
         } else {
-            $category = $category::where("client_id", $model->machine_client_id);
+            $category = $category::where(function ($query) use($model) {
+                $query->where("client_id", $model->machine_client_id)->orWhere("category_id","no_category");
+            });
         }
         $category = $category->get()->makeHidden("id,client_id");
         return parent::sendResponse("Success", $category);
