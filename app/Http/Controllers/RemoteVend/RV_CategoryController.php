@@ -29,13 +29,6 @@ class RV_CategoryController extends BaseController
      *         @OA\Schema(type="string"),
      *         description="Category Type"
      *     ),
-     *     @OA\Parameter(
-     *         name="X-Auth-Token",
-     *         in="header",
-     *         required=true,
-     *         description="Authorization token",
-     *         @OA\Schema(type="string")
-     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success with api information."
