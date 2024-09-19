@@ -17,7 +17,7 @@ class RV_ProductController extends BaseController
      * *    @OA\Parameter(
      *         name="machine_id",
      *         in="query",
-     *         required=false,
+     *         required=true,
      *         @OA\Schema(type="number"),
      *         description="Machine ID"
      *     ),
