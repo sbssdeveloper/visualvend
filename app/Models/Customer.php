@@ -9,13 +9,12 @@ use Encrypt;
 class Customer extends Model
 {
     protected $table = 'customers';
-    // protected $fillable = ['*'];
-    protected $guarded = ['id'];
+    protected $fillable = ['firstname', 'lastname', 'username', 'prefix', 'phone', 'email', 'password', 'status', 'deleted_at'];
     public $timestamps = false;
 
     protected static function boot()
     {
-        parent::boot();        
+        parent::boot();
         // Before creating a new model, generate a UUID
         static::creating(function ($model) {
             print_r($model);
