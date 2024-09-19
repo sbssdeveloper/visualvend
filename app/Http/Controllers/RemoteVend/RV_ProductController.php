@@ -31,7 +31,7 @@ class RV_ProductController extends BaseController
     public function list(Request $request)
     {
         $this->validate($request, ["machine_id" => 'required|exists:machine,id']);
-        $model      = MachineProductMap::where("machine_id", $request->machine_id);
+        $model      = MachineProductMap::where("machine_id", $request->machine_id)->whereNotNull("product_id");
         $model->orderBy(DB::raw('CAST(product_location AS UNSIGNED)'), 'asc');
         $model      = $model->get()->makeHidden("id");
         return parent::sendResponse("Success", $model);
