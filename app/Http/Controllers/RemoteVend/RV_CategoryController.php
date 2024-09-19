@@ -42,17 +42,17 @@ class RV_CategoryController extends BaseController
     {
         $this->validate($request, ["machine_id" => 'required|exists:machine,id']);
         $model      = Machine::select("machine_client_id")->where("id", $request->machine_id)->first();
-        $category   = Category::class;
+        $category   = Category::select('category_id', 'category_name', 'category_image');
         if ($request->type == "machine") {
-            $category = $category::where(function ($query) use($request) {
-                $query->whereIn("category_id", MachineAssignCategory::where('machine_id', $request->machine_id)->pluck('category_id'))->orWhere("category_id","no_category");
+            $category->where(function ($query) use ($request) {
+                $query->whereIn("category_id", MachineAssignCategory::where('machine_id', $request->machine_id)->pluck('category_id'))->orWhere("category_id", "no_category");
             });
         } else {
-            $category = $category::where(function ($query) use($model) {
-                $query->where("client_id", $model->machine_client_id)->orWhere("category_id","no_category");
+            $category->where(function ($query) use ($model) {
+                $query->where("client_id", $model->machine_client_id)->orWhere("category_id", "no_category");
             });
         }
-        $category = $category->get()->select('category_id','category_name','category_image');
+        $category = $category->get();
         return parent::sendResponse("Success", $category);
     }
 }
