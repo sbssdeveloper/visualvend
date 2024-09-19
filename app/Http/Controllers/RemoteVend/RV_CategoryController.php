@@ -41,7 +41,7 @@ class RV_CategoryController extends BaseController
     public function list(Request $request)
     {
         $this->validate($request, ["machine_id" => 'required|exists:machine,id']);
-        $model      = Machine::select("machine_client_id")->where("id", $request->machine_id)->row();
+        $model      = Machine::select("machine_client_id")->where("id", $request->machine_id)->first();
         $category   = Category::class;
         if ($request->type == "machine") {
             $category = $category::whereIn("category_id", MachineAssignCategory::where('machine_id', $request->machine_id)->pluck('category_id'));
