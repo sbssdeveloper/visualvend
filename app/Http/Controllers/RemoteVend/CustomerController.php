@@ -20,13 +20,13 @@ class CustomerController extends BaseController
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="firstname", type="string"),
-     *             @OA\Property(property="lastname", type="string"),
-     *             @OA\Property(property="email", type="string"),
-     *             @OA\Property(property="prefix", type="string"),
-     *             @OA\Property(property="phone", type="string"),
-     *             @OA\Property(property="password", type="string"),
-     *             @OA\Property(property="confirm_password", type="string")
+     *             @OA\Property(property="firstname", type="string", example="firstname"),
+     *             @OA\Property(property="lastname", type="string", example="lastname"),
+     *             @OA\Property(property="email", type="string", example="email"),
+     *             @OA\Property(property="prefix", type="string", example="prefix"),
+     *             @OA\Property(property="phone", type="string", example="phone"),
+     *             @OA\Property(property="password", type="string", example="password"),
+     *             @OA\Property(property="confirm_password", type="string", example="confirm_password")
      *         )
      *     ),
      *     @OA\Response(
@@ -56,8 +56,8 @@ class CustomerController extends BaseController
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="username", type="string"),
-     *             @OA\Property(property="password", type="string")
+     *             @OA\Property(property="username", type="string", example="username"),
+     *             @OA\Property(property="password", type="string", example="password")
      *         )
      *     ),
      *     @OA\Response(
@@ -79,7 +79,7 @@ class CustomerController extends BaseController
         if ($model && Customer::verifyPassword($request->password, $model->password)) {
             $jwt = parent::customerJwt($model);
             return parent::sendSuccess("Customer logged in successfully.", $jwt);
-        }else{
+        } else {
             return parent::sendError("Invalid username or password.");
         }
     }
