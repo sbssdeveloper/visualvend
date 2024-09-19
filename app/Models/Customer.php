@@ -14,14 +14,11 @@ class Customer extends Model
 
     protected static function boot()
     {
-        parent::boot();
-        die("HERE");
+        parent::boot();        
         // Before creating a new model, generate a UUID
         static::creating(function ($model) {
-            // Check if uuid is not already set (to avoid overriding in cases like seeding)
-            if (empty($model->uuid)) {
-                $model->uuid = (string) Encrypt::uuid(); // Or use: Str::orderedUuid() for a time-ordered UUID
-            }
+            die("HERE");
+            $model->uuid = (string) Encrypt::uuid();
             if (!empty($model->password)) {
                 $model->password = self::encryptPassword($model->password);
             }
