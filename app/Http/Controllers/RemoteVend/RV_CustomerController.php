@@ -6,7 +6,7 @@ use App\Http\Controllers\Rest\BaseController;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 
-class CustomerController extends BaseController
+class RV_CustomerController extends BaseController
 {
     public function __construct()
     {
