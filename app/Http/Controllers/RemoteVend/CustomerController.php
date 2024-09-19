@@ -18,7 +18,7 @@ class CustomerController extends BaseController
      * @OA\Post(
      *     path="/remote/vend/signup",
      *     summary="Signup Customer",
-     *     tags={"Remote Vend"},
+     *     tags={"RemoteVend"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
