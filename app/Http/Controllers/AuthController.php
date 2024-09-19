@@ -51,8 +51,8 @@ class AuthController extends BaseController
         $username = $request->username;
         $password = $request->password;
 
-        $user  =  User::select(["password", 'menus', 'reports', 'role', 'id', 'client_id','is_activated'])->where('mobilenumber', $username)->orWhere('username', $username)->first();
-        if ($user) {
+        $user  =  User::select(["password", 'menus', 'reports', 'role', 'id', 'client_id', 'is_activated'])->where('mobilenumber', $username)->orWhere('username', $username)->first();
+        if ($user && $user->client_id > 0) {
             if ($user->is_activated === 1) {
                 $verified = parent::verify_password($user->password, $password);
                 if ($verified) {
@@ -64,11 +64,13 @@ class AuthController extends BaseController
                         'role' => $user->role,
                         'client_id' => $user->client_id
                     ];
-                    return $this->sendResponse("User logged in successfully.",$response);
+                    return $this->sendResponse("User logged in successfully.", $response);
                 }
                 return parent::sendError("Password entered is incorrect");
             }
             return parent::sendError("Oops! Your account is Inactive. Please contact admin.");
+        } else if ($user && $user->client_id <=0) {
+            return parent::sendError("Unauthorized");
         }
         return parent::sendError("Username entered is incorrect");
     }
