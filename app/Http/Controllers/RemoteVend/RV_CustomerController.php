@@ -42,7 +42,7 @@ class RV_CustomerController extends BaseController
 
     public function signup(Request $request)
     {
-        $this->validate($request, ["firstname" => 'required|min:4,max:20', "lastname" => 'required|min:4,max:20', "email" => 'required|email|unique:customers,email', "prefix" => 'required', "phone" => 'required|email|unique:customers,phone', "password" => 'required|confirmed|min:6']);
+        $this->validate($request, ["firstname" => 'required|min:4,max:20', "lastname" => 'required|min:4,max:20', "email" => 'required|email|unique:customers,email', "prefix" => 'required', "phone" => 'required|unique:customers,phone', "password" => 'required|confirmed|min:6']);
         $data = $request->only("firstname", "lastname", "email", "prefix", "phone", "password");
         Customer::insert($data);
         return parent::sendSuccess("Customer created successfully.");
