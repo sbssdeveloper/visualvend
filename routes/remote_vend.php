@@ -10,4 +10,5 @@ $router->group(['prefix' => 'remote/vend'], function () use ($router) {
     $router->post('login',                              'RV_CustomerController@login');
     $router->get('categories[/{machine_id}/{type}]',    'RV_CategoryController@list');
     $router->get('products[/{machine_id}]',             'RV_ProductController@list');
+    $router->get('product/info[/{mid}/{pid}/{aid}]',    'RV_ProductController@list');
 });
