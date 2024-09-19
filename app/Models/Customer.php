@@ -17,7 +17,6 @@ class Customer extends Model
         parent::boot();        
         // Before creating a new model, generate a UUID
         static::creating(function ($model) {
-            die("HERE");
             $model->uuid = (string) Encrypt::uuid();
             if (!empty($model->password)) {
                 $model->password = self::encryptPassword($model->password);
