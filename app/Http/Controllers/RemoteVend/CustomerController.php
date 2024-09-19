@@ -14,6 +14,9 @@ class CustomerController extends BaseController
         $this->middleware('pub', ['except' => ['login', 'signup']]);
     }
 
+    public function test(){
+        echo "TEST";
+    }
     /**
      * @OA\Post(
      *     path="/remote/vend/signup",
