@@ -23,23 +23,23 @@ class Customer extends Model
                 $model->uuid = (string) Encrypt::uuid(); // Or use: Str::orderedUuid() for a time-ordered UUID
             }
             if (!empty($model->password)) {
-                $model->password = $this->encryptPassword($model->password);
+                $model->password = self::encryptPassword($model->password);
             }
         });
 
         static::updating(function ($model) {
             if (!empty($model->password)) {
-                $model->password = $this->encryptPassword($model->password);
+                $model->password = self::encryptPassword($model->password);
             }
         });
     }
 
-    public function encryptPassword($password)
+    public static function encryptPassword($password)
     {
         return Hash::make($password);
     }
 
-    public function verifyPassword($password, $hashedPassword)
+    public static function verifyPassword($password, $hashedPassword)
     {
         return Hash::check($password, $hashedPassword) ? true : false;
     }

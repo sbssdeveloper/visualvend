@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\File;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+
 /**
  * @OA\Tag(
  *     name="V1",
@@ -53,12 +54,15 @@ class BaseController extends Controller
      * @return JsonResponse
      */
 
-    public function sendSuccess($message): JsonResponse
+    public function sendSuccess($message, $jwt = null): JsonResponse
     {
         $response = [
             'success' => true,
             'message' => $message,
         ];
+        if ($jwt) {
+            $response["token"] = $jwt;
+        }
         return response()->json($response, 200);
     }
 
@@ -279,6 +283,18 @@ class BaseController extends Controller
         return JWT::encode($payload, env('JWT_TOKEN'), env('JWT_ALGORITHM'));
     }
 
+    public function customerJwt($user)
+    {
+        $json = ['uuid'     =>    $user->uuid];
+        $payload = [
+            'iss' => "remotevend-jwt", // Issuer of the token
+            'sub' => $json, //$user->customerID, // Subject of the token
+            'iat' => time(), // Time when JWT was issued.
+            'exp' => time() + 60 * 60 * 1440, // 1209600 //60*60 // Expiration time
+        ];
+        return JWT::encode($payload, env('JWT_TOKEN'), env('JWT_ALGORITHM'));
+    }
+
     public function sendEmail($params)
     {
         extract($params);
@@ -294,11 +310,11 @@ class BaseController extends Controller
         if ($validator->fails()) {
             // Format errors as a string
             $errorString = implode(', ', $validator->errors()->all());
-            
+
             // Throw ValidationException with custom response
-            throw new ValidationException($validator, response()->json(['error' => $errorString,'msg' => $errorString,"message"=>$errorString], 422));
+            throw new ValidationException($validator, response()->json(['error' => $errorString, 'msg' => $errorString, "message" => $errorString], 422));
         }
 
         return $validator->validated();
-    }    
+    }
 }

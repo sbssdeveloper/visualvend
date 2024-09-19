@@ -48,5 +48,39 @@ class CustomerController extends BaseController
         return parent::sendSuccess("Customer created successfully.");
     }
 
-    public function login() {}
+    /**
+     * @OA\Post(
+     *     path="/remote/vend/login",
+     *     summary="Login Customer",
+     *     tags={"Remote Vend"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="username", type="string"),
+     *             @OA\Property(property="password", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User logged in successfully."
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Other errors with JSON content."
+     *     )
+     * )
+     */
+
+    public function login(Request $request)
+    {
+        $this->validate($request, ["username" => 'required', "password" => 'required']);
+        $model = Customer::where('phone', $request->username)->orWhere('email', $request->username)->first();
+
+        if ($model && Customer::verifyPassword($request->password, $model->password)) {
+            $jwt = parent::customerJwt($model);
+            return parent::sendSuccess("Customer logged in successfully.", $jwt);
+        }else{
+            return parent::sendError("Invalid username or password.");
+        }
+    }
 }
