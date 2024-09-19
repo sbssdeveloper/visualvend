@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\File;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-
 /**
  * @OA\Tag(
  *     name="V1",
@@ -301,5 +300,5 @@ class BaseController extends Controller
         }
 
         return $validator->validated();
-    }
+    }    
 }

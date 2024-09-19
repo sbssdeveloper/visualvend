@@ -145,6 +145,12 @@ $app->router->group([
     require __DIR__ . '/../routes/api.php';
 });
 
+$app->router->group([
+    'namespace' => 'App\Http\Controllers\RemoteVend',
+], function ($router) {
+    require __DIR__ . '/../routes/remote_vend.php';
+});
+
 // if ($app->environment('local')) {
 //     DB::listen(function ($query) {
 //         die("HELLO");
