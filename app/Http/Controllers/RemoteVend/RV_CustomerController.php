@@ -26,7 +26,7 @@ class RV_CustomerController extends BaseController
      *             @OA\Property(property="prefix", type="string", example="prefix"),
      *             @OA\Property(property="phone", type="string", example="phone"),
      *             @OA\Property(property="password", type="string", example="password"),
-     *             @OA\Property(property="confirm_password", type="string", example="confirm_password")
+     *             @OA\Property(property="password_confirmation", type="string", example="confirm_password")
      *         )
      *     ),
      *     @OA\Response(
