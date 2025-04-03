@@ -1,0 +1,29 @@
+.grid {
+  &--2 {
+    grid-template-columns: repeat(2, 1fr);
+    &--xl {
+      @media (min-width: 1900px) {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  }
+  &--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  &--5 {
+    grid-template-columns: repeat(5, 1fr);
+    &--md {
+      @media (max-width: 1400px) {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    &--xl {
+      @media (min-width: 1900px) {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+  }
+  &--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

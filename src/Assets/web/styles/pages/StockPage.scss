@@ -1,0 +1,108 @@
+.stockPage {
+  .stockList {
+    max-height: calc(100vh - 197px);
+    min-height: calc(100vh - 197px);
+  }
+}
+
+.stockProductPage {
+  .slideMore {
+    .carousel-root {
+      width: 100%;
+      .carousel {
+        .control-arrow {
+          min-width: 50px;
+          max-width: 50px;
+          min-height: 50px;
+          max-height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 100%;
+          background: $theme-black-400;
+          top: 36%;
+
+          &:hover {
+            background: $theme-black-200;
+          }
+        }
+        .slider-wrapper {
+          &.axis-horizontal {
+            .slider {
+              gap: 15px;
+            }
+          }
+        }
+      }
+    }
+  }
+  .stockProductList {
+    // max-height: calc(100vh - 425px);
+    min-height: calc(100vh - 250px);
+  }
+  .stockProductDetailsTab {
+    max-height: calc(100vh - 173px);
+    min-height: calc(100vh - 173px);
+  }
+  // .stockProductPricingTab {
+  //   .stockProductPricingTabList {
+  //     max-height: calc(100vh - 209px);
+  //     min-height: calc(100vh - 209px);
+  //   }
+  // }
+  .stockProductMoreDetailsTabList {
+    max-height: calc(100vh - 212px);
+    min-height: calc(100vh - 212px);
+
+    [dropdown-element] {
+      padding: 0;
+    }
+  }
+  .stockProductPriceTabList {
+    max-height: calc(100vh - 173px);
+    min-height: calc(100vh - 173px);
+  }
+  .stockProductLimitedAccessTab {
+    .stockProductLimitedAccessTabList {
+      max-height: calc(100vh - 503px);
+      min-height: calc(100vh - 503px);
+    }
+    .stockLimitAccessTab {
+      max-height: calc(100vh - 296px);
+      min-height: calc(100vh - 296px);
+    }
+  }
+  .stockProductContentTab {
+    .stockProductContentTabList {
+      max-height: calc(100vh - 209px);
+      min-height: calc(100vh - 209px);
+    }
+  }
+  .stockProductImagesTab {
+    .stockProductImagesTabImg {
+      img {
+        max-height: 200px;
+      }
+    }
+    .stockProductImageTabList {
+      // max-height: calc(100vh - 531px);
+      min-height: calc(100vh - 531px);
+    }
+  }
+}
+
+.stockProductLayOutPage {
+  .stockProductLayOutList {
+    max-height: calc(100vh - 491px);
+    min-height: calc(100vh - 491px);
+  }
+}
+
+.refillProductPage {
+  .refillProductList {
+    .table--responsive--full-scroll {
+      max-height: calc(100vh - 248px);
+      min-height: calc(100vh - 248px);
+    }
+  }
+}

@@ -1,0 +1,16 @@
+.machineMainPage {
+  &.resetMachinePage {
+    .resetMachineList {
+      min-height: calc(100vh - 187px);
+    }
+  }
+}
+@media (max-width: 768px) {
+  .machineMainPage {
+    &.resetMachinePage {
+      .resetMachineList {
+        min-height: calc(100vh - 239px);
+      }
+    }
+  }
+}

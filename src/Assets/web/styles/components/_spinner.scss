@@ -1,0 +1,38 @@
+.spinner {
+  border-radius: 50%;
+  animation: spin 0.5s linear infinite;
+  -webkit-animation: spin 0.5s linear infinite; /* Safari */
+  position: relative;
+
+  &--sm {
+    border: 0.2rem solid $theme-orange-400;
+    border-top: 3px solid $theme-orange;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  &--md {
+    border: 0.4rem solid $theme-orange-400;
+    border-top: 5px solid $theme-primary;
+    width: 3rem;
+    height: 3rem;
+  }
+  &--lg {
+    border: 0.6rem solid $theme-orange-400;
+    border-top: 7px solid $theme-orange;
+    width: 4rem;
+    height: 4rem;
+  }
+  &--white {
+    border-color: $theme-white;
+    border-top-color: $theme-orange;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

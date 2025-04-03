@@ -1,0 +1,60 @@
+//flex classes
+@include baseClassGenerator("gap", ".gap", $gap, "rem");
+@include baseClassGenerator("display", ".d", $display, "");
+@include baseClassGenerator("align-items", ".align-items", $align, "");
+@include baseClassGenerator(
+  "justify-content",
+  ".justify-content",
+  $justify,
+  ""
+);
+
+//height-width classes
+@include baseClassGenerator("width", ".w", $width-height, "%");
+@include baseClassGenerator("height", ".h", $width-height, "%");
+@include baseClassGenerator("max-width", ".w-max", $numeric-size, "px");
+@include baseClassGenerator("max-height", ".h-max", $numeric-size, "px");
+@include baseClassGenerator("min-width", ".w-min", $numeric-size, "px");
+@include baseClassGenerator("min-height", ".h-min", $numeric-size, "px");
+
+//spacing classes
+@include marginPaddingClassGenerator("margin", ".m", $margin-padding, "rem");
+@include marginPaddingClassGenerator("padding", ".p", $margin-padding, "rem");
+
+//colors classes
+@include baseClassGenerator("color", ".text", $colors, "");
+@include baseClassGenerator("background-color", ".bg", $colors, "");
+
+//font classes
+@include baseClassGenerator("font-size", ".font", $font-size, "px");
+@include baseClassGenerator("font-weight", ".font", $numeric-size, "");
+
+//border classes
+@include borderClassGenerator($borders, $colors);
+//Zindex classs
+@include baseClassGenerator("z-index", ".z-index", $z-index, "");
+
+//radius classes
+@include baseClassGenerator("border-radius", ".radius", $radius-size, "px");
+
+//pointer classes
+@include baseClassGenerator("cursor", ".c", $cursor, "");
+
+//positions classes
+@include baseClassGenerator("position", ".position", $element-positions, "");
+
+//text position classes
+@include baseClassGenerator("text-align", ".text", $positions, "");
+//image fit classes
+// @include baseClassGenerator("object-fit", ".object", $object-size, "");
+
+//image opacity classes
+@include baseClassGenerator("opacity", ".opacity", $opacity-size, "");
+//image opacity classes
+@include baseClassGenerator("overflow", ".overflow", $overflow, "");
+
+// top,left,bottom,right
+@include baseClassGenerator("top", ".top", $numeric-size, "px");
+@include baseClassGenerator("left", ".left", $numeric-size, "px");
+@include baseClassGenerator("bottom", ".bottom", $numeric-size, "px");
+@include baseClassGenerator("right", ".right", $numeric-size, "px");

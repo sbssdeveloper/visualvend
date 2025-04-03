@@ -1,0 +1,30 @@
+@import "./_variables.scss";
+@import "./_base.scss";
+@import "./mixins.scss";
+@import "./includeClasses.scss";
+@import "./_singleton.scss";
+
+// components scss
+@import "../styles/components/_tooltip.scss";
+@import "../styles/components/_table.scss";
+@import "../styles/components/_dialog.scss";
+@import "../styles/components/_switch.scss";
+@import "../styles/components/_button.scss";
+@import "../styles/components/_dropdown.scss";
+@import "../styles/components/_spinner.scss";
+@import "../styles/components/_alert.scss";
+@import "../styles/components/_sidebar.scss";
+@import "../styles/components/_formControl.scss";
+@import "../styles/components/_grid.scss";
+@import "../styles/components/_slickSlider.scss";
+
+//pages  scss
+@import "../styles/pages/Login.scss";
+@import "../styles/pages/Dashboard.scss";
+@import "../styles/pages/Payment.scss";
+@import "../styles/pages/StockPage.scss";
+@import "../styles/pages/ProductPage.scss";
+@import "../styles/pages/ReOrderPage.scss";
+@import "../styles/pages/ReportPage.scss";
+@import "../styles/pages/CategoryPage.scss";
+@import "../styles/pages/MachinePage.scss";

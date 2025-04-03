@@ -1,0 +1,113 @@
+.form--control {
+  font-size: 13px;
+  font-weight: 500;
+  &::file-selector-button {
+    background-color: $theme-black-50;
+    border: none;
+    padding: 0.6rem;
+    border-radius: 0.7rem;
+    margin-top: 0.2rem;
+  }
+}
+// .react-datepicker__tab-loop {
+//   display: none;
+// }
+.react-datepicker-wrapper {
+  input {
+    min-height: 36px;
+    font-size: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
+    &:focus {
+      border-color: $theme-primary;
+      box-shadow: none;
+    }
+  }
+}
+.multiSelect {
+  white-space: nowrap;
+  z-index: 1;
+  .css-15t1v4s-control {
+    min-height: 36px;
+    font-size: 13px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    .css-1xc3v61-indicatorContainer {
+      padding: 6px;
+    }
+    .css-qbdosj-Input {
+      input {
+        max-height: 36px;
+      }
+    }
+    .css-1u9des2-indicatorSeparator {
+      display: none;
+    }
+  }
+  .css-15t1v4s-control {
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+  .css-1scfogb-control {
+    max-height: 36px;
+    min-height: 36px;
+  }
+  .css-15lsz6c-indicatorContainer {
+    padding: 6px;
+  }
+  .css-1scfogb-control {
+    &:hover,
+    &:focus {
+      border-color: $theme-primary;
+      box-shadow: none;
+    }
+  }
+  .css-1nmdiq5-menu {
+    padding: 0;
+    margin: 0;
+    z-index: 99;
+  }
+}
+.css-b62m3t-container {
+  .css-13cymwt-control {
+    border-color: $theme-black-100;
+    min-height: 36px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .css-13cymwt-control,
+  .css-t3ipsp-control {
+    border-color: $theme-black-100;
+    min-height: 36px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: none;
+    &:hover,
+    &:focus {
+      border-color: $theme-black-100 !important;
+      min-height: 36px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: none;
+    }
+  }
+  .css-1xc3v61-indicatorContainer {
+    padding: 6px;
+  }
+}
+.file--upload,
+.edit--img {
+  input[type="file"] {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+  }
+}

@@ -1,0 +1,42 @@
+.paymentPage {
+  .piaChart {
+    canvas {
+      @media (min-width: 1280px) and (max-width: 1400px) {
+        width: 150px !important;
+        height: 150px !important;
+      }
+      @media (min-width: 1401px) and (max-width: 1600px) {
+        width: 200px !important;
+        height: 200px !important;
+      }
+      @media (min-width: 1601px) and (max-width: 1700px) {
+        width: 300px !important;
+        height: 300px !important;
+      }
+      @media (min-width: 1701px) and (max-width: 2000px) {
+        width: 360px !important;
+        height: 360px !important;
+      }
+    }
+    .innerPiaChart {
+      > div {
+        width: 100% !important;
+      }
+      > div > div {
+        width: 100% !important;
+      }
+      svg,
+      foreignObject {
+        width: 100% !important;
+      }
+    }
+    // .apexcharts-legend {
+    //   position: fixed !important;
+    //   left: 0px !important;
+    //   g {
+    //     width: 400px !important;
+    //     height: 400px !important;
+    //   }
+    // }
+  }
+}

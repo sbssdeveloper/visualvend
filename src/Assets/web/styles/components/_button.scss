@@ -1,0 +1,26 @@
+.btn {
+  min-height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  width: 100%;
+  cursor: pointer;
+  &--p-0 {
+    padding: 0 !important;
+  }
+  &--xs {
+    min-height: 28px;
+  }
+  &--sm {
+    min-height: 32px;
+  }
+  &--md {
+    min-height: 40px;
+  }
+  &--lg {
+    min-height: 50px;
+  }
+}

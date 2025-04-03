@@ -1,0 +1,16 @@
+.dashboardPage {
+  .topBoxItem {
+    min-height: 120px;
+  }
+  .halfTable {
+    max-height: calc(100vh - 324px);
+    .table--responsive {
+      max-height: calc(100vh - 480px);
+      min-height: calc(100vh - 480px);
+      @media (min-width: 1800px) and (max-width: 2000px) {
+        max-height: calc(100vh - 637px);
+        min-height: calc(100vh - 637px);
+      }
+    }
+  }
+}

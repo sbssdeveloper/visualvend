@@ -1,0 +1,136 @@
+.sidebar {
+  transition: all 0.3s;
+  max-height: calc(100vh - 57px);
+  &.w-max--66 {
+    max-width: 66px;
+
+    .logoImg {
+      max-width: 30px;
+    }
+    .navLink {
+      .sideBarItem {
+        display: none;
+        transition: all 0.3s;
+      }
+      &:hover {
+        .sideBarItem {
+          display: flex;
+          transition: all 0.3s;
+          left: 66px;
+          position: absolute;
+          min-width: 100px;
+          padding-left: 10px;
+          border-radius: 0 25px 25px 0;
+          box-shadow: 2px 0px 3px rgba(0, 0, 0, 0.05);
+          z-index: 2;
+        }
+      }
+    }
+    a,
+    button {
+      .sideBarItem {
+        display: none;
+        transition: all 0.3s;
+      }
+      &:hover {
+        transition: all 0.3s;
+        .sideBarItem {
+          transition: all 0.3s;
+          background: $theme-white;
+          height: 100%;
+          align-items: center;
+          display: flex !important;
+          min-width: 100px;
+          border-radius: 0 25px 25px 0;
+          box-shadow: 2px 0px 3px rgba(0, 0, 0, 0.05);
+          z-index: 99;
+        }
+      }
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+    .dropMenu {
+      .dropList {
+        position: absolute;
+        top: 0px;
+        left: 67px;
+        box-shadow: 4px 2px 5px rgba(0, 0, 0, 0.05);
+        border-radius: 0 8px 8px 0;
+        max-height: 300px;
+        z-index: 99;
+
+        @media (max-width: 1600px) {
+          max-height: 190px;
+        }
+        @media (max-width: 1280px) {
+          max-height: 130px;
+        }
+        .dropItems {
+          padding-left: 10px;
+          &:hover {
+            background: $theme-contrast;
+            border-color: $theme-primary;
+          }
+        }
+      }
+    }
+  }
+  &.w-max--200 {
+    .sideBarItem {
+      display: flex;
+      transition: all 0.3s;
+    }
+    .iconItemTool {
+      display: none;
+    }
+    .iconItem {
+      display: flex;
+    }
+    // span[data-tooltip="Refresh"] {
+    //   display: none;
+    // }
+    .dropMenu {
+      .dropList {
+        top: 0px;
+        position: absolute;
+        z-index: 99;
+        max-height: 300px;
+        z-index: 99;
+        left: 200px;
+        border-radius: 0 6px 6px 0;
+        box-shadow: 6px 0px 15px rgba(0, 0, 0, 0.05);
+
+        @media (max-width: 1600px) {
+          max-height: 180px;
+        }
+        @media (max-width: 1280px) {
+          max-height: 130px;
+        }
+        .dropItems {
+          &:hover {
+            background: $theme-contrast;
+            border-color: $theme-primary;
+          }
+        }
+      }
+    }
+  }
+  .h-min--42 {
+    @media (max-width: 1280px) {
+      min-height: 38px;
+    }
+
+    @media (min-width: 1900px) {
+      min-height: 50px;
+    }
+  }
+
+  // @media (max-width: 1280px) {
+  //   .h-min--40 {
+  //     min-height: 36.5px;
+  //   }
+  // }
+}

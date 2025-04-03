@@ -1,0 +1,7 @@
+@mixin baseClassGenerator($property, $accessor, $arr, $unit) {
+  @each $key, $value in $arr {
+    #{$accessor}--#{$key} {
+      #{$property}: #{$value}#{$unit};
+    }
+  }
+}

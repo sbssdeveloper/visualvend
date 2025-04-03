@@ -1,0 +1,22 @@
+.salesReportPage {
+  .halfTable {
+    .table--responsive--full-scroll {
+      max-height: calc(100vh - 449px);
+      min-height: calc(100vh - 449px);
+    }
+  }
+  .midTable {
+    .table--responsive--full-scroll {
+      max-height: 280px;
+      min-height: 280px;
+    }
+  }
+  &.scheduleSalesReportPage {
+    .scheduleSalesReportList {
+      .table--responsive--full-scroll {
+        max-height: calc(100vh - 281px);
+        min-height: calc(100vh - 281px);
+      }
+    }
+  }
+}

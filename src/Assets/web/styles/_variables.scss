@@ -1,0 +1,338 @@
+$theme-secondary:#FF6700;
+// $theme-secondary: #ff9c0c;
+$theme-success: #19b067;
+$theme-white: #fff;
+$theme-white: #fff;
+$theme-black: #000;
+$theme-grey: #CCCCCC;
+$theme-red: #ff4e43;
+$theme-purple: #007193;
+$theme-info: #17b4e4;
+$theme-warning: #dea527;
+$theme-danger: #9e0127;
+$theme-orange:#FF6700;
+$theme-orange-200:#ff67009e;
+// $theme-danger: #e53f71;
+// $theme-primary: #74006f;
+// $theme-primary: #007193;
+$theme-primary: #149cbe;
+$theme-contrast: #f2f6fd;
+// $theme-contrast: #f2f2f2;
+$theme-transparent: transparent;
+
+
+$theme-white-100: rgba($theme-white, 0.1);
+$theme-white-200: rgba($theme-white, 0.2);
+
+$theme-primary-25: rgba($theme-primary, 0.025);
+$theme-primary-50: rgba($theme-primary, 0.05);
+$theme-primary-100: rgba($theme-primary, 0.1);
+$theme-primary-200: rgba($theme-primary, 0.2);
+$theme-primary-400: rgba($theme-primary, 0.4);
+$theme-primary-600: rgba($theme-primary, 0.6);
+$theme-primary-800: rgba($theme-primary, 0.8);
+
+$theme-secondary-100: rgba($theme-secondary, 0.1);
+$theme-secondary-200: rgba($theme-secondary, 0.2);
+$theme-secondary-400: rgba($theme-secondary, 0.4);
+$theme-secondary-600: rgba($theme-secondary, 0.6);
+$theme-secondary-800: rgba($theme-secondary, 0.8);
+
+$theme-danger-100: rgba($theme-danger, 0.1);
+$theme-danger-200: rgba($theme-danger, 0.2);
+$theme-danger-400: rgba($theme-danger, 0.4);
+$theme-danger-600: rgba($theme-danger, 0.6);
+$theme-danger-800: rgba($theme-danger, 0.8);
+
+$theme-red-100: rgba($theme-red, 0.1);
+$theme-red-200: rgba($theme-red, 0.2);
+$theme-red-400: rgba($theme-red, 0.4);
+$theme-red-600: rgba($theme-red, 0.6);
+$theme-red-800: rgba($theme-red, 0.8);
+
+$theme-success-100: rgba($theme-success, 0.1);
+$theme-success-200: rgba($theme-success, 0.2);
+$theme-success-400: rgba($theme-success, 0.4);
+$theme-success-600: rgba($theme-success, 0.6);
+$theme-success-800: rgba($theme-success, 0.8);
+
+
+$theme-orange-100: rgba($theme-orange, 0.1);
+
+$theme-orange-400: rgba($theme-orange, 0.4);
+$theme-orange-600: rgba($theme-orange, 0.6);
+$theme-orange-800: rgba($theme-orange, 0.8);
+
+$theme-purple-100: rgba($theme-purple, 0.1);
+$theme-purple-200: rgba($theme-purple, 0.2);
+$theme-purple-400: rgba($theme-purple, 0.4);
+$theme-purple-600: rgba($theme-purple, 0.6);
+$theme-purple-800: rgba($theme-purple, 0.8);
+$theme-purple-900: rgba($theme-purple, 0.9);
+
+$theme-info-100: rgba($theme-info, 0.1);
+$theme-info-200: rgba($theme-info, 0.2);
+$theme-info-400: rgba($theme-info, 0.4);
+$theme-info-600: rgba($theme-info, 0.6);
+$theme-info-800: rgba($theme-info, 0.8);
+
+$theme-contrast-200: rgba($theme-contrast, 0.2);
+$theme-contrast-400: rgba($theme-contrast, 0.4);
+$theme-contrast-600: rgba($theme-contrast, 0.6);
+$theme-contrast-800: rgba($theme-contrast, 0.8);
+
+$theme-black-25: rgba($theme-black, 0.025);
+$theme-black-50: rgba($theme-black, 0.05);
+$theme-black-100: rgba($theme-black, 0.1);
+$theme-black-200: rgba($theme-black, 0.2);
+$theme-black-300: rgba($theme-black, 0.3);
+$theme-black-400: rgba($theme-black, 0.4);
+$theme-black-500: rgba($theme-black, 0.5);
+$theme-black-600: rgba($theme-black, 0.6);
+$theme-black-700: rgba($theme-black, 0.7);
+$theme-black-800: rgba($theme-black, 0.8);
+$theme-black-900: rgba($theme-black, 0.9);
+
+$colors: (
+  "secondary": $theme-secondary,
+  "success": $theme-success,
+  "white": $theme-white,
+  "black": $theme-black,
+  "grey": $theme-grey,
+  "red": $theme-red,
+  "purple": $theme-purple,
+  "info": $theme-info,
+  "warning": $theme-warning,
+  "danger": $theme-danger,
+  "primary": $theme-primary,
+  "contrast": $theme-contrast,
+  "transparent": $theme-transparent,
+  "orange":$theme-orange,
+  "orange-200": $theme-orange-200,
+  "white-100": $theme-white-100,
+  "white-200": $theme-white-200,
+ 
+  "primary-25": $theme-primary-25,
+  "primary-50": $theme-primary-50,
+  "primary-100": $theme-primary-100,
+  "primary-200": $theme-primary-200,
+  "primary-400": $theme-primary-400,
+  "primary-600": $theme-primary-600,
+  "primary-800": $theme-primary-800,
+
+  "secondary-100": $theme-secondary-100,
+  "secondary-200": $theme-secondary-200,
+  "secondary-400": $theme-secondary-400,
+  "secondary-600": $theme-secondary-600,
+  "secondary-800": $theme-secondary-800,
+
+  "danger-100": $theme-danger-100,
+  "danger-200": $theme-danger-200,
+  "danger-400": $theme-danger-400,
+  "danger-600": $theme-danger-600,
+  "danger-800": $theme-danger-800,
+
+  "red-100": $theme-red-100,
+  "red-200": $theme-red-200,
+  "red-400": $theme-red-400,
+  "red-600": $theme-red-600,
+  "red-800": $theme-red-800,
+
+  "success-100": $theme-success-100,
+  "success-200": $theme-success-200,
+  "success-400": $theme-success-400,
+  "success-600": $theme-success-600,
+  "success-800": $theme-success-800,
+
+  "purple-100": $theme-purple-100,
+  "purple-200": $theme-purple-200,
+  "purple-400": $theme-purple-400,
+  "purple-600": $theme-purple-600,
+  "purple-800": $theme-purple-800,
+  "purple-900": $theme-purple-900,
+
+  "info-100": $theme-info-100,
+  "info-200": $theme-info-200,
+  "info-400": $theme-info-400,
+  "info-600": $theme-info-600,
+  "info-800": $theme-info-800,
+
+  "contrast-200": $theme-contrast-200,
+  "contrast-400": $theme-contrast-400,
+  "contrast-600": $theme-contrast-600,
+  "contrast-800": $theme-contrast-800,
+
+  "black-25": $theme-black-25,
+  "black-50": $theme-black-50,
+  "black-100": $theme-black-100,
+  "black-200": $theme-black-200,
+  "black-300": $theme-black-300,
+  "black-400": $theme-black-400,
+  "black-500": $theme-black-500,
+  "black-600": $theme-black-600,
+  "black-700": $theme-black-700,
+  "black-800": $theme-black-800,
+  "black-900": $theme-black-900,
+);
+
+$cursor: (
+  "pointer": "pointer",
+  "default": "default",
+  "not-allowed": "not-allowed",
+);
+$z-index: (
+  "null": "0",
+  "xs": "1",
+  "sm": "9",
+  "md": "99",
+  "lg": "999",
+  "xl": "9999",
+);
+$display: (
+  "flex": flex,
+  "grid": grid,
+  "block": "block",
+  "inline-flex": inline-flex,
+  "inline-block": inline-block,
+  "none": none,
+);
+
+$align: (
+  "start": flex-start,
+  "end": flex-end,
+  "center": center,
+  "stretch": stretch,
+  "baseline": baseline,
+);
+
+$justify: (
+  "start": flex-start,
+  "end": flex-end,
+  "center": center,
+  "around": space-around,
+  "between": space-between,
+  "evenly": space-evenly,
+);
+
+$gap: (
+  "xs": ".25",
+  "sm": ".5",
+  "md": "1",
+  "lg": "1.5",
+  "xl": "2",
+  "2xl": "3",
+  "3xl": "4",
+  "4xl": "5",
+  "5xl": "6",
+);
+
+$width-height: (
+  "xs": "25",
+  "sm": "50",
+  "md": "75",
+  "full": "100",
+);
+
+$numeric-size: (
+  "0": "0",
+  "1": "1",
+  "-6": "-6",
+  "2": "2",
+  "3": "3",
+  "4": "4",
+  "8": "8",
+  "12": "12",
+  "16": "16",
+  "20": "20",
+  "24": "24",
+  "28": "28",
+  "32": "32",
+  "36": "36",
+  "40": "40",
+  "42": "42",
+  "44": "44",
+  "50": "50",
+  "60": "60",
+  "75": "75",
+  "85": "85",
+  "100": "100",
+  "125": "125",
+  "150": "150",
+  "170": "170",
+  "200": "200",
+  "250": "250",
+  "300": "300",
+  "400": "400",
+  "500": "500",
+  "600": "600",
+  "700": "700",
+  "800": "800",
+  "900": "900",
+);
+$margin-padding: (
+  "0": "0",
+  "xs": "0.25",
+  "sm": "0.5",
+  "md": "1",
+  "lg": "1.5",
+  "xl": "2",
+  "2xl": "3",
+  "3xl": "3.8",
+);
+
+$font-size: (
+  "xs": "10",
+  "sm": "13",
+  "md": "16",
+  "lg": "18",
+  "xl": "21",
+  "2xl": "24",
+  "3xl": "30",
+  "4xl": "40",
+);
+$radius-size: (
+  "xs": "3",
+  "sm": "6",
+  "md": "9",
+  "lg": "12",
+  "xl": "30",
+  "2xl": "50",
+  "full": "400",
+);
+$border-property: "1px solid";
+
+$borders: (
+  "top": $border-property,
+  "left": $border-property,
+  "right": $border-property,
+  "bottom": $border-property,
+  "full": $border-property,
+);
+$positions: (
+  "t": "top",
+  "l": "left",
+  "r": "right",
+  "b": "bottom",
+  "c": "center",
+);
+$element-positions: (
+  "relative": "relative",
+  "absolute": "absolute",
+  "fixed": "fixed",
+  "sticky": "sticky",
+);
+$object-size: (
+  "cover": "cover",
+  "contain": "contain",
+);
+$opacity-size: (
+  "0": "0",
+  "xs": ".2",
+  "sm": ".4",
+  "md": ".6",
+  "lg": ".8",
+);
+$overflow: (
+  "auto": "auto",
+  "hidden": "hidden",
+);

@@ -1,0 +1,13 @@
+@mixin marginPaddingClassGenerator($property, $accessor, $arr, $unit) {
+  @each $key, $value in $arr {
+    @each $pos-key, $pos-value in $positions {
+      #{$accessor}-#{$pos-key}--#{$key} {
+        #{$property}-#{$pos-value}: #{$value}#{$unit};
+      }
+    }
+
+    #{$accessor}--#{$key} {
+      #{$property}: #{$value}#{$unit};
+    }
+  }
+}

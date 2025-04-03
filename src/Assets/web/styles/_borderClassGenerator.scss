@@ -1,0 +1,13 @@
+@mixin borderClassGenerator($border-arr, $clr-arr) {
+  @each $key, $value in $border-arr {
+    @each $clr-key, $clr-value in $clr-arr {
+      .border-#{$key}--#{$clr-key} {
+        @if $key == 'full' {
+          border: #{$value} #{$clr-value};
+        } @else {
+          border-#{$key}: #{$value} #{$clr-value};
+        }
+      }
+    }
+  }
+}
