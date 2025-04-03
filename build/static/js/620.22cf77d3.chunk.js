@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkquizee=self.webpackChunkquizee||[]).push([[620],{84239:(e,u,l)=>{l.r(u),l.d(u,{default:()=>r});var t=l(73216),n=l(83003),s=l(70579);const r=e=>{let{children:u}=e;const{user:l}=(0,n.d4)((e=>null===e||void 0===e?void 0:e.auth));return null!==l&&void 0!==l&&l.token?u:(0,s.jsx)(t.C5,{to:"/",replace:!0})}}}]);
+//# sourceMappingURL=620.22cf77d3.chunk.js.map
