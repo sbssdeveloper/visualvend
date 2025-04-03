@@ -16,6 +16,11 @@ use App\Models\PlanogramData;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Illuminate\Support\Facades\Storage;
+use function asset; 
 
 use function PHPSTORM_META\type;
 
@@ -208,6 +213,33 @@ class PlanogramRepository
      * )
      */
 
+    // public function upload()
+    // {
+    //     $response = null;
+    //     $uuid           = (string) Encrypt::uuid();
+    //     $model          = Machine::where("id", $this->request->machine_id)->first();
+    //     $client_id      = $model->machine_client_id;
+    //     $sheetData      = $this->planogram->uploadFile($this->request);
+    //     $shiftedData    = array_shift($sheetData);
+    //     if (count($sheetData) > 0) {
+    //         $formatCheck    = $this->helper->check_format_type($shiftedData);
+    //         extract($this->helper->formatPairs($formatCheck));
+    //         $formatAuth = $this->helper->formatAuthenticate($shiftedData, $formatValues);
+    //         if ($formatAuth["success"] === true) {
+    //             $arrayObj = ["sheet_data" => $sheetData, 'machine_id' => $this->request->machine_id, "client_id" => $client_id, 'formatKeys' => $formatKeys, 'formatValues' => $formatValues, "category" => $formatCheck["category"], 'model' => $model];
+    //             $response = $this->helper->uploadNow($this->helper->planoProductMap($arrayObj));
+    //             ["code" => $code, "message" => $message] = $response;
+    //             unset($response["code"], $response["message"]);
+    //             if ($code == 200) {
+    //                 return $this->controller->sendResponse($message, $response);
+    //             }
+    //             return $this->controller->sendError($message, $response);
+    //         } else {
+    //             return $this->controller->sendError($formatAuth["error"]);
+    //         }
+    //     }
+    //     return $this->controller->sendError("Uploaded sheet is empty.");
+    // }
     public function upload()
     {
         $response = null;
@@ -782,108 +814,195 @@ class PlanogramRepository
      * )
      */
 
-    public function export()
+    // public function export()
+    // {
+    //     $linkedAisles   = $finalData = [];
+    //     $machine_id     = $this->request->machine_id;
+    //     $type           = $this->request->type;
+    //     $model          = Machine::select("machine_client_id", "machine_is_single_category")->where("id", $machine_id)->first();
+    //     $mapModel       = MachineProductMap::where('machine_id', $machine_id)->whereRaw("product_id <>''")->whereRaw("product_location <>''");
+
+    //     if (!$type || $type === "planogram") {
+    //         $mapModel->orderByRaw("CAST(product_location AS UNSIGNED) ASC");
+    //     }
+    //     $mapModel     = $mapModel->get()->toArray();
+
+    //     if (count($mapModel)) {
+    //         $planogram = [];
+    //         foreach ($mapModel as $key => $value) {
+    //             $product_id                 = $value["product_id"];
+    //             if (isset($planogram[$product_id])) {
+    //                 $planogram[$product_id] .= "," . $value["product_location"];
+    //             } else {
+    //                 $planogram[$product_id]  = $value["product_location"];
+    //             }
+    //         }
+    //         foreach ($mapModel as $key => $value) {
+    //             $plano_id                   = $value["id"];
+    //             $product_id                 = $value["product_id"];
+    //             $product_location           = $value["product_location"];
+    //             $category_id                = $value["category_id"];
+    //             $product_quantity           = $value["product_quantity"];
+    //             $product_max_quantity       = $value["product_max_quantity"];
+    //             $product_location           = $value["product_location"];
+    //             $product_price              = $value["product_price"];
+    //             if (empty($product_price) || ((float)$product_price < 0)) {
+    //                 $local_product          = Product::select("product_price")->where("product_id", $product_id)->where("client_id", $model->machine_client_id)->where("is_deleted", "0")->first();
+    //                 if ($local_product) {
+    //                     $product_price      = preg_replace('#[^0-9\.,]#', '', $local_product->product_price);;
+    //                 }
+    //             }
+    //             $aisles_included            = isset($planogram[$product_id]) ? $planogram[$product_id] : "";
+    //             $vend_quantity              = $value["vend_quantity"] > 0 ? $value["vend_quantity"] : 1;
+    //             $bundle_includes            = $value["bundle_includes"];
+    //             $bundle_price               = preg_replace('#[^0-9\.,]#', '', $value["bundle_price"]);
+    //             if (empty($bundle_price) || (float)$bundle_price <= 0) {
+    //                 $bundle_price           = $product_price;
+    //             }
+    //             $product_image              = $value["product_image"];
+    //             if (empty($product_image)) {
+    //                 $product_image              = "ngapp/assets/img/default_product.png";
+    //             }
+    //             $product_image_thumbnail        = $value["product_image_thumbnail"];
+    //             if (empty($product_image_thumbnail)) {
+    //                 $product_image_thumbnail    = $product_image;
+    //             }
+    //             $product_more_info_image        = $value["product_more_info_image"];
+    //             if (empty($product_more_info_image)) {
+    //                 $product_more_info_image    = "ngapp/assets/img/default_product.png";
+    //             }
+    //             $product_detail_image           = $value["product_detail_image"];
+    //             if (empty($product_detail_image)) {
+    //                 $product_detail_image       = "ngapp/assets/img/default_product.png";
+    //             }
+    //             $product_more_info_video    = $value["product_more_info_video"];
+    //             $product_detail_video       = $value["product_detail_video"];
+    //             $s2s                        = $value["s2s"];
+    //             $s2s_type                   = $value["s2s_type"];
+
+    //             if (isset($linkedAisles[$product_id])) {
+    //                 $linkedAisles[$product_id] = $linkedAisles[$product_id] . "," . $value["product_location"];
+    //             } else {
+    //                 $linkedAisles[$product_id] = $value["product_location"];
+    //             }
+    //             $finalData[$key]                = [
+    //                 "id"                        => $plano_id,
+    //                 "machine_is_single_category" => $model->machine_is_single_category,
+    //                 "product_id"                 => $product_id,
+    //                 "product_location"           => $product_location,
+    //                 "category_id"                => $category_id,
+    //                 "product_quantity"           => $product_quantity,
+    //                 "product_max_quantity"       => $product_max_quantity,
+    //                 "product_location"           => $product_location,
+    //                 "product_price"              => $product_price,
+    //                 "aisles_included"            => $aisles_included,
+    //                 "vend_quantity"              => $vend_quantity,
+    //                 "bundle_includes"            => $bundle_includes,
+    //                 "bundle_price"               => $bundle_price,
+    //                 "product_image"              => $product_image,
+    //                 "product_image_thumbnail"    => $product_image_thumbnail,
+    //                 "product_more_info_image"    => $product_more_info_image,
+    //                 "product_detail_image"       => $product_detail_image,
+    //                 "product_more_info_video"    => $product_more_info_video,
+    //                 "product_detail_video"       => $product_detail_video,
+    //                 "s2s"                        => $s2s,
+    //                 "s2s_type"                   => $s2s_type
+    //             ];
+    //         }
+
+    //         foreach ($finalData as $key => $value) {
+    //             $product_id         = $value["product_id"];
+    //             if (isset($linkedAisles[$product_id])) {
+    //                 $finalData[$key]["aisles_included"] = $linkedAisles[$product_id];
+    //             }
+    //         }
+    //     }
+
+    //     return $this->controller->sendResponse("Success", $finalData);
+    // }
+
+
+    public function export(Request $request)
     {
-        $linkedAisles   = $finalData = [];
-        $machine_id     = $this->request->machine_id;
-        $type           = $this->request->type;
-        $model          = Machine::select("machine_client_id", "machine_is_single_category")->where("id", $machine_id)->first();
-        $mapModel       = MachineProductMap::where('machine_id', $machine_id)->whereRaw("product_id <>''")->whereRaw("product_location <>''");
+        $machine_id = $request->machine_id;
+        $type = $request->type;
+
+        $model = Machine::select("machine_client_id","machine_name", "machine_is_single_category")
+            ->where("id", $machine_id)
+            ->first();
+
+        $query = MachineProductMap::where('machine_id', $machine_id)
+            ->whereRaw("product_id <>''")
+            ->whereRaw("product_location <>''");
 
         if (!$type || $type === "planogram") {
-            $mapModel->orderByRaw("CAST(product_location AS UNSIGNED) ASC");
-        }
-        $mapModel     = $mapModel->get()->toArray();
-
-        if (count($mapModel)) {
-            $planogram = [];
-            foreach ($mapModel as $key => $value) {
-                $product_id                 = $value["product_id"];
-                if (isset($planogram[$product_id])) {
-                    $planogram[$product_id] .= "," . $value["product_location"];
-                } else {
-                    $planogram[$product_id]  = $value["product_location"];
-                }
-            }
-            foreach ($mapModel as $key => $value) {
-                $plano_id                   = $value["id"];
-                $product_id                 = $value["product_id"];
-                $product_location           = $value["product_location"];
-                $category_id                = $value["category_id"];
-                $product_quantity           = $value["product_quantity"];
-                $product_max_quantity       = $value["product_max_quantity"];
-                $product_location           = $value["product_location"];
-                $product_price              = $value["product_price"];
-                if (empty($product_price) || ((float)$product_price < 0)) {
-                    $local_product          = Product::select("product_price")->where("product_id", $product_id)->where("client_id", $model->machine_client_id)->where("is_deleted", "0")->first();
-                    if ($local_product) {
-                        $product_price      = preg_replace('#[^0-9\.,]#', '', $local_product->product_price);;
-                    }
-                }
-                $aisles_included            = isset($planogram[$product_id]) ? $planogram[$product_id] : "";
-                $vend_quantity              = $value["vend_quantity"] > 0 ? $value["vend_quantity"] : 1;
-                $bundle_includes            = $value["bundle_includes"];
-                $bundle_price               = preg_replace('#[^0-9\.,]#', '', $value["bundle_price"]);
-                if (empty($bundle_price) || (float)$bundle_price <= 0) {
-                    $bundle_price           = $product_price;
-                }
-                $product_image              = $value["product_image"];
-                if (empty($product_image)) {
-                    $product_image              = "ngapp/assets/img/default_product.png";
-                }
-                $product_image_thumbnail        = $value["product_image_thumbnail"];
-                if (empty($product_image_thumbnail)) {
-                    $product_image_thumbnail    = $product_image;
-                }
-                $product_more_info_image        = $value["product_more_info_image"];
-                if (empty($product_more_info_image)) {
-                    $product_more_info_image    = "ngapp/assets/img/default_product.png";
-                }
-                $product_detail_image           = $value["product_detail_image"];
-                if (empty($product_detail_image)) {
-                    $product_detail_image       = "ngapp/assets/img/default_product.png";
-                }
-                $product_more_info_video    = $value["product_more_info_video"];
-                $product_detail_video       = $value["product_detail_video"];
-                $s2s                        = $value["s2s"];
-
-                if (isset($linkedAisles[$product_id])) {
-                    $linkedAisles[$product_id] = $linkedAisles[$product_id] . "," . $value["product_location"];
-                } else {
-                    $linkedAisles[$product_id] = $value["product_location"];
-                }
-                $finalData[$key]                = [
-                    "id"                        => $plano_id,
-                    "machine_is_single_category" => $model->machine_is_single_category,
-                    "product_id"                 => $product_id,
-                    "product_location"           => $product_location,
-                    "category_id"                => $category_id,
-                    "product_quantity"           => $product_quantity,
-                    "product_max_quantity"       => $product_max_quantity,
-                    "product_location"           => $product_location,
-                    "product_price"              => $product_price,
-                    "aisles_included"            => $aisles_included,
-                    "vend_quantity"              => $vend_quantity,
-                    "bundle_includes"            => $bundle_includes,
-                    "bundle_price"               => $bundle_price,
-                    "product_image"              => $product_image,
-                    "product_image_thumbnail"    => $product_image_thumbnail,
-                    "product_more_info_image"    => $product_more_info_image,
-                    "product_detail_image"       => $product_detail_image,
-                    "product_more_info_video"    => $product_more_info_video,
-                    "product_detail_video"       => $product_detail_video,
-                    "s2s"                        => $s2s
-                ];
-            }
-
-            foreach ($finalData as $key => $value) {
-                $product_id         = $value["product_id"];
-                if (isset($linkedAisles[$product_id])) {
-                    $finalData[$key]["aisles_included"] = $linkedAisles[$product_id];
-                }
-            }
+            $query->orderByRaw("CAST(product_location AS UNSIGNED) ASC");
         }
 
-        return $this->controller->sendResponse("Success", $finalData);
+        $mapModel = $query->get();
+
+        if ($mapModel->isEmpty()) {
+            return response()->json(["success" =>false,"message" => "No data available"]);
+        }
+        // Create Spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set Headers
+        $headers = [
+            "Product Code", "Category Code", "Quantity", "Capacity", "Aisle No", "Product Price",
+            "Aisles Included", "Vend Quantity", "Bundle Includes", "Bundle Price", "Product Image",
+            "Product Image Thumbnail", "Product More Info Image", "Product Detail Image",
+            "Product More Info Video", "Product Detail Video", "S2S", "S2S Type"
+        ];
+
+        // Add Headers to Excel
+        $colIndex = 1;
+        foreach ($headers as $header) {
+            $sheet->setCellValueByColumnAndRow($colIndex++, 1, $header);
+        }
+
+        // Add Data
+        $rowIndex = 2;
+        foreach ($mapModel as $item) {
+            $colIndex = 1;
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_id);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->category_id);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_quantity);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_max_quantity);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_location);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_price);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_location);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->vend_quantity > 0 ? $item->vend_quantity : 1);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->bundle_includes);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->bundle_price);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_image ?? "ngapp/assets/img/default_product.png");
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_image_thumbnail ?? "ngapp/assets/img/default_product.png");
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_more_info_image ?? "ngapp/assets/img/default_product.png");
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_detail_image ?? "ngapp/assets/img/default_product.png");
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_more_info_video);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->product_detail_video);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->s2s);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $rowIndex, $item->s2s_type);
+            $rowIndex++;
+        }
+
+        // Save File
+        $fileName =  $model->machine_name. '_' . time() . ".xlsx";
+        $filePath = "exports/" . $fileName;
+        
+        // Ensure the directory exists
+        $directory = storage_path('app/public/exports');
+        if (!file_exists($directory)) {
+            mkdir($directory, 0755, true);
+        }
+        
+        // Save the spreadsheet
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($directory . '/' . $fileName);
+        
+        // Generate the download URL
+        $downloadUrl = url('storage/exports/' . $fileName);
+        return response()->json(["success" => true, "download_url" => $downloadUrl]);
     }
 }

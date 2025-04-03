@@ -7,7 +7,9 @@ use App\Http\Repositories\MachineRepository;
 use App\Http\Requests\MachineConfigurationRequest;
 use App\Models\Admin;
 use App\Models\Machine;
+use App\Models\MachineSurchargeFee;
 use App\Models\MachineProductMap;
+use App\Models\Product;
 use App\Rules\MachineUserRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -283,5 +285,145 @@ class MachineController extends LinkedMachineController
         }
         $this->validate($request, ['machine_id' => 'required||exists:machine,id']);
         return $this->repo->mappedAisles($request);
+    }
+
+    public function infoMachineSurcharges(Request $request)
+    {
+        $machine_id = $request->machine_id;
+        $machine = Machine::where('id', $machine_id)->first();
+
+        if (!$machine) {
+            return parent::sendResponse("Fail", 'Machine not found');
+        }
+
+        $machineProducts = [];
+        $machineSurcharges = [];
+        $productIds = MachineProductMap::where('machine_id', $machine_id)
+            ->whereNotNull('product_id') // Excludes NULL values
+            ->where('product_id', '<>', '') // Excludes empty strings
+            ->whereNotNull('product_location') // Excludes NULL values
+            ->where('product_location', '<>', '') // Excludes empty strings
+            ->groupBy('product_id')
+            ->pluck('product_id');
+
+        if ($productIds->count() > 0) {
+            $products = Product::select('id', 'product_id', 'product_name', 'product_price')->where('client_id', $machine->machine_client_id)
+                ->where('is_deleted', 0)
+                ->whereIn('product_id', $productIds)
+                ->get();
+            $pMap = [];
+            foreach ($products as $product) {
+                $pMap[$product->product_id] = [
+                    'product_name' => $product->product_name,
+                    'product_price' => $product->product_price,
+                    'id' => $product->id,
+                ];
+            }
+            $machineProductMaps = MachineProductMap::select('product_id',)->where('machine_id', $machine_id)
+                ->whereNotNull('product_id') // Excludes NULL values
+                ->where('product_id', '<>', '') // Excludes empty strings
+                ->whereNotNull('product_location') // Excludes NULL values
+                ->where('product_location', '<>', '') // Excludes empty strings
+                ->groupBy('product_id')
+                ->get();
+
+            foreach ($machineProductMaps as $map) {
+                $map->product_name = $pMap[$map->product_id]['product_name'] ?? '';
+                $map->id = $pMap[$map->product_id]['id'] ?? null;
+            }
+
+            $machineProducts = $machineProductMaps;
+        }
+
+        $machineSurcharges = MachineSurchargeFee::where('machine_id', $machine->id)
+            ->where('client_id', $machine->machine_client_id)
+            ->get();
+        $machine_array = [
+            'machine_surcharges' => $machineSurcharges,
+            'machineProducts' => $machineProducts,
+        ];
+
+        return parent::sendResponse("Success", $machine_array);
+    }
+
+    public function saveMachineSurcharges(Request $request)
+    {
+        $machine_id = $request->machine_id;
+        $machine = Machine::where('id', $machine_id)->first();
+        if (!$machine) {
+            return parent::sendResponse("Fail", 'Machine not found');
+        }
+        $surchargeFees = [];
+        if ($request->has("surcharges") && count($request->surcharges) > 0) {
+            foreach ($request->surcharges as $key => $fees) {
+                $commonData = [
+                    "name" => $fees['name'],
+                    "min_price" => $fees['min_price'],
+                    "max_price" => $fees['max_price'],
+                    "description" => $fees['description'],
+                    "client_id" => $machine->machine_client_id,
+                    "product_ids" => $fees['product_ids'], // Assuming it's a comma-separated list
+                    "from_date" => $fees['from_date'],
+                    "to_date" => $fees['to_date'],
+                    "machine_id" => $machine_id,
+                ];
+                if ($fees['type'] == 'amount') {
+                    $surchargeFees[] = array_merge($commonData, [
+                        "amount" => $fees['amount'],
+                        "percentage" => 0,
+                        "type" => $fees['type']
+                    ]);
+                } else if ($fees['type'] == 'amount-percentage') {
+                    $surchargeFees[] = array_merge($commonData, [
+                        "amount" => $fees['amount'],
+                        "percentage" => $fees['percentage'],
+                        "type" => $fees['type']
+                    ]);
+                } else if ($fees['type'] == 'percentage') {
+                    $surchargeFees[] = array_merge($commonData, [
+                        "amount" => 0,
+                        "percentage" => $fees['percentage'],
+                        "type" => $fees['type']
+                    ]);
+                }
+            }
+        }
+        if (!empty($surchargeFees)) {
+            MachineSurchargeFee::where("machine_id", $machine_id)->where("client_id", $machine->machine_client_id)->delete();
+            MachineSurchargeFee::insert($surchargeFees);
+        } else {
+            MachineSurchargeFee::where("machine_id", $machine_id)->where("client_id",  $machine->machine_client_id)->delete();
+        }
+        return parent::sendResponse("Success", "machine surcharge fees updated successfully");
+    }
+    public function getProductMachineMapLocation(Request $request)
+    {
+        $productMapId = $request->input('product_map_id');
+        $machine_id = $request->input('machine_id');
+    
+        $machine = Machine::find($machine_id);
+        $productMapData = MachineProductMap::find($productMapId);
+    
+        if (!$machine) {
+            return response()->json(['code' => 404, 'success' => false, 'message' => 'Machine not found', 'data' => []]);
+        }
+    
+      
+        $arrData = [
+            'machine' => $machine,
+        ];
+    
+        if ($productMapData) {
+            $arrData['product_location'] = $productMapData;
+            $arrData['product_quantity'] = $productMapData->product_quantity;
+            $arrData['product_machine_map_id'] = $productMapId;
+            $arrData['product_max_quantity'] = $productMapData->product_max_quantity;
+        }
+    
+        return response()->json([
+            'code' => 200,
+            'success' => true,
+            'data' => $arrData
+        ]);
     }
 }

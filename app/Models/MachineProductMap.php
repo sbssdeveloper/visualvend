@@ -9,9 +9,13 @@ use DB;
 class MachineProductMap extends Model
 {
     protected $table = 'machine_product_map';
-    protected $fillable = ['*'];
+    protected $guarded = [];
     // protected $hidden = ['client_id'];
-    public $timestamps = ["updated_at"];
+    public const CREATED_AT = null;
+
+    // Specify the updated_at column name
+    public const UPDATED_AT = 'updated_at';
+     public $timestamps = true;
 
     public function machine()
     {

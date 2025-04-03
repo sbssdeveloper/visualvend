@@ -141,7 +141,8 @@ return [
                 ],
             ],
         ],
-        */],
+        */
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -199,9 +200,5 @@ return [
      */
     'constants' => [
         // 'SWAGGER_LUME_CONST_HOST' => env('SWAGGER_LUME_CONST_HOST', 'http://my-default-host.com'),
-    ],
-    'swagger_ui_settings' => [
-        'docExpansion' => 'none',  // Keep all tags collapsed by default
-        // Other Swagger UI options...
     ],
 ];

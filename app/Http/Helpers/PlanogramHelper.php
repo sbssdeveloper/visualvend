@@ -34,7 +34,8 @@ class PlanogramHelper
         "product_detail_image"      => "Product Detail Image",
         "product_more_info_video"   => "Product More Info Video",
         "product_detail_video"      => "Product Detail Video",
-        "s2s"                       => "S2S"
+        "s2s"                       => "S2S",
+        "s2s_type"                  => "S2S Type"
     ];
 
     const MULTI_NEW                 = [
@@ -54,7 +55,8 @@ class PlanogramHelper
         "product_detail_image"      => "Product Detail Image",
         "product_more_info_video"   => "Product More Info Video",
         "product_detail_video"      => "Product Detail Video",
-        "s2s"                       => "S2S"
+        "s2s"                       => "S2S",
+        "s2s_type"                  => "S2S Type"
     ];
 
     const SINGLE_OLD                        =  [
@@ -161,7 +163,7 @@ class PlanogramHelper
             }
         }
         foreach ($sheet_data as $key => $value) {
-            $productID = $categoryID = $categoryName = $product_quantity = $product_max_quantity = $s2s = null;
+            $productID = $categoryID = $categoryName = $product_quantity = $product_max_quantity = $s2s = $s2s_type =null;
             $aislesHere = $product_locations = [];
             if (!$value[0]) continue;
             $product_image = $image_thumb = $more_info = $vend_quantity = $bundle_includes = null;
@@ -204,6 +206,9 @@ class PlanogramHelper
                 }
                 if ($formatKeys[$subKey] === "s2s") {
                     $s2s = $subValue;
+                }
+                if ($formatKeys[$subKey] === "s2s_type") {
+                    $s2s_type = $subValue;
                 }
                 if ($formatKeys[$subKey] === "vend_quantity") {
                     $vend_quantity = $subValue;
@@ -293,6 +298,7 @@ class PlanogramHelper
                         $mapped[$count]["product_quantity"]     = $product_quantity;
                         $mapped[$count]["product_max_quantity"] = $product_max_quantity;
                         $mapped[$count]["s2s"]                  = $s2s ?? "";
+                        $mapped[$count]["s2s_type"]             = $s2s_type ?? "";
 
                         $mapped[$count]["product_image"]        = $product_image ?? $product->product_image ?? self::DEFAULT_IMAGE;
                         $mapped[$count]["product_image_thumbnail"]  = $image_thumb ?? $product->product_image_thumbnail ?? self::DEFAULT_IMAGE;

@@ -291,4 +291,27 @@ class CategoryController extends BaseController
 
         return $category->uploadList($request, $controller);
     }
+
+    public function getDataByClientId(Request $request)
+    {
+        $clientId = $request->input('client_id');
+
+        // Fetch categories by client_id
+        $categories = Category::where('client_id', $clientId)->get();
+
+        $arrData = [];
+        foreach ($categories as $category) {
+            $arrData[] = [
+                'id' => $category->id,
+                'category_id' => $category->category_id,
+                'category_name' => $category->category_name,
+                'client_id' => $category->client_id,
+                'category_image' => $category->category_image,
+                'category_image_thumbnail' => $category->category_image_thumbnail,
+            ];
+        }
+
+        $response = ['code' => 200, 'category' => $arrData];
+        return response()->json($response);
+    }
 }

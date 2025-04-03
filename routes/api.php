@@ -57,6 +57,9 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('machine/products/reset',                 'MachineController@reset');
         $router->post('machine/refill/info',                    'MachineController@refillInfo');
         $router->get('machine/mapped/aisles/[/{machine_id}]',   'MachineController@mappedAisles');
+        $router->post('machine/info-surcharges',                'MachineController@infoMachineSurcharges');
+        $router->post('machine/save-surcharges',                'MachineController@saveMachineSurcharges');
+        $router->post('machine/product-mapped/info',            'MachineController@getProductMachineMapLocation');
 
         /****************************ADVERTISEMENT******************************/
         $router->get('advertisement/list',                      'AdvertisementController@list');
@@ -76,6 +79,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('product/info',                           'ProductController@info');
         $router->post('product/upload/image',                   'ProductController@uploadImage');
         $router->post('product/demo/image',                     'ProductController@demoImage');
+        $router->post('client/product-list',                    'ProductController@getAllProductDataEditClient');
 
         /****************************CATEGORY******************************/
         $router->get('category/list[/{cid}]',                   'CategoryController@dropdownList');
@@ -85,6 +89,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->post('category/update',                        'CategoryController@update');
         $router->post('category/delete',                        'CategoryController@delete');
         $router->post('category/upload/list',                   'CategoryController@uploadlist');
+        $router->post('client/category-list',                   'CategoryController@getDataByClientId');
 
         /****************************CLIENT******************************/
         $router->get('client/list',                             'ClientController@dropdownList');
@@ -117,9 +122,11 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         /****************************Planogram******************************/
         $router->group(['prefix' => 'planogram'], function () use ($router) {
             $router->post('list',                               'PlanogramController@list');
+            // $router->post('reset-planogram',                    'PlanogramController@resetMachineMapByMachineId');
             $router->get('info[/{uuid}/{type}]',                'PlanogramController@info');
             $router->post('upload',                             'PlanogramController@upload');
             $router->post('update',                             'PlanogramController@update');
+            $router->post('reset-planogram',                    'PlanogramController@reset');
             $router->post('reset',                              'PlanogramController@reset');
             $router->post('view',                               'PlanogramController@view');
             $router->post('delete',                             'PlanogramController@delete');
@@ -127,6 +134,8 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
             $router->post('mobile/list',                        'PlanogramController@mobileList');
             $router->post('mobile/list/data',                   'PlanogramController@mobileListData');
             $router->post('export',                             'PlanogramController@export');
+            $router->post('planogram-list',                     'PlanogramController@planogramProducts');
+            $router->post('update-planogram-products',           'PlanogramController@updatePlanogramProduct');
         });
 
         /****************************WEBPORTAL******************************/

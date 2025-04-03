@@ -23,6 +23,16 @@ class Product extends Model
         return $this->hasMany(ProductImage::class, "uuid", "uuid");
     }
 
+    public function product_surcharges()
+    {
+        return $this->hasOne(ProductSurcharge::class, "product_id", "product_id");
+    }
+
+    public function Surcharge_fees()
+    {
+        return $this->hasMany(SurchargeFee::class, "product_id", "product_id");
+    }
+
     public function assigned_categories()
     {
         return $this->hasMany(ProductAssignCategory::class, "uuid", "uuid");
@@ -191,8 +201,8 @@ class Product extends Model
 
         if ($request->auth->client_id > 0) {
             $model->where("client_id", $request->auth->client_id);
-        }else{
-            $model->where("client_id",$request->client_id);
+        } else {
+            $model->where("client_id", $request->client_id);
         }
         $model->orderBy("product_name", "ASC");
         return ($model = $model->get());

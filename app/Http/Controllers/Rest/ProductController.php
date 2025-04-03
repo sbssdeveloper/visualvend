@@ -7,8 +7,13 @@ use DB;
 use App\Http\Controllers\Controller;
 use App\Http\Helpers\RequestHelper;
 use App\Models\Product;
+use App\Models\SurchargeFee;
+use App\Models\ProductSurcharge;
 use App\Models\ProductAssignCategory;
 use App\Models\ProductImage;
+use App\Models\Admin;
+use App\Models\Category;
+use App\Models\MachineProductMap;
 use App\Rules\ProductClientRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -295,6 +300,16 @@ class ProductController extends LinkedMachineController
             Product::insert($product);
             ProductImage::insert($product_images);
             ProductAssignCategory::insert($product_assign_category);
+            if (isset($product_surcharges) && count($product_surcharges) > 0) {
+                ProductSurcharge::insert($product_surcharges);
+            }
+
+            if ($request->auth->client_id <= 0) {
+                SurchargeFee::where("product_id", $request->product_id)->delete();
+                if (isset($surcharge_fees) && count($surcharge_fees) > 0) {
+                    SurchargeFee::insert($surcharge_fees);
+                }
+            }
             DB::commit();
             return $this->sendSuccess("Product created successfully.");
         } catch (\Exception $e) {
@@ -306,6 +321,7 @@ class ProductController extends LinkedMachineController
     public function update(Request $request, RequestHelper $requestHelper)
     {
         $client_id                      = $request->auth->client_id;
+
         $rules = [
             'uuid'                      => 'required|exists:product,uuid',
             'product_name'              => 'required|string',
@@ -315,18 +331,33 @@ class ProductController extends LinkedMachineController
 
         $this->validate($request, $rules);
         extract($requestHelper->productUpdateRequest($request));
+        DB::beginTransaction();
         try {
             Product::where("uuid", $request->uuid)->update($product);
             ProductAssignCategory::where("uuid", $request->uuid)->delete();
+            ProductSurcharge::where("product_id", $request->product_id)->delete();
             if (isset($product_assign_category) && count($product_assign_category) > 0) {
                 ProductAssignCategory::insert($product_assign_category);
             }
+            if (isset($product_surcharges) && count($product_surcharges) > 0) {
+                ProductSurcharge::insert($product_surcharges);
+            }
+
+            if ($client_id <= 0) {
+                SurchargeFee::where("product_id", $request->product_id)->delete();
+                if (isset($surcharge_fees) && count($surcharge_fees) > 0) {
+                    SurchargeFee::insert($surcharge_fees);
+                }
+            }
+
             ProductImage::where("uuid", $request->uuid)->delete();
             if (isset($product_images) && count($product_images) > 0) {
                 ProductImage::insert($product_images);
             }
+            DB::commit();
             return $this->sendSuccess('Product updated successfully');
         } catch (\Throwable $th) {
+            DB::rollback();
             return $this->sendError($th->getMessage());
             //throw $th;
         }
@@ -364,8 +395,23 @@ class ProductController extends LinkedMachineController
             'uuid'                      => 'required|exists:product,uuid'
         ];
         $this->validate($request, $rules);
+        $product =  Product::with("images", "assigned_categories", "product_surcharges", "Surcharge_fees")->where("uuid", $request->uuid)->first();
 
-        return $this->sendResponse('Success', Product::with("images", "assigned_categories")->where("uuid", $request->uuid)->first());
+
+        if (!$product->product_surcharges) {
+            $product->setRelation('product_surcharges', (object) [
+                'product_id' => $product->product_id,
+                'client_id' => $client_id,
+                'surcharge_value' => '',
+                'surcharge_type' => ''
+            ]);
+        }
+        
+        // Append product_surcharges to the product object
+        $product->product_surcharges = $product->product_surcharges;
+     
+
+        return $this->sendResponse('Success', $product);
     }
 
     /**
@@ -495,7 +541,7 @@ class ProductController extends LinkedMachineController
     public function productsListDropdown(Request $request, $client_id = null)
     {
         if ($request->auth->client_id <= 0) {
-            if($client_id){
+            if ($client_id) {
                 $request->merge(['client_id' => $client_id]);
             }
             $this->validate($request, ['client_id' => 'required']);
@@ -503,4 +549,81 @@ class ProductController extends LinkedMachineController
         $product = new Product();
         return $this->sendResponse('Image updated successfully', $product->productsListDropdown($request));
     }
+
+    public function getAllProductDataEditClient(Request $request)
+    {
+        $adminId = $request->auth->id;
+        $machineId = $request->machine_id;
+        $admin = Admin::find($adminId);
+        if (!$admin) {
+            return response()->json(['code' => 404, 'msg' => "Admin not found"], 404);
+        }
+
+        $machineIdArray = explode(',', $admin->machines);
+
+        $productArray = MachineProductMap::whereIn('machine_id', $machineIdArray)
+            ->groupBy('product_id')
+            ->pluck('product_id')
+            ->toArray();
+
+        $productIdArray = $productArray;
+
+        $assignedProduct = [];
+        $unAssignedProduct = [];
+
+        $arrData = Product::where('client_id', $request->input('client_id'))
+            ->where('is_deleted', '0')
+            ->get();
+
+        foreach ($arrData as $product) {
+            $product->product_category_id = '';
+            $product->product_category_name = '';
+
+            $assignCategoryInfo = ProductAssignCategory::where('product_id', $product->product_id)->first();
+            if ($assignCategoryInfo) {
+                $product->product_category_id = $assignCategoryInfo->category_id;
+                $categoryInfo = Category::find($assignCategoryInfo->category_id);
+                if ($categoryInfo) {
+                    $product->product_category_name = $categoryInfo->category_name;
+                }
+            }
+
+            $product->client_code = '';
+            $product->client_name = '';
+
+            if (in_array($product->product_id, $productIdArray)) {
+                $assignedProduct[] = $product;
+            } else {
+                $unAssignedProduct[] = $product;
+            }
+        }
+        $aisles = MachineProductMap::select('product_location', 'id', 'product_id')
+        ->where('product_id', '<>', '')
+        ->where('machine_id', $machineId)
+        ->orderByRaw('CAST(product_location AS UNSIGNED) ASC')
+        ->get();
+
+        $data = [];
+        $products = [];
+
+        foreach ($aisles as $value) {
+            $data[$value->product_location] = $value->id;
+
+            if (isset($products[$value->product_id])) {
+                $products[$value->product_id][] = $value->product_location;
+            } else {
+                $products[$value->product_id] = [$value->product_location];
+            }
+        }
+
+
+        if ($adminId == -1) {
+            $response = ['code' => 200, 'products' => $arrData,'mapped_aisles'=>$products];
+        } else {
+            $response = ['code' => 200, 'products' => $assignedProduct, 'products_unassigned' => $unAssignedProduct, 'mapped_aisles'=>$products];
+        }
+
+        return response()->json($response);
+    }
+    
 }

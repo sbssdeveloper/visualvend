@@ -69,7 +69,7 @@ class RequestHelper
 
     public function productRequest($request)
     {
-        $other_images = $categories = [];
+        $other_images = $categories = $surcharge_fees = $product_surcharges = [];
 
         $data                           = $request->only("verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_id", "product_name", "product_image", "product_more_info_image", "product_promo_image");
 
@@ -100,12 +100,70 @@ class RequestHelper
             $request->product_category = explode(",", $request->product_category);
             foreach ($request->product_category as $value) {
                 $categories[] = [
-                    "product_id" => $array["product_id"], "category_id" => $value, "client_id" => $client_id, "uuid" => $array['uuid']
+                    "product_id" => $array["product_id"],
+                    "category_id" => $value,
+                    "client_id" => $client_id,
+                    "uuid" => $array['uuid']
                 ];
             }
         }
+        if ($request->has("product_surcharges") && count($request->product_surcharges) > 0) {
+                $product_surcharges[] = [
+                    'product_id' => $array["product_id"],
+                    'client_id' => $client_id,
+                    'surcharge_value' => $request->product_surcharges['surcharge_value'],
+                    'surcharge_type' => $request->product_surcharges['surcharge_type']
+                ];
+        }
+        if ($request->has("surcharge_fees") && count($request->surcharge_fees) > 0) {
+            foreach ($request->surcharge_fees as $key => $fees) {
+                if ($fees['type'] == 'amount') {
+                    $surcharge_fees[] = [
+                        "name" => $fees['name'],
+                        "amount" => $fees['amount'],
+                        "min_price" => $fees['min_price'],
+                        "percentage" => 0,
+                        "type" => $fees['type'],
+                        "max_price" => $fees['max_price'],
+                        "description" => $fees['description'],
+                        "from_date" => $fees['from_date'],
+                        "to_date" => $fees['to_date'],
+                        "client_id" => $client_id,
+                        "product_id" => $request->product_id
+                    ];
+                } else if ($fees['type'] == 'amount-percentage') {
+                    $surcharge_fees[] = [
+                        "name" => $fees['name'],
+                        "amount" => $fees['amount'],
+                        "percentage" => $fees['percentage'],
+                        "min_price" => $fees['min_price'],
+                        "type" => $fees['type'],
+                        "max_price" => $fees['max_price'],
+                        "description" => $fees['description'],  // Fixed typo here
+                        "client_id" => $client_id,
+                        "product_id" => $request->product_id,
+                        "from_date" => $fees['from_date'],
+                        "to_date" => $fees['to_date'],
+                    ];
+                } else if ($fees['type'] == 'percentage') {
+                    $surcharge_fees[] = [
+                        "name" => $fees['name'],
+                        "amount" => 0,
+                        "percentage" => $fees['percentage'],
+                        "type" => $fees['type'],
+                        "min_price" => $fees['min_price'],
+                        "max_price" => $fees['max_price'],
+                        "description" => $fees['description'],  // Fixed typo here
+                        "client_id" => $client_id,
+                        "product_id" => $request->product_id,
+                        "from_date" => $fees['from_date'],
+                        "to_date" => $fees['to_date'],
+                    ];
+                }
+            }
+        }
 
-        return ["product" => $array, "product_images" => $other_images, "product_assign_category" => $categories];
+        return ["product" => $array, "product_images" => $other_images, "product_assign_category" => $categories, "surcharge_fees" => $surcharge_fees, "product_surcharges" => $product_surcharges];
     }
 
     /**
@@ -168,7 +226,7 @@ class RequestHelper
     public function productUpdateRequest($request)
     {
 
-        $categories = $other_images = [];
+        $categories = $other_images = $surcharge_fees = $product_surcharges = [];
         $data                           = $request->only("verification_method", "product_age_verify_minimum", "product_age_verify_required", "product_size_unit", "product_size_amount", "promo_text", "more_info_text", "product_discount_code", "product_status", "vend_quantity", "product_caption", "product_classification_no", "product_sku", "product_grading_no", "product_batch_expiray_date", "product_batch_no", "product_description", "discount_price", "product_price", "product_name", "uuid", "product_image", "product_more_info_image", "product_promo_image");
 
         $array                          = array_filter($data, function ($var) {
@@ -189,7 +247,64 @@ class RequestHelper
             }
         }
 
-        return ["product" => $array, "product_assign_category" => $categories, "product_images" => $other_images];
+        if ($request->has("product_surcharges") && count($request->product_surcharges) > 0) {
+            $product_surcharges[] = [
+                'product_id' => $request->product_id,
+                'client_id' => $request->client_id,
+                'surcharge_value' => $request->product_surcharges['surcharge_value'],
+                'surcharge_type' => $request->product_surcharges['surcharge_type']
+            ];
+        }
+
+        if ($request->has("surcharge_fees") && count($request->surcharge_fees) > 0) {
+            foreach ($request->surcharge_fees as $key => $fees) {
+                if ($fees['type'] == 'amount') {
+                    $surcharge_fees[] = [
+                        "name" => $fees['name'],
+                        "amount" => $fees['amount'],
+                        "min_price" => $fees['min_price'],
+                        "percentage" => 0,
+                        "type" => $fees['type'],
+                        "max_price" => $fees['max_price'],
+                        "description" => $fees['description'],
+                        "from_date" => $fees['from_date'],
+                        "to_date" => $fees['to_date'],
+                        "client_id" => $request->client_id,
+                        "product_id" => $request->product_id
+                    ];
+                } else if ($fees['type'] == 'amount-percentage') {
+                    $surcharge_fees[] = [
+                        "name" => $fees['name'],
+                        "amount" => $fees['amount'],
+                        "percentage" => $fees['percentage'],
+                        "min_price" => $fees['min_price'],
+                        "type" => $fees['type'],
+                        "max_price" => $fees['max_price'],
+                        "description" => $fees['description'],  // Fixed typo here
+                        "client_id" => $request->client_id,
+                        "product_id" => $request->product_id,
+                        "from_date" => $fees['from_date'],
+                        "to_date" => $fees['to_date'],
+                    ];
+                } else if ($fees['type'] == 'percentage') {
+                    $surcharge_fees[] = [
+                        "name" => $fees['name'],
+                        "amount" => 0,
+                        "percentage" => $fees['percentage'],
+                        "type" => $fees['type'],
+                        "min_price" => $fees['min_price'],
+                        "max_price" => $fees['max_price'],
+                        "description" => $fees['description'],  // Fixed typo here
+                        "client_id" => $request->client_id,
+                        "product_id" => $request->product_id,
+                        "from_date" => $fees['from_date'],
+                        "to_date" => $fees['to_date'],
+                    ];
+                }
+            }
+        }
+
+        return ["product" => $array, "product_assign_category" => $categories, "product_images" => $other_images, "surcharge_fees" => $surcharge_fees, "product_surcharges" => $product_surcharges];
     }
 
     public function file_extension($request)
